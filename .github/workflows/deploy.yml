@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT || 22 }}
           script: |
-            cd /var/www/essencial-skin
+            cd /var/www/essenciel-skin
 
             # 권한 수정 (배포 전)
             sudo chown -R $USER:$USER .
