@@ -19,8 +19,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          debug: true
+          port: ${{ secrets.EC2_PORT || 22 }}
           script: |
             cd /var/www/essenciel-skin
 
@@ -45,8 +44,8 @@ jobs:
             # Clear all cache
             php artisan optimize:clear
 
-            # 권한 복구 (www-data가 접근할 수 있도록)
-            sudo chown -R www-data:www-data .
+            # 권한 복구 (www-data가 접근할 수 있도록 - storage, bootstrap/cache만)
+            sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
             echo "Deployment completed successfully!"
