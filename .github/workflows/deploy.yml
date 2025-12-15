@@ -1,0 +1,51 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script: |
+            cd /var/www/essencial-skin
+
+            # 권한 수정 (배포 전)
+            sudo chown -R $USER:$USER .
+            sudo chown -R $USER:$USER .git
+
+            # Git pull
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Install PHP dependencies
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            # Install Node dependencies and build assets
+            npm ci
+            npm run build
+
+            # Run migrations
+            php artisan migrate --force
+
+            # Clear all cache
+            php artisan optimize:clear
+
+            # 권한 복구 (www-data가 접근할 수 있도록)
+            sudo chown -R www-data:www-data .
+            sudo chmod -R 775 storage bootstrap/cache
+
+            echo "Deployment completed successfully!"

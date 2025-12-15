@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\SurveyController as AdminSurveyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    abort(404, '잘못된 경로입니다. QR코드를 스캔하여 접속해주세요.');
 });
 
 // 제품 관련 라우트
