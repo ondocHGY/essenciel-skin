@@ -71,12 +71,12 @@
     {{-- 진행 바 --}}
     <div class="mb-6">
         <div class="flex justify-between text-sm text-gray-500 mb-2">
-            <span>Step <span x-text="step"></span> / 4</span>
-            <span x-text="Math.round((step / 4) * 100) + '%'"></span>
+            <span>Step <span x-text="step"></span> / 3</span>
+            <span x-text="Math.round((step / 3) * 100) + '%'"></span>
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div class="h-full bg-blue-600 rounded-full transition-all duration-300"
-                 :style="{ width: (step / 4) * 100 + '%' }"></div>
+                 :style="{ width: (step / 3) * 100 + '%' }"></div>
         </div>
     </div>
 
@@ -139,27 +139,8 @@
             </div>
         </div>
 
-        {{-- Step 2: 피부 고민 --}}
+        {{-- Step 2: 생활환경 --}}
         <div x-show="step === 2" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-3">피부 고민 (복수 선택 가능)</label>
-                <div class="grid grid-cols-2 gap-3">
-                    <template x-for="concern in concerns" :key="concern.value">
-                        <label class="relative cursor-pointer">
-                            <input type="checkbox" :name="'concerns[]'" :value="concern.value" x-model="formData.concerns" class="peer sr-only">
-                            <div class="p-4 text-center border-2 rounded-xl transition-all peer-checked:border-blue-600 peer-checked:bg-blue-50 border-gray-200 hover:border-gray-300">
-                                <span class="text-2xl block mb-1" x-text="concern.icon"></span>
-                                <span class="text-sm" :class="formData.concerns.includes(concern.value) ? 'text-blue-700 font-medium' : 'text-gray-700'" x-text="concern.label"></span>
-                            </div>
-                        </label>
-                    </template>
-                </div>
-                <p class="text-xs text-gray-400 mt-3 text-center">최소 1개 이상 선택해주세요</p>
-            </div>
-        </div>
-
-        {{-- Step 3: 생활환경 --}}
-        <div x-show="step === 3" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
             <div class="space-y-6">
                 {{-- 수면 시간 --}}
                 <div>
@@ -238,8 +219,8 @@
             </div>
         </div>
 
-        {{-- Step 4: 스킨케어 습관 --}}
-        <div x-show="step === 4" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+        {{-- Step 3: 스킨케어 습관 + 피부 고민 --}}
+        <div x-show="step === 3" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
             <div class="space-y-6">
                 {{-- 케어 단계 --}}
                 <div>
@@ -271,6 +252,23 @@
                     </div>
                 </div>
 
+                {{-- 피부 고민 --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">피부 고민 (복수 선택 가능)</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <template x-for="concern in concerns" :key="concern.value">
+                            <label class="relative cursor-pointer">
+                                <input type="checkbox" :name="'concerns[]'" :value="concern.value" x-model="formData.concerns" class="peer sr-only">
+                                <div class="p-4 text-center border-2 rounded-xl transition-all peer-checked:border-blue-600 peer-checked:bg-blue-50 border-gray-200 hover:border-gray-300">
+                                    <span class="text-2xl block mb-1" x-text="concern.icon"></span>
+                                    <span class="text-sm" :class="formData.concerns.includes(concern.value) ? 'text-blue-700 font-medium' : 'text-gray-700'" x-text="concern.label"></span>
+                                </div>
+                            </label>
+                        </template>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-3 text-center">최소 1개 이상 선택해주세요</p>
+                </div>
+
                 {{-- 만족도 --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-3">
@@ -293,11 +291,11 @@
                         class="flex-1 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl transition-colors hover:bg-gray-50">
                     이전
                 </button>
-                <button type="button" x-show="step < 4" @click="nextStep" :disabled="!canProceed"
+                <button type="button" x-show="step < 3" @click="nextStep" :disabled="!canProceed"
                         class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
                     다음
                 </button>
-                <button type="submit" x-show="step === 4" :disabled="!canSubmit || isSubmitting"
+                <button type="submit" x-show="step === 3" :disabled="!canSubmit || isSubmitting"
                         class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
                     <span x-show="!isSubmitting">분석 시작</span>
                     <span x-show="isSubmitting">분석 중...</span>
@@ -416,13 +414,11 @@ function surveyForm(options = {}) {
         ],
         stepTitles: [
             '기본 정보를 알려주세요',
-            '피부 고민을 선택해주세요',
             '생활 환경을 알려주세요',
             '스킨케어 습관을 알려주세요'
         ],
         stepDescriptions: [
             '정확한 분석을 위해 기본 정보가 필요해요',
-            '가장 신경 쓰이는 피부 고민을 선택해주세요',
             '생활 습관도 피부에 영향을 미쳐요',
             '마지막 단계예요!'
         ],
@@ -458,9 +454,6 @@ function surveyForm(options = {}) {
                 return this.formData.age_group && this.formData.skin_type && this.formData.gender;
             }
             if (this.step === 2) {
-                return this.formData.concerns.length > 0;
-            }
-            if (this.step === 3) {
                 return this.formData.sleep_hours && this.formData.uv_exposure &&
                        this.formData.stress_level && this.formData.water_intake &&
                        this.formData.smoking_drinking;
@@ -469,11 +462,11 @@ function surveyForm(options = {}) {
         },
 
         get canSubmit() {
-            return this.formData.care_steps && this.formData.consistency;
+            return this.formData.care_steps && this.formData.consistency && this.formData.concerns.length > 0;
         },
 
         nextStep() {
-            if (this.canProceed && this.step < 4) {
+            if (this.canProceed && this.step < 3) {
                 this.step++;
             }
         },
