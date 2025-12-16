@@ -64,7 +64,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">주요 성분</h2>
-                    <p class="text-sm text-gray-500 mt-1">제품의 핵심 성분을 입력합니다 (제품 상세 페이지에 표시됨)</p>
+                    <p class="text-sm text-gray-500 mt-1">제품의 핵심 성분을 입력합니다 (주요 성분 영역에 표시됨)</p>
                 </div>
             </div>
 
