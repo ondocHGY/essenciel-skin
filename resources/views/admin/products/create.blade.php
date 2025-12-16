@@ -27,7 +27,7 @@
     </div>
     @endif
 
-    <form action="{{ route('admin.products.store') }}" method="POST" class="space-y-6">
+    <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         <div class="bg-white rounded-xl shadow-sm p-6">
@@ -58,6 +58,50 @@
                 </div>
             </div>
         </div>
+
+        <!-- 제품 이미지 -->
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="imageUploader()">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">제품 이미지</h2>
+            <p class="text-sm text-gray-500 mb-4">제품 페이지에 표시될 이미지입니다 (JPG, PNG, GIF, WEBP / 최대 2MB)</p>
+
+            <div class="flex items-start gap-6">
+                <!-- 이미지 미리보기 -->
+                <div class="w-32 h-32 flex-shrink-0 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+                    <template x-if="!preview">
+                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </template>
+                    <template x-if="preview">
+                        <img :src="preview" class="w-full h-full object-cover">
+                    </template>
+                </div>
+
+                <!-- 업로드 버튼 -->
+                <div class="flex-1">
+                    <label class="block">
+                        <span class="sr-only">이미지 선택</span>
+                        <input type="file" name="image" accept="image/*" @change="handleFileSelect($event)"
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    </label>
+                    <p class="mt-2 text-xs text-gray-400">권장 크기: 500x500px 이상, 정사각형 비율</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function imageUploader() {
+                return {
+                    preview: null,
+                    handleFileSelect(event) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            this.preview = URL.createObjectURL(file);
+                        }
+                    }
+                }
+            }
+        </script>
 
         <!-- 주요 성분 -->
         <div class="bg-white rounded-xl shadow-sm p-6" x-data="ingredientsEditor()">

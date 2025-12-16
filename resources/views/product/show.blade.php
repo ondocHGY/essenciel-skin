@@ -4,6 +4,15 @@
 
 @section('content')
 <div class="px-4 py-6">
+    {{-- 제품 이미지 --}}
+    @if($product->image)
+    <div class="flex justify-center mb-6">
+        <div class="w-48 h-48 rounded-2xl overflow-hidden shadow-lg bg-white">
+            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+        </div>
+    </div>
+    @endif
+
     {{-- 헤더 --}}
     <div class="text-center mb-8">
         <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full mb-3">

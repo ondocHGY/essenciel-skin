@@ -27,7 +27,7 @@
     </div>
     @endif
 
-    <form action="{{ route('admin.products.update', $product) }}" method="POST" class="space-y-6">
+    <form action="{{ route('admin.products.update', $product) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
 
@@ -57,6 +57,66 @@
                 </div>
             </div>
         </div>
+
+        <!-- 제품 이미지 -->
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="imageUploader()">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">제품 이미지</h2>
+            <p class="text-sm text-gray-500 mb-4">제품 페이지에 표시될 이미지입니다 (JPG, PNG, GIF, WEBP / 최대 2MB)</p>
+
+            <div class="flex items-start gap-6">
+                <!-- 이미지 미리보기 -->
+                <div class="w-32 h-32 flex-shrink-0 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative">
+                    <template x-if="!preview && !currentImage">
+                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </template>
+                    <template x-if="preview">
+                        <img :src="preview" class="w-full h-full object-cover">
+                    </template>
+                    <template x-if="!preview && currentImage">
+                        <img :src="currentImage" class="w-full h-full object-cover">
+                    </template>
+                    <!-- 삭제 버튼 -->
+                    <template x-if="currentImage && !removeImage">
+                        <button type="button" @click="removeImage = true; currentImage = null"
+                                class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- 업로드 버튼 -->
+                <div class="flex-1">
+                    <label class="block">
+                        <span class="sr-only">이미지 선택</span>
+                        <input type="file" name="image" accept="image/*" @change="handleFileSelect($event)"
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    </label>
+                    <p class="mt-2 text-xs text-gray-400">권장 크기: 500x500px 이상, 정사각형 비율</p>
+                    <input type="hidden" name="remove_image" :value="removeImage ? '1' : '0'">
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function imageUploader() {
+                return {
+                    preview: null,
+                    currentImage: @json($product->image ? asset('storage/' . $product->image) : null),
+                    removeImage: false,
+                    handleFileSelect(event) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            this.preview = URL.createObjectURL(file);
+                            this.removeImage = false;
+                        }
+                    }
+                }
+            }
+        </script>
 
         <!-- 주요 성분 -->
         <div class="bg-white rounded-xl shadow-sm p-6" x-data="ingredientsEditor()">

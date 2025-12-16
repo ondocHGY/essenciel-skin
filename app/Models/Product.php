@@ -12,6 +12,7 @@ class Product extends Model
         'name',
         'brand',
         'category',
+        'image',
         'ingredients',
         'base_curve',
         'qr_path',

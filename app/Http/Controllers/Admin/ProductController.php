@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\QrGeneratorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -31,6 +32,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'category' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'ingredients' => 'nullable|array',
             'ingredients.*' => 'nullable|string|max:255',
             'base_curve' => 'required|array',
@@ -44,6 +46,11 @@ class ProductController extends Controller
         // 빈 성분 필터링
         if (isset($validated['ingredients'])) {
             $validated['ingredients'] = array_values(array_filter($validated['ingredients'], fn($v) => !empty(trim($v))));
+        }
+
+        // 이미지 업로드 처리
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
         $product = Product::create($validated);
@@ -67,6 +74,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'category' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'ingredients' => 'nullable|array',
             'ingredients.*' => 'nullable|string|max:255',
             'base_curve' => 'required|array',
@@ -77,6 +85,21 @@ class ProductController extends Controller
             $validated['ingredients'] = array_values(array_filter($validated['ingredients'], fn($v) => !empty(trim($v))));
         } else {
             $validated['ingredients'] = [];
+        }
+
+        // 이미지 업로드 처리
+        if ($request->hasFile('image')) {
+            // 기존 이미지 삭제
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        // 이미지 삭제 요청
+        if ($request->input('remove_image') === '1' && $product->image) {
+            Storage::disk('public')->delete($product->image);
+            $validated['image'] = null;
         }
 
         $product->update($validated);
