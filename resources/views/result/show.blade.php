@@ -78,11 +78,15 @@
                 </div>
 
                 {{-- Before / After 정량적 수치 --}}
+                @php
+                    // 소수점 자릿수 결정 (모공, 탄력은 2자리, 나머지는 정수 또는 1자리)
+                    $decimals = in_array($key, ['pore', 'elasticity']) ? 2 : (in_array($key, ['wrinkle', 'tone', 'moisture']) ? 0 : 1);
+                @endphp
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     {{-- Before 카드 --}}
                     <div class="bg-gray-100 rounded-xl p-4">
                         <p class="text-xs text-gray-500 mb-2 font-medium">Before (현재)</p>
-                        <p class="text-3xl font-bold text-gray-700">{{ $metric['initial'] }}</p>
+                        <p class="text-3xl font-bold text-gray-700">{{ number_format($metric['initial'], $decimals) }}</p>
                         <p class="text-sm text-gray-500 mt-1">{{ $metric['unit'] }}</p>
                         <div class="mt-3 pt-3 border-t border-gray-200">
                             <p class="text-xs text-gray-400">현재 피부 상태 기준</p>
@@ -91,11 +95,11 @@
                     {{-- After 카드 --}}
                     <div class="{{ $colors['bg'] }} rounded-xl p-4 border-2 {{ str_replace('text-', 'border-', $colors['text']) }}">
                         <p class="text-xs {{ $colors['text'] }} mb-2 font-medium">After (12주 후)</p>
-                        <p class="text-3xl font-bold {{ $colors['text'] }}">{{ $metric['final'] }}</p>
+                        <p class="text-3xl font-bold {{ $colors['text'] }}">{{ number_format($metric['final'], $decimals) }}</p>
                         <p class="text-sm text-gray-500 mt-1">{{ $metric['unit'] }}</p>
                         <div class="mt-3 pt-3 border-t {{ str_replace('bg-', 'border-', $colors['light']) }}">
                             <p class="text-xs {{ $colors['text'] }}">
-                                {{ $metric['change'] >= 0 ? '+' : '' }}{{ $metric['change'] }} {{ $metric['unit'] }}
+                                {{ $metric['change'] >= 0 ? '+' : '' }}{{ number_format($metric['change'], $decimals) }} {{ $metric['unit'] }}
                             </p>
                         </div>
                     </div>
@@ -120,12 +124,12 @@
                         <div class="text-gray-400 text-xs">8주</div>
                         <div class="text-gray-400 text-xs">12주</div>
 
-                        <div class="font-medium text-gray-600">{{ $metric['initial'] }}</div>
-                        <div class="font-medium text-gray-700">{{ $metric['weekly'][1] ?? '-' }}</div>
-                        <div class="font-medium text-gray-700">{{ $metric['weekly'][2] ?? '-' }}</div>
-                        <div class="font-medium text-gray-700">{{ $metric['weekly'][4] ?? '-' }}</div>
-                        <div class="font-medium text-gray-700">{{ $metric['weekly'][8] ?? '-' }}</div>
-                        <div class="font-bold {{ $colors['text'] }}">{{ $metric['final'] }}</div>
+                        <div class="font-medium text-gray-600">{{ number_format($metric['initial'], $decimals) }}</div>
+                        <div class="font-medium text-gray-700">{{ isset($metric['weekly'][1]) ? number_format($metric['weekly'][1], $decimals) : '-' }}</div>
+                        <div class="font-medium text-gray-700">{{ isset($metric['weekly'][2]) ? number_format($metric['weekly'][2], $decimals) : '-' }}</div>
+                        <div class="font-medium text-gray-700">{{ isset($metric['weekly'][4]) ? number_format($metric['weekly'][4], $decimals) : '-' }}</div>
+                        <div class="font-medium text-gray-700">{{ isset($metric['weekly'][8]) ? number_format($metric['weekly'][8], $decimals) : '-' }}</div>
+                        <div class="font-bold {{ $colors['text'] }}">{{ number_format($metric['final'], $decimals) }}</div>
                     </div>
                     <p class="text-xs text-gray-400 text-center mt-2">단위: {{ $metric['unit'] }}</p>
                 </div>
@@ -275,24 +279,54 @@
 @endpush
 
 @push('scripts')
+{{-- Chart.js CDN 로드 (Vite 번들 로딩 전에도 사용 가능하도록) --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 function resultTabs() {
     return {
         activeTab: 'moisture',
         charts: {},
+        chartsReady: false,
 
         init() {
-            this.$nextTick(() => {
-                this.initCharts();
-                this.initRadarChart();
+            // Chart.js가 로드될 때까지 대기
+            this.waitForChart().then(() => {
+                this.chartsReady = true;
+                this.$nextTick(() => {
+                    this.initCharts();
+                    this.initRadarChart();
+                });
             });
 
             this.$watch('activeTab', (tab) => {
+                if (!this.chartsReady) return;
                 this.$nextTick(() => {
                     if (!this.charts[tab]) {
                         this.createChart(tab);
                     }
                 });
+            });
+        },
+
+        waitForChart() {
+            return new Promise((resolve) => {
+                if (typeof Chart !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                // Chart.js 로딩 대기 (최대 5초)
+                let attempts = 0;
+                const checkChart = setInterval(() => {
+                    attempts++;
+                    if (typeof Chart !== 'undefined') {
+                        clearInterval(checkChart);
+                        resolve();
+                    } else if (attempts > 50) {
+                        clearInterval(checkChart);
+                        console.error('Chart.js failed to load');
+                        resolve();
+                    }
+                }, 100);
             });
         },
 
@@ -302,6 +336,11 @@ function resultTabs() {
         },
 
         createChart(key) {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded');
+                return;
+            }
+
             const canvas = document.getElementById(`chart-${key}`);
             if (!canvas || this.charts[key]) return;
 
@@ -316,6 +355,12 @@ function resultTabs() {
                 pore: { border: 'rgb(34, 197, 94)', bg: 'rgba(34, 197, 94, 0.1)' },
                 wrinkle: { border: 'rgb(236, 72, 153)', bg: 'rgba(236, 72, 153, 0.1)' }
             };
+
+            // 소수점 자릿수 설정 (pore, elasticity: 2자리, 나머지: 정수)
+            const decimals = {
+                moisture: 0, elasticity: 2, tone: 0, pore: 2, wrinkle: 0
+            };
+            const decimalPlaces = decimals[key] || 1;
 
             const weeks = ['시작', '1주', '2주', '4주', '8주', '12주'];
             const weekKeys = [0, 1, 2, 4, 8, 12];
@@ -350,7 +395,7 @@ function resultTabs() {
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (ctx) => `${ctx.parsed.y} ${metric.unit}`
+                                label: (ctx) => `${ctx.parsed.y.toFixed(decimalPlaces)} ${metric.unit}`
                             }
                         }
                     },
@@ -358,7 +403,7 @@ function resultTabs() {
                         y: {
                             ticks: {
                                 font: { size: 10 },
-                                callback: (value) => value + (metric.unit.length <= 3 ? metric.unit : '')
+                                callback: (value) => value.toFixed(decimalPlaces) + (metric.unit.length <= 3 ? metric.unit : '')
                             }
                         },
                         x: {
@@ -370,6 +415,14 @@ function resultTabs() {
         },
 
         initRadarChart() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded');
+                return;
+            }
+
+            const canvas = document.getElementById('radarChart');
+            if (!canvas) return;
+
             const metrics = @json($result->metrics ?? []);
             const labels = Object.values(metrics).map(m => m.name);
 
@@ -377,7 +430,7 @@ function resultTabs() {
             const beforeData = Object.values(metrics).map(m => m.radarBefore || 0);
             const afterData = Object.values(metrics).map(m => m.radarAfter || 0);
 
-            new Chart(document.getElementById('radarChart'), {
+            new Chart(canvas, {
                 type: 'radar',
                 data: {
                     labels: labels,

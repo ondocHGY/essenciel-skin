@@ -32,6 +32,7 @@ class ProductController extends Controller
             'brand' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'ingredients' => 'nullable|array',
+            'ingredients.*' => 'nullable|string|max:255',
             'base_curve' => 'required|array',
             'base_curve.moisture' => 'required|array|size:5',
             'base_curve.elasticity' => 'required|array|size:5',
@@ -39,6 +40,11 @@ class ProductController extends Controller
             'base_curve.pore' => 'required|array|size:5',
             'base_curve.wrinkle' => 'required|array|size:5',
         ]);
+
+        // 빈 성분 필터링
+        if (isset($validated['ingredients'])) {
+            $validated['ingredients'] = array_values(array_filter($validated['ingredients'], fn($v) => !empty(trim($v))));
+        }
 
         $product = Product::create($validated);
 
@@ -62,8 +68,16 @@ class ProductController extends Controller
             'brand' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'ingredients' => 'nullable|array',
+            'ingredients.*' => 'nullable|string|max:255',
             'base_curve' => 'required|array',
         ]);
+
+        // 빈 성분 필터링
+        if (isset($validated['ingredients'])) {
+            $validated['ingredients'] = array_values(array_filter($validated['ingredients'], fn($v) => !empty(trim($v))));
+        } else {
+            $validated['ingredients'] = [];
+        }
 
         $product->update($validated);
 

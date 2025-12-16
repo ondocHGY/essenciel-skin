@@ -58,26 +58,253 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-2">효과 곡선 (Base Curve)</h2>
-            <p class="text-sm text-gray-500 mb-6">각 항목별 1주, 2주, 4주, 8주, 12주 시점의 예상 효과(0-100)</p>
+        <!-- 주요 성분 -->
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="ingredientsEditor()">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">주요 성분</h2>
+                    <p class="text-sm text-gray-500 mt-1">제품의 핵심 성분을 관리합니다 (제품 상세 페이지에 표시됨)</p>
+                </div>
+            </div>
 
-            @foreach(['moisture' => '수분', 'elasticity' => '탄력', 'tone' => '피부톤', 'pore' => '모공', 'wrinkle' => '주름'] as $key => $label)
-            <div class="mb-6 last:mb-0">
-                <label class="block text-sm font-medium text-gray-700 mb-3">{{ $label }}</label>
+            <!-- 성분 목록 -->
+            <div class="space-y-2 mb-4">
+                <template x-for="(ingredient, index) in ingredients" :key="index">
+                    <div class="flex items-center gap-2">
+                        <input type="text" :name="'ingredients[]'" x-model="ingredients[index]"
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="성분명 입력">
+                        <button type="button" @click="removeIngredient(index)"
+                                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            <!-- 성분 추가 버튼 -->
+            <button type="button" @click="addIngredient()"
+                    class="w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg hover:border-blue-400 hover:text-blue-500 transition-colors flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                성분 추가
+            </button>
+
+            <!-- 빠른 추가 -->
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <p class="text-sm text-gray-600 mb-2">자주 사용하는 성분:</p>
+                <div class="flex flex-wrap gap-2">
+                    <template x-for="preset in presetIngredients" :key="preset">
+                        <button type="button" @click="addPresetIngredient(preset)"
+                                class="px-3 py-1 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-full transition-colors"
+                                x-text="preset"></button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function ingredientsEditor() {
+                return {
+                    ingredients: {!! json_encode($product->ingredients ?? []) !!},
+                    presetIngredients: [
+                        '히알루론산', '나이아신아마이드', '레티놀', '비타민C', '펩타이드',
+                        '세라마이드', '콜라겐', '아데노신', '알부틴', 'AHA', 'BHA',
+                        '녹차추출물', '병풀추출물', '스쿠알란', '판테놀'
+                    ],
+                    addIngredient() {
+                        this.ingredients.push('');
+                    },
+                    removeIngredient(index) {
+                        this.ingredients.splice(index, 1);
+                    },
+                    addPresetIngredient(ingredient) {
+                        if (!this.ingredients.includes(ingredient)) {
+                            this.ingredients.push(ingredient);
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="baseCurveEditor()">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">기대 효과 곡선 (Base Curve)</h2>
+                    <p class="text-sm text-gray-500 mt-1">각 항목별 주차별 예상 개선율(0-100%)을 설정합니다</p>
+                </div>
+                <button type="button" @click="showHelp = !showHelp" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 도움말 -->
+            <div x-show="showHelp" x-transition class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h4 class="font-medium text-blue-900 mb-2">효과 곡선이란?</h4>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• 각 수치는 해당 주차에 <strong>최대 개선량의 몇 %</strong>가 달성되는지를 의미합니다</li>
+                    <li>• 예: 수분 12주차 = 90% → 최대 수분 개선량(+25%)의 90%인 +22.5% 개선</li>
+                    <li>• 이 값에 사용자의 설문 응답(나이, 피부타입 등)에 따른 modifier가 곱해집니다</li>
+                    <li>• 최종 효과는 100%를 초과할 수 없습니다</li>
+                </ul>
+                <div class="mt-3 pt-3 border-t border-blue-200">
+                    <p class="text-xs text-blue-600">
+                        <a href="{{ route('admin.survey-options.index') }}" class="underline hover:text-blue-800">설문 옵션 관리</a>에서 전체 계산 공식을 확인할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 효과 미리보기 차트 -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">효과 곡선 미리보기</h4>
+                <div class="h-40 flex items-end gap-1">
+                    @foreach(['moisture', 'elasticity', 'tone', 'pore', 'wrinkle'] as $idx => $key)
+                        @php
+                            $colors = ['bg-blue-400', 'bg-green-400', 'bg-yellow-400', 'bg-purple-400', 'bg-pink-400'];
+                            $value12 = $product->base_curve[$key][4] ?? 0;
+                        @endphp
+                        <div class="flex-1 flex flex-col items-center gap-1">
+                            <div class="w-full rounded-t transition-all duration-300 {{ $colors[$idx] }}"
+                                 style="height: {{ $value12 }}%"
+                                 x-bind:style="'height: ' + curves.{{ $key }}[4] + '%'"></div>
+                            <span class="text-xs text-gray-500">{{ ['수분', '탄력', '톤', '모공', '주름'][$idx] }}</span>
+                            <span class="text-xs font-mono text-gray-400" x-text="curves.{{ $key }}[4] + '%'">{{ $value12 }}%</span>
+                        </div>
+                    @endforeach
+                </div>
+                <p class="text-xs text-gray-400 text-center mt-2">12주차 기준 효과율</p>
+            </div>
+
+            <!-- 카테고리별 입력 -->
+            @php
+                $categories = [
+                    'moisture' => ['label' => '💧 수분', 'desc' => '피부 수분량 증가 (최대 +25%)', 'color' => 'blue'],
+                    'elasticity' => ['label' => '✨ 탄력', 'desc' => '콜라겐 밀도 증가 (최대 +0.9 mg/cm²)', 'color' => 'green'],
+                    'tone' => ['label' => '🎨 피부톤', 'desc' => '멜라닌 지수 감소 (최대 -80 M.I)', 'color' => 'yellow'],
+                    'pore' => ['label' => '⭕ 모공', 'desc' => '모공 면적 감소 (최대 -0.5 mm²)', 'color' => 'purple'],
+                    'wrinkle' => ['label' => '〰️ 주름', 'desc' => '주름 깊이 감소 (최대 -35 μm)', 'color' => 'pink'],
+                ];
+            @endphp
+
+            @foreach($categories as $key => $config)
+            <div class="mb-6 last:mb-0 p-4 bg-{{ $config['color'] }}-50 rounded-lg border border-{{ $config['color'] }}-100">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <label class="text-sm font-medium text-gray-900">{{ $config['label'] }}</label>
+                        <p class="text-xs text-gray-500">{{ $config['desc'] }}</p>
+                    </div>
+                    <span class="text-sm font-mono bg-white px-2 py-1 rounded border" x-text="curves.{{ $key }}[4] + '%'">
+                        {{ $product->base_curve[$key][4] ?? 0 }}%
+                    </span>
+                </div>
                 <div class="grid grid-cols-5 gap-3">
                     @foreach([0, 1, 2, 3, 4] as $i)
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">{{ [1, 2, 4, 8, 12][$i] }}주</label>
+                        <label class="text-xs text-gray-500 block mb-1 text-center">{{ [1, 2, 4, 8, 12][$i] }}주</label>
                         <input type="number" name="base_curve[{{ $key }}][]" min="0" max="100" required
                                value="{{ old("base_curve.$key.$i", $product->base_curve[$key][$i] ?? 0) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               x-model="curves.{{ $key }}[{{ $i }}]"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-{{ $config['color'] }}-500 focus:border-{{ $config['color'] }}-500">
+                    </div>
+                    @endforeach
+                </div>
+                <!-- 미니 진행 바 -->
+                <div class="flex gap-1 mt-3">
+                    @foreach([0, 1, 2, 3, 4] as $i)
+                    <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-{{ $config['color'] }}-400 rounded-full transition-all duration-300"
+                             x-bind:style="'width: ' + curves.{{ $key }}[{{ $i }}] + '%'"></div>
                     </div>
                     @endforeach
                 </div>
             </div>
             @endforeach
+
+            <!-- 프리셋 버튼 -->
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <p class="text-sm text-gray-600 mb-3">빠른 설정:</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" @click="applyPreset('gradual')"
+                            class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        점진적 개선
+                    </button>
+                    <button type="button" @click="applyPreset('fast')"
+                            class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        빠른 효과
+                    </button>
+                    <button type="button" @click="applyPreset('moisture')"
+                            class="px-3 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors">
+                        수분 집중
+                    </button>
+                    <button type="button" @click="applyPreset('antiaging')"
+                            class="px-3 py-1.5 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors">
+                        안티에이징
+                    </button>
+                </div>
+            </div>
         </div>
+
+        <script>
+            function baseCurveEditor() {
+                return {
+                    showHelp: false,
+                    curves: {
+                        moisture: [{{ implode(',', $product->base_curve['moisture'] ?? [10,25,40,60,80]) }}],
+                        elasticity: [{{ implode(',', $product->base_curve['elasticity'] ?? [10,25,40,60,80]) }}],
+                        tone: [{{ implode(',', $product->base_curve['tone'] ?? [10,25,40,60,80]) }}],
+                        pore: [{{ implode(',', $product->base_curve['pore'] ?? [10,25,40,60,80]) }}],
+                        wrinkle: [{{ implode(',', $product->base_curve['wrinkle'] ?? [10,25,40,60,80]) }}],
+                    },
+                    applyPreset(type) {
+                        const presets = {
+                            gradual: {
+                                moisture: [10, 25, 45, 65, 85],
+                                elasticity: [8, 20, 38, 58, 75],
+                                tone: [10, 25, 42, 62, 80],
+                                pore: [5, 15, 30, 50, 65],
+                                wrinkle: [5, 15, 30, 48, 65],
+                            },
+                            fast: {
+                                moisture: [25, 50, 70, 85, 95],
+                                elasticity: [20, 40, 60, 78, 90],
+                                tone: [20, 42, 62, 80, 92],
+                                pore: [15, 35, 55, 72, 85],
+                                wrinkle: [12, 30, 50, 68, 82],
+                            },
+                            moisture: {
+                                moisture: [20, 45, 65, 82, 95],
+                                elasticity: [8, 18, 32, 48, 62],
+                                tone: [8, 20, 35, 52, 68],
+                                pore: [5, 12, 25, 40, 55],
+                                wrinkle: [5, 12, 22, 38, 52],
+                            },
+                            antiaging: {
+                                moisture: [12, 28, 45, 62, 78],
+                                elasticity: [15, 35, 55, 75, 90],
+                                tone: [12, 30, 50, 70, 85],
+                                pore: [8, 20, 38, 55, 72],
+                                wrinkle: [15, 32, 52, 72, 88],
+                            },
+                        };
+                        if (presets[type]) {
+                            this.curves = { ...presets[type] };
+                            // Update form inputs
+                            Object.keys(this.curves).forEach(key => {
+                                this.curves[key].forEach((val, idx) => {
+                                    const input = document.querySelector(`input[name="base_curve[${key}][]"]:nth-of-type(${idx + 1})`);
+                                    if (input) input.value = val;
+                                });
+                            });
+                        }
+                    }
+                }
+            }
+        </script>
 
         @if($product->qr_path)
         <div class="bg-white rounded-xl shadow-sm p-6">
