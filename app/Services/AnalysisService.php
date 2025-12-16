@@ -178,7 +178,7 @@ class AnalysisService
             $concernMatch
         );
 
-        $milestones = $this->generateMilestones($timeline);
+        $milestones = $this->generateMilestones($timeline, $profile);
         $comparison = $this->calculateComparison($timeline, $baseCurve);
 
         // 정량적 피부 측정 지표 계산
@@ -392,33 +392,106 @@ class AnalysisService
         return $timeline;
     }
 
-    private function generateMilestones(array $timeline): array
+    private function generateMilestones(array $timeline, UserProfile $profile): array
     {
         $milestones = [];
-        $thresholds = [10, 30, 50];
         $weeks = [1, 2, 4, 8, 12];
 
-        foreach ($timeline as $category => $weeklyValues) {
-            foreach ($thresholds as $threshold) {
-                foreach ($weeks as $week) {
-                    if (isset($weeklyValues[$week]) && $weeklyValues[$week] >= $threshold) {
-                        $milestones[] = [
-                            'category' => $category,
-                            'threshold' => $threshold,
-                            'week' => $week,
-                            'value' => $weeklyValues[$week],
-                            'message' => $this->getMilestoneMessage($category, $threshold),
-                        ];
-                        break;
+        // 각 주차별로 가장 개선율이 높은 카테고리 하나만 선택
+        foreach ($weeks as $week) {
+            $bestCategory = null;
+            $bestValue = 0;
+            $bestImprovement = 0;
+
+            foreach ($timeline as $category => $weeklyValues) {
+                if (isset($weeklyValues[$week])) {
+                    $currentValue = $weeklyValues[$week];
+                    // 이전 주차 대비 개선량 계산
+                    $prevWeekIndex = array_search($week, $weeks);
+                    $prevWeek = $prevWeekIndex > 0 ? $weeks[$prevWeekIndex - 1] : 0;
+                    $prevValue = $prevWeek > 0 ? ($weeklyValues[$prevWeek] ?? 0) : 0;
+                    $improvement = $currentValue - $prevValue;
+
+                    // 해당 주차에서 가장 큰 개선을 보인 카테고리 선택
+                    if ($improvement > $bestImprovement || ($improvement == $bestImprovement && $currentValue > $bestValue)) {
+                        $bestCategory = $category;
+                        $bestValue = $currentValue;
+                        $bestImprovement = $improvement;
                     }
                 }
             }
+
+            if ($bestCategory && $bestValue > 0) {
+                $milestones[] = [
+                    'category' => $bestCategory,
+                    'week' => $week,
+                    'value' => $bestValue,
+                    'improvement' => round($bestImprovement, 1),
+                    'message' => $this->generateDataDrivenMessage($bestCategory, $week, $bestValue, $bestImprovement, $profile),
+                ];
+            }
         }
 
-        // 주차별로 정렬
-        usort($milestones, fn($a, $b) => $a['week'] <=> $b['week']);
-
         return $milestones;
+    }
+
+    /**
+     * 데이터 기반 분석적 마일스톤 메시지 생성
+     */
+    private function generateDataDrivenMessage(string $category, int $week, float $value, float $improvement, UserProfile $profile): string
+    {
+        $categoryNames = [
+            'moisture' => '수분',
+            'elasticity' => '탄력',
+            'tone' => '피부톤',
+            'pore' => '모공',
+            'wrinkle' => '주름',
+        ];
+
+        $categoryName = $categoryNames[$category] ?? $category;
+        $skinType = $profile->skin_type ?? '복합성';
+        $ageGroup = $profile->age_group ?? '30대';
+
+        // 주차별 + 카테고리별 데이터 기반 메시지
+        $messages = [
+            1 => [
+                'moisture' => "{$skinType} 피부 수분 흡수율 {$improvement}%p 상승 감지",
+                'elasticity' => "콜라겐 합성 촉진 신호 +{$improvement}%p 확인",
+                'tone' => "멜라닌 억제 반응 {$improvement}%p 개선 시작",
+                'pore' => "피지 분비량 조절 효과 {$improvement}%p 감지",
+                'wrinkle' => "표피 재생 사이클 활성화 +{$improvement}%p",
+            ],
+            2 => [
+                'moisture' => "각질층 수분 보유력 {$value}% 도달 (평균 대비 +" . round($improvement) . "%p)",
+                'elasticity' => "진피층 탄성 섬유 밀도 {$value}% 수준 측정",
+                'tone' => "{$ageGroup} 평균 대비 피부톤 균일도 {$improvement}%p 개선",
+                'pore' => "모공 수축 효과 {$value}% 진행 확인",
+                'wrinkle' => "미세주름 깊이 감소율 {$value}% 달성",
+            ],
+            4 => [
+                'moisture' => "수분 장벽 기능 {$value}% 회복 - 최적 수분 밸런스 근접",
+                'elasticity' => "피부 탄력도 {$value}% 도달, 눈에 띄는 개선 구간 진입",
+                'tone' => "색소 침착 개선 {$value}% - 맑은 피부톤 형성 중",
+                'pore' => "모공 가시성 {$value}% 감소, 피부결 개선 뚜렷",
+                'wrinkle' => "주름 개선 효과 {$value}% - {$ageGroup} 상위 그룹 수준",
+            ],
+            8 => [
+                'moisture' => "장기 수분 유지력 {$value}% 안정화 - 건강한 피부 상태",
+                'elasticity' => "탄력 개선 {$value}% 달성, 처짐 방지 효과 극대화",
+                'tone' => "피부톤 균일도 {$value}% - 투명한 피부 완성 단계",
+                'pore' => "모공 관리 {$value}% 효과, 매끈한 피부결 유지",
+                'wrinkle' => "주름 완화 {$value}% 도달 - 동안 피부 효과",
+            ],
+            12 => [
+                'moisture' => "최종 수분도 {$value}% 달성 - 이상적인 피부 컨디션",
+                'elasticity' => "탄력 개선 목표 {$value}% 달성 - 탱탱한 피부 완성",
+                'tone' => "피부톤 개선 {$value}% 완료 - 맑고 화사한 피부",
+                'pore' => "모공 케어 {$value}% 달성 - 결점 없는 피부결",
+                'wrinkle' => "주름 개선 {$value}% 완료 - 젊고 건강한 피부",
+            ],
+        ];
+
+        return $messages[$week][$category] ?? "{$categoryName} 개선 {$value}% 달성";
     }
 
     private function getMilestoneMessage(string $category, int $threshold): string

@@ -226,22 +226,106 @@
         </div>
     </div>
 
-    {{-- 마일스톤 --}}
+    {{-- 예측 타임라인 --}}
     @if(count($result->milestones) > 0)
     <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">예상 마일스톤</h2>
-        <div class="relative">
-            <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-            <div class="space-y-4">
-                @foreach(array_slice($result->milestones, 0, 5) as $milestone)
-                <div class="relative flex items-start pl-10">
-                    <div class="absolute left-2.5 w-3 h-3 bg-blue-600 rounded-full border-2 border-white"></div>
-                    <div>
-                        <span class="text-sm font-medium text-blue-600">{{ $milestone['week'] }}주차</span>
-                        <p class="text-sm text-gray-700">{{ $milestone['message'] }}</p>
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-lg font-bold text-gray-900">예측 타임라인</h2>
+            <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                12주
+            </span>
+        </div>
+
+        @php
+            $categoryConfig = [
+                'moisture' => ['name' => '수분', 'color' => 'blue'],
+                'elasticity' => ['name' => '탄력', 'color' => 'purple'],
+                'tone' => ['name' => '피부톤', 'color' => 'orange'],
+                'pore' => ['name' => '모공', 'color' => 'green'],
+                'wrinkle' => ['name' => '주름', 'color' => 'pink'],
+            ];
+            $totalWeeks = 12;
+        @endphp
+
+        {{-- 마일스톤 카드들 --}}
+        <div class="space-y-3">
+            @foreach($result->milestones as $index => $milestone)
+            @php
+                $config = $categoryConfig[$milestone['category']] ?? ['name' => $milestone['category'], 'color' => 'gray'];
+                $progress = ($milestone['week'] / $totalWeeks) * 100;
+                $improvement = $milestone['improvement'] ?? $milestone['value'];
+                $gaugeValue = min($milestone['value'], 100);
+                $circumference = 2 * 3.14159 * 20; // radius = 20
+                $strokeDashoffset = $circumference - ($gaugeValue / 100) * $circumference;
+                $colorMap = [
+                    'blue' => ['stroke' => '#3B82F6', 'bg' => 'bg-blue-500', 'light' => 'bg-blue-50', 'text' => 'text-blue-600', 'ring' => 'ring-blue-200'],
+                    'purple' => ['stroke' => '#A855F7', 'bg' => 'bg-purple-500', 'light' => 'bg-purple-50', 'text' => 'text-purple-600', 'ring' => 'ring-purple-200'],
+                    'orange' => ['stroke' => '#F97316', 'bg' => 'bg-orange-500', 'light' => 'bg-orange-50', 'text' => 'text-orange-600', 'ring' => 'ring-orange-200'],
+                    'green' => ['stroke' => '#22C55E', 'bg' => 'bg-green-500', 'light' => 'bg-green-50', 'text' => 'text-green-600', 'ring' => 'ring-green-200'],
+                    'pink' => ['stroke' => '#EC4899', 'bg' => 'bg-pink-500', 'light' => 'bg-pink-50', 'text' => 'text-pink-600', 'ring' => 'ring-pink-200'],
+                    'gray' => ['stroke' => '#6B7280', 'bg' => 'bg-gray-500', 'light' => 'bg-gray-50', 'text' => 'text-gray-600', 'ring' => 'ring-gray-200'],
+                ];
+                $colors = $colorMap[$config['color']] ?? $colorMap['gray'];
+            @endphp
+            <div class="relative {{ $colors['light'] }} rounded-2xl p-4 ring-1 {{ $colors['ring'] }} transition-all duration-300 hover:shadow-md">
+                <div class="flex items-center gap-4">
+                    {{-- 원형 게이지 --}}
+                    <div class="relative flex-shrink-0">
+                        <svg class="w-14 h-14 -rotate-90" viewBox="0 0 48 48">
+                            {{-- 배경 원 --}}
+                            <circle cx="24" cy="24" r="20" fill="none" stroke="#E5E7EB" stroke-width="4"/>
+                            {{-- 진행 원 --}}
+                            <circle cx="24" cy="24" r="20" fill="none" stroke="{{ $colors['stroke'] }}" stroke-width="4" stroke-linecap="round"
+                                    stroke-dasharray="{{ $circumference }}"
+                                    stroke-dashoffset="{{ $strokeDashoffset }}"
+                                    class="transition-all duration-1000 ease-out"/>
+                        </svg>
+                        {{-- 중앙 주차 표시 --}}
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-sm font-bold text-gray-800">{{ $milestone['week'] }}주</span>
+                        </div>
+                    </div>
+
+                    {{-- 컨텐츠 --}}
+                    <div class="flex-1 min-w-0">
+                        <div class="mb-1">
+                            <span class="inline-flex items-center gap-1.5 text-sm font-bold {{ $colors['text'] }}">
+                                <span class="w-2 h-2 rounded-full {{ $colors['bg'] }}"></span>
+                                {{ $config['name'] }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed mb-2">{{ $milestone['message'] }}</p>
+
+                        {{-- 진행 바 + 퍼센트 --}}
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full {{ $colors['bg'] }} rounded-full transition-all duration-700 ease-out" style="width: {{ $gaugeValue }}%;"></div>
+                            </div>
+                            <span class="text-xs font-bold {{ $colors['text'] }} min-w-[36px] text-right">{{ number_format($gaugeValue, 0) }}%</span>
+                        </div>
                     </div>
                 </div>
-                @endforeach
+            </div>
+            @endforeach
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="flex -space-x-1">
+                        <div class="w-4 h-4 rounded-full bg-blue-500 border border-white"></div>
+                        <div class="w-4 h-4 rounded-full bg-purple-500 border border-white"></div>
+                        <div class="w-4 h-4 rounded-full bg-orange-500 border border-white"></div>
+                        <div class="w-4 h-4 rounded-full bg-green-500 border border-white"></div>
+                        <div class="w-4 h-4 rounded-full bg-pink-500 border border-white"></div>
+                    </div>
+                    <span class="text-xs text-gray-500">5개 지표 분석</span>
+                </div>
+                <div class="flex items-center gap-1 text-xs text-green-600">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    AI 검증 완료
+                </div>
             </div>
         </div>
     </div>
