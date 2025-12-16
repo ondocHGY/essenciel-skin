@@ -4,7 +4,7 @@
 
 @section('content')
 {{-- 분석 로딩 오버레이 --}}
-<div x-data="surveyForm()" x-cloak>
+<div x-data="surveyForm(@js($surveyOptions ?? []))" x-cloak>
     <div x-show="isAnalyzing"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -327,7 +327,79 @@
 
 @push('scripts')
 <script>
-function surveyForm() {
+function surveyForm(options = {}) {
+    // 기본값 설정 (DB에서 옵션을 가져오지 못한 경우 fallback)
+    const defaultOptions = {
+        age_groups: [
+            { value: '10대', label: '10대' },
+            { value: '20대초반', label: '20대 초반' },
+            { value: '20대후반', label: '20대 후반' },
+            { value: '30대', label: '30대' },
+            { value: '40대', label: '40대' },
+            { value: '50대이상', label: '50대 이상' }
+        ],
+        skin_types: [
+            { value: '건성', label: '건성' },
+            { value: '지성', label: '지성' },
+            { value: '복합성', label: '복합성' },
+            { value: '민감성', label: '민감성' },
+            { value: '중성', label: '중성' }
+        ],
+        genders: [
+            { value: 'female', label: '여성' },
+            { value: 'male', label: '남성' },
+            { value: 'other', label: '기타' }
+        ],
+        concerns: [
+            { value: 'wrinkle', label: '주름', icon: '🔲' },
+            { value: 'elasticity', label: '탄력저하', icon: '📉' },
+            { value: 'pigmentation', label: '색소침착', icon: '🔵' },
+            { value: 'pore', label: '모공', icon: '⚫' },
+            { value: 'acne', label: '여드름', icon: '🔴' },
+            { value: 'dryness', label: '건조함', icon: '🏜️' },
+            { value: 'redness', label: '홍조', icon: '🌹' },
+            { value: 'dullness', label: '칙칙함', icon: '😶' }
+        ],
+        sleep_hours: [
+            { value: 'under6', label: '6시간 미만' },
+            { value: '6to8', label: '6-8시간' },
+            { value: 'over8', label: '8시간 이상' }
+        ],
+        uv_exposure: [
+            { value: 'indoor', label: '실내 위주' },
+            { value: 'normal', label: '보통' },
+            { value: 'outdoor', label: '실외 많음' }
+        ],
+        stress_levels: [
+            { value: 'low', label: '낮음' },
+            { value: 'medium', label: '보통' },
+            { value: 'high', label: '높음' }
+        ],
+        water_intake: [
+            { value: 'under1L', label: '1L 미만' },
+            { value: '1to2L', label: '1-2L' },
+            { value: 'over2L', label: '2L 이상' }
+        ],
+        smoking_drinking: [
+            { value: 'none', label: '안함' },
+            { value: 'sometimes', label: '가끔' },
+            { value: 'often', label: '자주' }
+        ],
+        care_steps: [
+            { value: '3이하', label: '3단계 이하' },
+            { value: '5단계', label: '5단계' },
+            { value: '7이상', label: '7단계 이상' }
+        ],
+        consistency_options: [
+            { value: 'sometimes', label: '가끔' },
+            { value: 'regular', label: '규칙적' },
+            { value: 'always', label: '매일' }
+        ]
+    };
+
+    // DB 옵션이 있으면 사용, 없으면 기본값 사용
+    const merged = { ...defaultOptions, ...options };
+
     return {
         step: 1,
         isSubmitting: false,
@@ -368,71 +440,18 @@ function surveyForm() {
             consistency: '',
             satisfaction: 5
         },
-        ageGroups: [
-            { value: '10대', label: '10대' },
-            { value: '20대초반', label: '20대 초반' },
-            { value: '20대후반', label: '20대 후반' },
-            { value: '30대', label: '30대' },
-            { value: '40대', label: '40대' },
-            { value: '50대이상', label: '50대 이상' }
-        ],
-        skinTypes: [
-            { value: '건성', label: '건성' },
-            { value: '지성', label: '지성' },
-            { value: '복합성', label: '복합성' },
-            { value: '민감성', label: '민감성' },
-            { value: '중성', label: '중성' }
-        ],
-        genders: [
-            { value: 'female', label: '여성' },
-            { value: 'male', label: '남성' },
-            { value: 'other', label: '기타' }
-        ],
-        concerns: [
-            { value: 'wrinkle', label: '주름', icon: '🔲' },
-            { value: 'elasticity', label: '탄력저하', icon: '📉' },
-            { value: 'pigmentation', label: '색소침착', icon: '🔵' },
-            { value: 'pore', label: '모공', icon: '⚫' },
-            { value: 'acne', label: '여드름', icon: '🔴' },
-            { value: 'dryness', label: '건조함', icon: '🏜️' },
-            { value: 'redness', label: '홍조', icon: '🌹' },
-            { value: 'dullness', label: '칙칙함', icon: '😶' }
-        ],
-        sleepHours: [
-            { value: 'under6', label: '6시간 미만' },
-            { value: '6to8', label: '6-8시간' },
-            { value: 'over8', label: '8시간 이상' }
-        ],
-        uvExposure: [
-            { value: 'indoor', label: '실내 위주' },
-            { value: 'normal', label: '보통' },
-            { value: 'outdoor', label: '실외 많음' }
-        ],
-        stressLevels: [
-            { value: 'low', label: '낮음' },
-            { value: 'medium', label: '보통' },
-            { value: 'high', label: '높음' }
-        ],
-        waterIntake: [
-            { value: 'under1L', label: '1L 미만' },
-            { value: '1to2L', label: '1-2L' },
-            { value: 'over2L', label: '2L 이상' }
-        ],
-        smokingDrinking: [
-            { value: 'none', label: '안함' },
-            { value: 'sometimes', label: '가끔' },
-            { value: 'often', label: '자주' }
-        ],
-        careSteps: [
-            { value: '3이하', label: '3단계 이하' },
-            { value: '5단계', label: '5단계' },
-            { value: '7이상', label: '7단계 이상' }
-        ],
-        consistencyOptions: [
-            { value: 'sometimes', label: '가끔' },
-            { value: 'regular', label: '규칙적' },
-            { value: 'always', label: '매일' }
-        ],
+        // DB에서 가져온 옵션 사용
+        ageGroups: merged.age_groups,
+        skinTypes: merged.skin_types,
+        genders: merged.genders,
+        concerns: merged.concerns,
+        sleepHours: merged.sleep_hours,
+        uvExposure: merged.uv_exposure,
+        stressLevels: merged.stress_levels,
+        waterIntake: merged.water_intake,
+        smokingDrinking: merged.smoking_drinking,
+        careSteps: merged.care_steps,
+        consistencyOptions: merged.consistency_options,
 
         get canProceed() {
             if (this.step === 1) {

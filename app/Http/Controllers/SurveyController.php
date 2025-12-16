@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnalysisResult;
 use App\Models\Product;
+use App\Models\SurveyOptionCategory;
 use App\Models\UserProfile;
 use App\Services\AnalysisService;
 use Illuminate\Http\Request;
@@ -24,7 +25,10 @@ class SurveyController extends Controller
             $request->session()->put('skincare_session_id', Str::uuid()->toString());
         }
 
-        return view('survey.index', compact('product'));
+        // DB에서 설문 옵션 가져오기
+        $surveyOptions = SurveyOptionCategory::getOptionsForFrontend();
+
+        return view('survey.index', compact('product', 'surveyOptions'));
     }
 
     public function store(Request $request, string $code)

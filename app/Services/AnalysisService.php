@@ -3,10 +3,46 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\SurveyOptionCategory;
 use App\Models\UserProfile;
+use Illuminate\Support\Facades\Cache;
 
 class AnalysisService
 {
+    private ?array $dbModifiers = null;
+
+    // 하드코딩 fallback 값들 (DB에 값이 없을 경우 사용)
+    private array $fallbackAgeModifiers = [
+        '10대' => 1.2,
+        '20대초반' => 1.15,
+        '20대후반' => 1.1,
+        '30대' => 1.0,
+        '40대' => 0.85,
+        '50대이상' => 0.7,
+    ];
+
+    private array $fallbackSkinTypeModifiers = [
+        '중성' => 1.1,
+        '지성' => 1.0,
+        '건성' => 0.95,
+        '복합성' => 0.9,
+        '민감성' => 0.8,
+    ];
+
+    private array $fallbackConsistencyModifiers = [
+        'always' => 1.3,
+        'regular' => 1.0,
+        'sometimes' => 0.6,
+    ];
+
+    private array $fallbackLifestyleModifiers = [
+        'sleep_hours' => ['under6' => 0.85, '6to8' => 1.0, 'over8' => 1.1],
+        'uv_exposure' => ['indoor' => 1.1, 'normal' => 1.0, 'outdoor' => 0.85],
+        'stress_levels' => ['low' => 1.1, 'medium' => 1.0, 'high' => 0.85],
+        'water_intake' => ['under1L' => 0.9, '1to2L' => 1.0, 'over2L' => 1.1],
+        'smoking_drinking' => ['none' => 1.1, 'sometimes' => 1.0, 'often' => 0.85],
+    ];
+
     // 피부 측정 지표 기준값 및 단위
     private array $skinMetrics = [
         'moisture' => [
@@ -49,36 +85,87 @@ class AnalysisService
         ],
     ];
 
-    private array $ageModifiers = [
-        '10대' => 1.2,
-        '20대초반' => 1.15,
-        '20대후반' => 1.1,
-        '30대' => 1.0,
-        '40대' => 0.85,
-        '50대이상' => 0.7,
-    ];
+    /**
+     * DB에서 modifier 값들을 로드 (캐싱 적용)
+     */
+    private function loadModifiers(): array
+    {
+        if ($this->dbModifiers !== null) {
+            return $this->dbModifiers;
+        }
 
-    private array $skinTypeModifiers = [
-        '중성' => 1.1,
-        '지성' => 1.0,
-        '건성' => 0.95,
-        '복합성' => 0.9,
-        '민감성' => 0.8,
-    ];
+        $this->dbModifiers = Cache::remember('survey_modifiers', 3600, function () {
+            return SurveyOptionCategory::getAllModifiers();
+        });
 
-    private array $consistencyModifiers = [
-        'always' => 1.3,
-        'regular' => 1.0,
-        'sometimes' => 0.6,
-    ];
+        return $this->dbModifiers;
+    }
+
+    /**
+     * 특정 카테고리의 modifier 값 가져오기
+     */
+    private function getModifier(string $category, string $value, float $fallback = 1.0): float
+    {
+        $modifiers = $this->loadModifiers();
+        return $modifiers[$category][$value] ?? $fallback;
+    }
+
+    /**
+     * 연령대 modifier 가져오기
+     */
+    private function getAgeModifier(string $ageGroup): float
+    {
+        $modifier = $this->getModifier('age_groups', $ageGroup);
+        if ($modifier !== 1.0) {
+            return $modifier;
+        }
+        return $this->fallbackAgeModifiers[$ageGroup] ?? 1.0;
+    }
+
+    /**
+     * 피부타입 modifier 가져오기
+     */
+    private function getSkinTypeModifier(string $skinType): float
+    {
+        $modifier = $this->getModifier('skin_types', $skinType);
+        if ($modifier !== 1.0) {
+            return $modifier;
+        }
+        return $this->fallbackSkinTypeModifiers[$skinType] ?? 1.0;
+    }
+
+    /**
+     * 규칙성 modifier 가져오기
+     */
+    private function getConsistencyModifier(string $consistency): float
+    {
+        $modifier = $this->getModifier('consistency_options', $consistency);
+        if ($modifier !== 1.0) {
+            return $modifier;
+        }
+        return $this->fallbackConsistencyModifiers[$consistency] ?? 1.0;
+    }
+
+    /**
+     * 생활환경 modifier 가져오기
+     */
+    private function getLifestyleOptionModifier(string $category, string $value): float
+    {
+        $modifier = $this->getModifier($category, $value);
+        if ($modifier !== 1.0) {
+            return $modifier;
+        }
+        return $this->fallbackLifestyleModifiers[$category][$value] ?? 1.0;
+    }
 
     public function calculate(Product $product, UserProfile $profile): array
     {
         $baseCurve = $product->base_curve;
 
-        $ageModifier = $this->ageModifiers[$profile->age_group] ?? 1.0;
-        $skinTypeModifier = $this->skinTypeModifiers[$profile->skin_type] ?? 1.0;
-        $consistencyModifier = $this->consistencyModifiers[$profile->skincare_habit['consistency'] ?? 'regular'] ?? 1.0;
+        // DB modifier 사용 (fallback 로직 포함)
+        $ageModifier = $this->getAgeModifier($profile->age_group);
+        $skinTypeModifier = $this->getSkinTypeModifier($profile->skin_type);
+        $consistencyModifier = $this->getConsistencyModifier($profile->skincare_habit['consistency'] ?? 'regular');
         $lifestyleModifier = $this->calculateLifestyleModifier($profile->lifestyle);
         $concernMatch = $this->calculateConcernMatch($profile->concerns, $baseCurve);
 
@@ -234,25 +321,21 @@ class AnalysisService
     {
         $score = 1.0;
 
+        // DB modifier 사용 (fallback 로직 포함)
         // 수면 시간
-        $sleepScores = ['under6' => 0.85, '6to8' => 1.0, 'over8' => 1.1];
-        $score *= $sleepScores[$lifestyle['sleep_hours'] ?? '6to8'] ?? 1.0;
+        $score *= $this->getLifestyleOptionModifier('sleep_hours', $lifestyle['sleep_hours'] ?? '6to8');
 
         // 자외선 노출
-        $uvScores = ['indoor' => 1.1, 'normal' => 1.0, 'outdoor' => 0.85];
-        $score *= $uvScores[$lifestyle['uv_exposure'] ?? 'normal'] ?? 1.0;
+        $score *= $this->getLifestyleOptionModifier('uv_exposure', $lifestyle['uv_exposure'] ?? 'normal');
 
         // 스트레스 레벨
-        $stressScores = ['low' => 1.1, 'medium' => 1.0, 'high' => 0.85];
-        $score *= $stressScores[$lifestyle['stress_level'] ?? 'medium'] ?? 1.0;
+        $score *= $this->getLifestyleOptionModifier('stress_levels', $lifestyle['stress_level'] ?? 'medium');
 
         // 수분 섭취
-        $waterScores = ['under1L' => 0.9, '1to2L' => 1.0, 'over2L' => 1.1];
-        $score *= $waterScores[$lifestyle['water_intake'] ?? '1to2L'] ?? 1.0;
+        $score *= $this->getLifestyleOptionModifier('water_intake', $lifestyle['water_intake'] ?? '1to2L');
 
         // 음주/흡연
-        $smokingScores = ['none' => 1.1, 'sometimes' => 1.0, 'often' => 0.85];
-        $score *= $smokingScores[$lifestyle['smoking_drinking'] ?? 'none'] ?? 1.0;
+        $score *= $this->getLifestyleOptionModifier('smoking_drinking', $lifestyle['smoking_drinking'] ?? 'none');
 
         // 0.75 ~ 1.15 범위로 제한
         return max(0.75, min(1.15, $score));
