@@ -618,13 +618,13 @@ class AnalysisService
                 'best_time' => '저녁',
                 'reason' => '자외선 없는 밤 동안 멜라닌 억제 작용 극대화',
                 'morning_effect' => 100,
-                'evening_effect' => 130,
+                'evening_effect' => 123,
             ],
             'wrinkle', 'elasticity' => [
                 'best_time' => '저녁',
                 'reason' => '수면 중 콜라겐 합성 촉진 (성장호르몬 분비 시간대)',
                 'morning_effect' => 100,
-                'evening_effect' => 135,
+                'evening_effect' => 131,
             ],
             'moisture' => [
                 'best_time' => '아침 & 저녁',
@@ -636,13 +636,13 @@ class AnalysisService
                 'best_time' => '저녁',
                 'reason' => '낮 동안 쌓인 피지와 노폐물 제거 후 흡수율 최대',
                 'morning_effect' => 100,
-                'evening_effect' => 125,
+                'evening_effect' => 122,
             ],
             default => [
                 'best_time' => '저녁',
                 'reason' => '피부 재생이 활발한 시간대',
                 'morning_effect' => 100,
-                'evening_effect' => 120,
+                'evening_effect' => 118,
             ],
         };
 
