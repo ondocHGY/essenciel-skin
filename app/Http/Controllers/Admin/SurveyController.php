@@ -28,12 +28,6 @@ class SurveyController extends Controller
             });
         }
 
-        if ($request->filled('skin_type')) {
-            $query->whereHas('profile', function ($q) use ($request) {
-                $q->where('skin_type', $request->skin_type);
-            });
-        }
-
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -47,13 +41,15 @@ class SurveyController extends Controller
         $products = Product::orderBy('name')->get();
 
         $ageGroups = ['10대', '20대초반', '20대후반', '30대', '40대', '50대이상'];
-        $skinTypes = ['중성', '지성', '건성', '복합성', '민감성'];
+
+        // 효능 타입 라벨
+        $efficacyLabels = Product::$efficacyTypes;
 
         return view('admin.surveys.index', compact(
             'results',
             'products',
             'ageGroups',
-            'skinTypes'
+            'efficacyLabels'
         ));
     }
 
@@ -64,66 +60,95 @@ class SurveyController extends Controller
     {
         $result->load(['product', 'profile']);
 
-        // 지표 라벨
-        $labels = [
-            'moisture' => '수분',
-            'elasticity' => '탄력',
-            'tone' => '피부톤',
-            'pore' => '모공',
-            'wrinkle' => '주름',
+        // 효능 타입 라벨
+        $efficacyLabels = Product::$efficacyTypes;
+
+        // 성별 라벨
+        $genderLabels = [
+            'female' => '여성',
+            'male' => '남성',
+            'other' => '기타',
         ];
 
-        // 고민 라벨
-        $concernLabels = [
-            'wrinkle' => '주름/잔주름',
-            'elasticity' => '탄력 저하',
-            'pigmentation' => '기미/잡티',
-            'pore' => '모공',
-            'acne' => '트러블/여드름',
-            'dryness' => '건조함',
-            'redness' => '홍조',
-            'dullness' => '칙칙함',
+        // 음주 라벨
+        $alcoholLabels = [
+            'none' => '전혀 안함',
+            'rarely' => '거의 안함 (월 1~2회)',
+            'sometimes' => '가끔 (주 1~2회)',
+            'often' => '자주 (주 3~4회)',
+            'daily' => '매일',
         ];
 
-        // 라이프스타일 라벨
+        // 흡연 라벨
+        $smokingLabels = [
+            'none' => '비흡연',
+            'quit' => '과거 흡연 (현재 금연)',
+            'light' => '가끔 (하루 5개비 미만)',
+            'moderate' => '보통 (하루 반 갑)',
+            'heavy' => '많이 (하루 한 갑 이상)',
+        ];
+
+        // 라이프스타일 라벨 (새로운 구조)
         $lifestyleLabels = [
             'sleep_hours' => [
                 'label' => '수면시간',
-                'under6' => '6시간 미만',
-                '6to8' => '6-8시간',
-                'over8' => '8시간 이상',
+                'values' => [
+                    'under5' => '5시간 미만',
+                    '5to6' => '5~6시간',
+                    '6to7' => '6~7시간',
+                    '7to8' => '7~8시간',
+                    'over8' => '8시간 이상',
+                ],
             ],
             'uv_exposure' => [
                 'label' => '자외선 노출',
-                'indoor' => '실내 위주',
-                'normal' => '보통',
-                'outdoor' => '야외 활동 많음',
+                'values' => [
+                    'indoor' => '실내 위주',
+                    'commute' => '출퇴근 정도',
+                    'normal' => '보통',
+                    'outdoor' => '야외 활동 많음',
+                    'heavy' => '야외 근무',
+                ],
             ],
             'stress_level' => [
                 'label' => '스트레스 수준',
-                'low' => '낮음',
-                'medium' => '보통',
-                'high' => '높음',
+                'values' => [
+                    'very_low' => '매우 낮음',
+                    'low' => '낮음',
+                    'medium' => '보통',
+                    'high' => '높음',
+                    'very_high' => '매우 높음',
+                ],
             ],
             'water_intake' => [
                 'label' => '수분 섭취',
-                'under1L' => '1L 미만',
-                '1to2L' => '1-2L',
-                'over2L' => '2L 이상',
+                'values' => [
+                    'under500ml' => '500ml 미만',
+                    '500ml_1L' => '500ml ~ 1L',
+                    '1L_1.5L' => '1L ~ 1.5L',
+                    '1.5L_2L' => '1.5L ~ 2L',
+                    'over2L' => '2L 이상',
+                ],
             ],
-            'smoking_drinking' => [
-                'label' => '음주/흡연',
-                'none' => '안함',
-                'sometimes' => '가끔',
-                'often' => '자주',
-            ],
+        ];
+
+        // 스킨케어 단계 라벨
+        $careStepsLabels = [
+            'none' => '거의 안함 (세안만)',
+            'basic' => '기초만 (토너 + 로션/크림)',
+            'standard' => '표준 케어 (토너 + 에센스 + 크림)',
+            'thorough' => '꼼꼼히 (클렌징~마스크팩)',
+            'intensive' => '집중 케어 (전문 제품 다수)',
         ];
 
         return view('admin.surveys.show', compact(
             'result',
-            'labels',
-            'concernLabels',
-            'lifestyleLabels'
+            'efficacyLabels',
+            'genderLabels',
+            'alcoholLabels',
+            'smokingLabels',
+            'lifestyleLabels',
+            'careStepsLabels'
         ));
     }
 
@@ -198,23 +223,20 @@ class SurveyController extends Controller
         $columns = [
             'ID',
             '제품명',
+            '효능타입',
             '연령대',
-            '피부타입',
             '성별',
-            '수분(초기)',
-            '수분(최종)',
-            '탄력(초기)',
-            '탄력(최종)',
-            '피부톤(초기)',
-            '피부톤(최종)',
-            '모공(초기)',
-            '모공(최종)',
-            '주름(초기)',
-            '주름(최종)',
+            '음주',
+            '흡연',
+            '초기값',
+            '최종값',
+            '개선율(%)',
             '생성일시',
         ];
 
-        $callback = function () use ($results, $columns) {
+        $efficacyLabels = Product::$efficacyTypes;
+
+        $callback = function () use ($results, $columns, $efficacyLabels) {
             $file = fopen('php://output', 'w');
 
             // BOM for UTF-8
@@ -224,23 +246,19 @@ class SurveyController extends Controller
 
             foreach ($results as $result) {
                 $metrics = $result->metrics ?? [];
+                $efficacyType = $metrics['efficacy_type'] ?? 'moisture';
 
                 fputcsv($file, [
                     $result->id,
                     $result->product?->name ?? '-',
+                    $efficacyLabels[$efficacyType] ?? $efficacyType,
                     $result->profile?->age_group ?? '-',
-                    $result->profile?->skin_type ?? '-',
                     $result->profile?->gender ?? '-',
-                    $metrics['moisture']['initial'] ?? '-',
-                    $metrics['moisture']['final'] ?? '-',
-                    $metrics['elasticity']['initial'] ?? '-',
-                    $metrics['elasticity']['final'] ?? '-',
-                    $metrics['tone']['initial'] ?? '-',
-                    $metrics['tone']['final'] ?? '-',
-                    $metrics['pore']['initial'] ?? '-',
-                    $metrics['pore']['final'] ?? '-',
-                    $metrics['wrinkle']['initial'] ?? '-',
-                    $metrics['wrinkle']['final'] ?? '-',
+                    $result->profile?->alcohol ?? '-',
+                    $result->profile?->smoking ?? '-',
+                    $metrics['initial'] ?? '-',
+                    $metrics['final'] ?? '-',
+                    $metrics['change_percent'] ?? '-',
                     $result->created_at->format('Y-m-d H:i:s'),
                 ]);
             }

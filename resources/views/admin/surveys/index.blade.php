@@ -31,7 +31,7 @@
     <!-- 필터 -->
     <div class="bg-white rounded-xl shadow-sm p-5 lg:p-6 mb-6">
         <form method="GET" action="{{ route('admin.surveys.index') }}">
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">제품</label>
                     <select name="product_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
@@ -50,16 +50,6 @@
                         <option value="">전체</option>
                         @foreach($ageGroups as $age)
                         <option value="{{ $age }}" {{ request('age_group') == $age ? 'selected' : '' }}>{{ $age }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">피부타입</label>
-                    <select name="skin_type" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">전체</option>
-                        @foreach($skinTypes as $type)
-                        <option value="{{ $type }}" {{ request('skin_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -97,9 +87,9 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">제품</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">연령대</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">피부타입</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">효능</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">성별</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">주요 개선</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">개선율</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">일시</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">관리</th>
                     </tr>
@@ -108,24 +98,8 @@
                     @forelse($results as $result)
                     @php
                         $metrics = $result->metrics ?? [];
-                        $bestCategory = null;
-                        $bestImprovement = 0;
-                        foreach ($metrics as $key => $metric) {
-                            if (isset($metric['radarAfter'], $metric['radarBefore'])) {
-                                $improvement = $metric['radarAfter'] - $metric['radarBefore'];
-                                if ($improvement > $bestImprovement) {
-                                    $bestImprovement = $improvement;
-                                    $bestCategory = $key;
-                                }
-                            }
-                        }
-                        $categoryLabels = [
-                            'moisture' => '수분',
-                            'elasticity' => '탄력',
-                            'tone' => '피부톤',
-                            'pore' => '모공',
-                            'wrinkle' => '주름',
-                        ];
+                        $efficacyType = $metrics['efficacy_type'] ?? 'moisture';
+                        $changePercent = $metrics['change_percent'] ?? 0;
                     @endphp
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
@@ -136,13 +110,21 @@
                             <p class="text-sm text-gray-500">{{ $result->product?->brand ?? '' }}</p>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600 hidden md:table-cell">{{ $result->profile?->age_group ?? '-' }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600 hidden md:table-cell">{{ $result->profile?->skin_type ?? '-' }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">{{ $result->profile?->gender ?? '-' }}</td>
+                        <td class="px-6 py-4 hidden md:table-cell">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ $efficacyLabels[$efficacyType] ?? $efficacyType }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">
+                            @php
+                                $genderLabels = ['female' => '여성', 'male' => '남성', 'other' => '기타'];
+                            @endphp
+                            {{ $genderLabels[$result->profile?->gender] ?? $result->profile?->gender ?? '-' }}
+                        </td>
                         <td class="px-6 py-4 hidden lg:table-cell">
-                            @if($bestCategory)
+                            @if($changePercent > 0)
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {{ $categoryLabels[$bestCategory] ?? $bestCategory }}
-                                +{{ round($bestImprovement, 1) }}
+                                +{{ round($changePercent, 1) }}%
                             </span>
                             @else
                             <span class="text-gray-400 text-sm">-</span>

@@ -47,11 +47,17 @@ class DashboardController extends Controller
             ->pluck('count', 'age_group')
             ->toArray();
 
-        // 피부타입별 분포
-        $skinTypeDistribution = UserProfile::select('skin_type', DB::raw('COUNT(*) as count'))
-            ->groupBy('skin_type')
-            ->pluck('count', 'skin_type')
-            ->toArray();
+        // 효능타입별 분포
+        $efficacyDistribution = [];
+        $efficacyLabels = Product::$efficacyTypes;
+
+        // AnalysisResult에서 metrics->efficacy_type 별로 집계
+        $results = AnalysisResult::all();
+        foreach ($results as $result) {
+            $efficacyType = $result->metrics['efficacy_type'] ?? 'moisture';
+            $label = $efficacyLabels[$efficacyType] ?? $efficacyType;
+            $efficacyDistribution[$label] = ($efficacyDistribution[$label] ?? 0) + 1;
+        }
 
         // 제품별 분석 현황
         $productStats = Product::withCount('analysisResults')
@@ -70,7 +76,7 @@ class DashboardController extends Controller
             'chartLabels',
             'chartData',
             'ageDistribution',
-            'skinTypeDistribution',
+            'efficacyDistribution',
             'productStats',
             'recentResults'
         ));

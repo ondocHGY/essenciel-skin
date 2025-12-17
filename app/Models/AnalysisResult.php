@@ -17,6 +17,9 @@ class AnalysisResult extends Model
         'milestones',
         'comparison',
         'metrics',
+        'lifestyle_factors',
+        'usage_guide',
+        'skin_profile',
     ];
 
     protected $casts = [
@@ -24,6 +27,9 @@ class AnalysisResult extends Model
         'milestones' => 'array',
         'comparison' => 'array',
         'metrics' => 'array',
+        'lifestyle_factors' => 'array',
+        'usage_guide' => 'array',
+        'skin_profile' => 'array',
         'created_at' => 'datetime',
     ];
 

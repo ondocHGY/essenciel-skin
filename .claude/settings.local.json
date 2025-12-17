@@ -5,7 +5,10 @@
       "Bash(docker exec:*)",
       "Bash(git push:*)",
       "Bash(gh auth:*)",
-      "Bash(php artisan migrate:*)"
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan:*)",
+      "Bash(del \"C:\\ondoc\\essenciel_qrcode\\app\\Models\\SurveyOptionCategory.php\")",
+      "Bash(del \"C:\\ondoc\\essenciel_qrcode\\database\\seeders\\SurveyOptionSeeder.php\")"
     ]
   }
 }

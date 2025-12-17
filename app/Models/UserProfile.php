@@ -18,6 +18,8 @@ class UserProfile extends Model
         'lifestyle',
         'skincare_habit',
         'satisfaction',
+        'alcohol',
+        'smoking',
     ];
 
     protected $casts = [

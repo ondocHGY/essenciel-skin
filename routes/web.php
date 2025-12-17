@@ -7,7 +7,7 @@ use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\SurveyController as AdminSurveyController;
-use App\Http\Controllers\Admin\SurveyOptionController as AdminSurveyOptionController;
+use App\Http\Controllers\Admin\SurveyQuestionController as AdminSurveyQuestionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -47,17 +47,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/surveys/{result}', [AdminSurveyController::class, 'show'])->name('surveys.show');
         Route::delete('/surveys/{result}', [AdminSurveyController::class, 'destroy'])->name('surveys.destroy');
 
-        // 설문 옵션 관리
-        Route::get('/survey-options', [AdminSurveyOptionController::class, 'index'])->name('survey-options.index');
-        Route::get('/survey-options/create', [AdminSurveyOptionController::class, 'create'])->name('survey-options.create');
-        Route::post('/survey-options', [AdminSurveyOptionController::class, 'storeCategory'])->name('survey-options.store');
-        Route::get('/survey-options/{category}/edit', [AdminSurveyOptionController::class, 'edit'])->name('survey-options.edit');
-        Route::put('/survey-options/{category}', [AdminSurveyOptionController::class, 'updateCategory'])->name('survey-options.update');
-        Route::delete('/survey-options/{category}', [AdminSurveyOptionController::class, 'destroyCategory'])->name('survey-options.destroy');
-        Route::post('/survey-options/{category}/options', [AdminSurveyOptionController::class, 'storeOption'])->name('survey-options.options.store');
-        Route::put('/survey-options/options/{option}', [AdminSurveyOptionController::class, 'updateOption'])->name('survey-options.options.update');
-        Route::delete('/survey-options/options/{option}', [AdminSurveyOptionController::class, 'destroyOption'])->name('survey-options.options.destroy');
-        Route::post('/survey-options/{category}/reorder', [AdminSurveyOptionController::class, 'reorderOptions'])->name('survey-options.options.reorder');
-        Route::post('/survey-options/reorder', [AdminSurveyOptionController::class, 'reorderCategories'])->name('survey-options.reorder');
+        // 설문 질문 관리
+        Route::get('/survey-questions', [AdminSurveyQuestionController::class, 'index'])->name('survey-questions.index');
+        Route::get('/survey-questions/create', [AdminSurveyQuestionController::class, 'create'])->name('survey-questions.create');
+        Route::post('/survey-questions', [AdminSurveyQuestionController::class, 'store'])->name('survey-questions.store');
+        Route::get('/survey-questions/{surveyQuestion}/edit', [AdminSurveyQuestionController::class, 'edit'])->name('survey-questions.edit');
+        Route::put('/survey-questions/{surveyQuestion}', [AdminSurveyQuestionController::class, 'update'])->name('survey-questions.update');
+        Route::delete('/survey-questions/{surveyQuestion}', [AdminSurveyQuestionController::class, 'destroy'])->name('survey-questions.destroy');
+        Route::post('/survey-questions/update-order', [AdminSurveyQuestionController::class, 'updateOrder'])->name('survey-questions.update-order');
     });
 });

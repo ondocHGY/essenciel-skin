@@ -88,33 +88,33 @@
     </div>
 
     <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
-        <!-- 피부타입별 분포 -->
+        <!-- 효능타입별 분포 -->
         <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
-            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">피부타입별 분포</h3>
+            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">효능타입별 분포</h3>
             <div class="space-y-4">
                 @php
-                    $skinTypeColors = [
-                        '중성' => 'bg-green-500',
-                        '지성' => 'bg-blue-500',
-                        '건성' => 'bg-orange-500',
-                        '복합성' => 'bg-purple-500',
-                        '민감성' => 'bg-red-500',
+                    $efficacyColors = [
+                        '보습' => 'bg-blue-500',
+                        '탄력' => 'bg-purple-500',
+                        '톤' => 'bg-orange-500',
+                        '모공' => 'bg-green-500',
+                        '주름' => 'bg-pink-500',
                     ];
-                    $totalSkinType = array_sum($skinTypeDistribution);
+                    $totalEfficacy = array_sum($efficacyDistribution);
                 @endphp
-                @foreach($skinTypeDistribution as $type => $count)
+                @foreach($efficacyDistribution as $type => $count)
                 <div>
                     <div class="flex justify-between text-sm mb-2">
                         <span class="font-medium text-gray-700">{{ $type }}</span>
-                        <span class="text-gray-500">{{ $count }}명 ({{ $totalSkinType > 0 ? round(($count / $totalSkinType) * 100, 1) : 0 }}%)</span>
+                        <span class="text-gray-500">{{ $count }}건 ({{ $totalEfficacy > 0 ? round(($count / $totalEfficacy) * 100, 1) : 0 }}%)</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="{{ $skinTypeColors[$type] ?? 'bg-gray-500' }} h-2.5 rounded-full transition-all duration-500"
-                             style="width: {{ $totalSkinType > 0 ? ($count / $totalSkinType) * 100 : 0 }}%"></div>
+                        <div class="{{ $efficacyColors[$type] ?? 'bg-gray-500' }} h-2.5 rounded-full transition-all duration-500"
+                             style="width: {{ $totalEfficacy > 0 ? ($count / $totalEfficacy) * 100 : 0 }}%"></div>
                     </div>
                 </div>
                 @endforeach
-                @if(empty($skinTypeDistribution))
+                @if(empty($efficacyDistribution))
                 <p class="text-center text-gray-500 py-8">데이터가 없습니다</p>
                 @endif
             </div>
@@ -157,22 +157,33 @@
                     <tr>
                         <th class="px-5 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">제품</th>
                         <th class="px-5 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">연령대</th>
-                        <th class="px-5 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">피부타입</th>
+                        <th class="px-5 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">효능</th>
                         <th class="px-5 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">성별</th>
                         <th class="px-5 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">일시</th>
                         <th class="px-5 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+                    @php
+                        $efficacyLabels = \App\Models\Product::$efficacyTypes;
+                        $genderLabels = ['female' => '여성', 'male' => '남성', 'other' => '기타'];
+                    @endphp
                     @forelse($recentResults as $result)
+                    @php
+                        $efficacyType = $result->metrics['efficacy_type'] ?? 'moisture';
+                    @endphp
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-5 lg:px-6 py-4">
                             <p class="font-medium text-gray-900">{{ $result->product?->name ?? '-' }}</p>
                             <p class="text-sm text-gray-500">{{ $result->product?->brand ?? '' }}</p>
                         </td>
                         <td class="px-5 lg:px-6 py-4 text-sm text-gray-600">{{ $result->profile?->age_group ?? '-' }}</td>
-                        <td class="px-5 lg:px-6 py-4 text-sm text-gray-600">{{ $result->profile?->skin_type ?? '-' }}</td>
-                        <td class="px-5 lg:px-6 py-4 text-sm text-gray-600">{{ $result->profile?->gender ?? '-' }}</td>
+                        <td class="px-5 lg:px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ $efficacyLabels[$efficacyType] ?? $efficacyType }}
+                            </span>
+                        </td>
+                        <td class="px-5 lg:px-6 py-4 text-sm text-gray-600">{{ $genderLabels[$result->profile?->gender] ?? $result->profile?->gender ?? '-' }}</td>
                         <td class="px-5 lg:px-6 py-4 text-sm text-gray-500">{{ $result->created_at->format('m/d H:i') }}</td>
                         <td class="px-5 lg:px-6 py-4">
                             <a href="{{ route('admin.surveys.show', $result) }}"
