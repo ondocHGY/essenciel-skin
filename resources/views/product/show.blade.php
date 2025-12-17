@@ -30,7 +30,7 @@
     <div class="mb-6">
         <a href="{{ route('survey.index', $product->code) }}"
            class="block w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-center font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25">
-            나만의 피부 효과 분석 시작하기
+            내가 사용해도 효과가 있을까?
         </a>
         <p class="text-center text-gray-400 text-xs mt-2">약 1분 소요</p>
     </div>
@@ -79,7 +79,7 @@
             </div>
 
             {{-- 자극여부 설명 --}}
-            <p class="text-xs text-gray-400 mt-3 text-right">* 자극여부는 낮을수록 좋음</p>
+            <p class="text-xs text-gray-400 mt-3 text-right">* 끈적임 & 자극여부는 낮을수록 좋음</p>
         </div>
 
         {{-- AI 분석 요약 --}}

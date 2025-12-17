@@ -272,51 +272,6 @@
                     </div>
                 </div>
 
-                {{-- 사용 빈도 & 용량 --}}
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    {{-- 사용 빈도 --}}
-                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-base">🔄</span>
-                            <span class="font-medium text-gray-900 text-xs">사용 빈도</span>
-                        </div>
-                        <p class="text-sm font-bold text-gray-900 mb-2">{{ $usage['frequency']['recommended'] ?? '2회/일' }}</p>
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-500">1회/일</span>
-                                <span class="text-xs font-semibold text-orange-600">{{ $usage['frequency']['once_effect'] ?? 60 }}%</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-500">2회/일</span>
-                                <span class="text-xs font-semibold text-green-600">{{ $usage['frequency']['twice_effect'] ?? 100 }}%</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-500">+주1회 마스크팩</span>
-                                <span class="text-xs font-semibold text-blue-600">{{ $usage['frequency']['with_mask_effect'] ?? 115 }}%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 적정 사용량 --}}
-                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-base">💧</span>
-                            <span class="font-medium text-gray-900 text-xs">적정 사용량</span>
-                        </div>
-                        <p class="text-sm font-bold text-gray-900 mb-2">{{ $usage['amount']['optimal'] ?? '500원 동전' }}</p>
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-500">적은량</span>
-                                <span class="text-xs font-semibold text-red-500">{{ $usage['amount']['less_effect'] ?? 60 }}%</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-500">적정량</span>
-                                <span class="text-xs font-semibold text-green-600">{{ $usage['amount']['optimal_effect'] ?? 100 }}%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {{-- 효과 향상 권장사항 --}}
                 @if(isset($result->usage_guide['recommendations']) && count($result->usage_guide['recommendations']) > 0)
                 <div class="mt-4 pt-4 border-t border-gray-100">
@@ -358,28 +313,6 @@
                         <div>
                             <p class="font-medium text-gray-900 text-sm">사용 시기</p>
                             <p class="text-gray-600 text-sm">{{ $result->usage_guide['timing'] }}</p>
-                        </div>
-                    </div>
-                    @endif
-                    @if(isset($result->usage_guide['frequency']))
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-900 text-sm">사용 빈도</p>
-                            <p class="text-gray-600 text-sm">{{ $result->usage_guide['frequency'] }}</p>
-                        </div>
-                    </div>
-                    @endif
-                    @if(isset($result->usage_guide['amount']))
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-900 text-sm">적정 사용량</p>
-                            <p class="text-gray-600 text-sm">{{ $result->usage_guide['amount'] }}</p>
                         </div>
                     </div>
                     @endif
