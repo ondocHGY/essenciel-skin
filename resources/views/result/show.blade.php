@@ -34,11 +34,17 @@
     {{-- 헤더 --}}
     <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white px-4 py-6">
         <div class="text-center">
+            @if($product->image)
+            <div class="w-20 h-20 mx-auto mb-3 rounded-xl overflow-hidden bg-white/10 shadow-lg">
+                <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+            </div>
+            @else
             <div class="inline-flex items-center justify-center w-14 h-14 bg-white/20 rounded-full mb-3">
                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
             </div>
+            @endif
             <h1 class="text-xl font-bold">분석 완료</h1>
             <p class="text-blue-100 text-sm mt-1">{{ $product->name }}</p>
             <span class="inline-block mt-2 px-3 py-1 bg-white/20 text-sm rounded-full">
