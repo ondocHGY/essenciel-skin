@@ -163,7 +163,6 @@
                         @foreach($summaries as $summary)
                         <p class="pl-7">"{{ $summary }}"</p>
                         @endforeach
-                        <p class="pl-7">"따가움, 열감 등 자극 관련 언급 비율이 매우 낮았습니다."</p>
                     </div>
                 </div>
             </div>
