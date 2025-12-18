@@ -284,7 +284,7 @@
             </div>
 
             {{-- SCI급 논문 자료 --}}
-            <div class="bg-white px-5 py-6">
+            <div class="bg-white px-5" style="padding-bottom: 24px; padding-top: 48px;">
                 <p class="text-base text-gray-400 text-center mb-1">SCI급 논문 자료</p>
                 <h3 class="text-2xl text-center font-bold text-gray-900 mb-6">나노 리포좀의 지속성</h3>
 
