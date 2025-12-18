@@ -16,7 +16,7 @@
 
         {{-- 성분 정보 --}}
         <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between py-2 mb-2 border-b border-[#D9D9D9]">
+            <div class="flex items-center justify-between py-2 mb-2" style="border-bottom: 1px solid #D9D9D9;">
                 <span class="text-xl font-semibold text-gray-900">{{ $ingredient->name }}</span>
                 @if($ingredient->percentage)
                 <span class="text-xl font-semibold text-gray-900">{{ $ingredient->percentage }}</span>

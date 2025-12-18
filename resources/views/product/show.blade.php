@@ -35,7 +35,7 @@
         {{-- 제품 이미지 --}}
         @if($product->image)
         <div class="flex justify-center mb-6">
-            <div class="w-48 h-48 rounded-2xl overflow-hidden bg-white border-2 border-[#D9D9D9] p-4">
+            <div class="w-48 h-48 rounded-2xl overflow-hidden bg-white p-4" style="border: 2px solid #D9D9D9;">
                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-contain">
             </div>
         </div>
@@ -61,8 +61,8 @@
         @endphp
         @if($ingredients->count() > 0)
         <div class="mb-6" x-data="ingredientSlider({{ $ingredients->count() }})">
-            <div class="bg-white rounded-2xl border border-[#D9D9D9] overflow-hidden">
-                <div class="border-b border-[#D9D9D9] mb-4">
+            <div class="bg-white rounded-2xl overflow-hidden" style="border: 1px solid #D9D9D9;">
+                <div class="mb-4" style="border-bottom: 1px solid #D9D9D9;">
                     <div class="flex items-center justify-between py-2 px-5">
                         <h2 class="text-sm font-semibold text-gray-900">Active Ingredients</h2>
                         <span class="text-xs text-gray-400" x-text="String(currentSlide + 1).padStart(2, '0')">01</span>
@@ -88,7 +88,7 @@
         @endif
 
         {{-- AI 리뷰 분석 섹션 --}}
-        <div class="bg-white rounded-2xl border border-[#D9D9D9] overflow-hidden mb-6">
+        <div class="bg-white rounded-2xl overflow-hidden mb-6" style="border: 1px solid #D9D9D9;">
             {{-- 헤더 --}}
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 class="text-xl font-semibold text-gray-900">AI 리뷰 분석</h2>
@@ -216,7 +216,7 @@
         </div>
 
         {{-- 나노 리포좀 기술 섹션 (통합) --}}
-        <div class="bg-white rounded-2xl border border-[#D9D9D9] overflow-hidden mb-6">
+        <div class="bg-white rounded-2xl overflow-hidden mb-6" style="border: 1px solid #D9D9D9;">
             {{-- 헤더 --}}
             <div class="flex items-center justify-between mb-4 p-5">
                 <h2 class="text-2xl font-semibold text-gray-900">나노 리포좀 기술</h2>
@@ -227,16 +227,16 @@
             </div>
 
             {{-- 기술 설명 --}}
-            <div class="overflow-hidden mb-4">
+            <div class="overflow-hidden mb-4" style="border-top: 1px solid #D9D9D9; border-bottom: 1px solid #D9D9D9;">
                 <div class="grid grid-cols-2">
                     {{-- 리포좀 영상 (좌측) --}}
-                    <div class="bg-gray-100">
+                    <div class="bg-white" style="padding: 5px;">
                         <video autoplay muted loop playsinline class="w-full h-auto">
                             <source src="{{ asset('product/liposome.mp4') }}" type="video/mp4">
                         </video>
                     </div>
-                    {{-- 텍스트 영역 (우측) --}}
-                    <div class="p-4 flex flex-col justify-between bg-white">
+                    {{-- 세로 구분선 + 텍스트 영역 (우측) --}}
+                    <div class="p-4 flex flex-col justify-between bg-white" style="border-left: 1px solid #D9D9D9;">
                         <span class="text-lg font-medium" style="color: {{ $pointColor }}">Nano-Liposome</span>
                         <p class="text-lg leading-snug">유효 성분을 리포좀 캡슐화하여 피부 속 깊숙히 안정적으로 전달해주는 기술</p>
                     </div>
@@ -321,13 +321,13 @@
                 {{-- 그래프 영역 (세로 배치) --}}
                 <div class="space-y-6">
                     <div>
-                        <p class="text-xs mb-2">remaining collagen(%)</p>
+                        <p class="text-xs">remaining collagen(%)</p>
                         <div style="position: relative; height: 270px; width: 100%; overflow: visible;">
                             <canvas id="collagenChart"></canvas>
                         </div>
                     </div>
                     <div>
-                        <p class="text-xs mb-2">remaining fluorescence(%)</p>
+                        <p class="text-xs">remaining fluorescence(%)</p>
                         <div style="position: relative; height: 270px; width: 100%; overflow: visible;">
                             <canvas id="fluorescenceChart"></canvas>
                         </div>
@@ -671,7 +671,15 @@ function productPage() {
                             }
                         },
                         border: { color: '#1f2937', width: 2 },
-                        grid: { color: '#e5e7eb' }
+                        grid: {
+                            color: function(context) {
+                                // 맨 위 격자선(110)은 숨김
+                                if (context.tick.value >= 110) {
+                                    return 'transparent';
+                                }
+                                return '#e5e7eb';
+                            }
+                        }
                     },
                     x: {
                         offset: true,
