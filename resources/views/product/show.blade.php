@@ -306,11 +306,11 @@
                 {{-- 범례 --}}
                 <div class="flex items-center justify-end gap-8 mb-4">
                     <div class="flex items-center gap-1.5">
-                        <img src="{{ asset('product/graph_green.png') }}" alt="" class="w-4 h-4">
+                        <img src="{{ asset('product/graph_green.svg') }}" alt="" class="w-4 h-4">
                         <span class="text-xs text-gray-600">나노리포좀</span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <img src="{{ asset('product/graph_black.png') }}" alt="" class="w-4 h-4">
+                        <img src="{{ asset('product/graph_black.svg') }}" alt="" class="w-4 h-4">
                         <span class="text-xs text-gray-600">일반성분</span>
                     </div>
                 </div>
@@ -662,9 +662,9 @@ function productPage() {
         initSciCharts() {
             // 포인트 이미지 로드
             const greenPointImg = new Image(16, 16);
-            greenPointImg.src = '{{ asset("product/graph_green.png") }}';
+            greenPointImg.src = '{{ asset("product/graph_green.svg") }}';
             const blackPointImg = new Image(16, 16);
-            blackPointImg.src = '{{ asset("product/graph_black.png") }}';
+            blackPointImg.src = '{{ asset("product/graph_black.svg") }}';
 
             // 차트 공통 옵션
             const chartOptions = {
