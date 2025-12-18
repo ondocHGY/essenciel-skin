@@ -21,13 +21,10 @@
 
 @section('content')
 <div x-data="productPage()" class="bg-white min-h-screen">
-    {{-- 상단 헤더 --}}
-    <div class="bg-slate-900 px-4 py-3">
+    {{-- 상단 헤더 (스크롤 시 고정) --}}
+    <div class="bg-black px-4 py-4 sticky top-0 z-50">
         <div class="flex items-center justify-between max-w-lg mx-auto">
-            <div class="flex items-center gap-2">
-                <img src="{{ asset('logo_white.png') }}" alt="essenciel" class="h-5 w-auto">
-            </div>
-            <p class="text-xs text-gray-300">검증된 데이터를 기반으로 과학적으로 설계합니다.</p>
+            <p class="text-xs text-white">에센시엘은 검증된 데이터를 기반으로 과학적으로 설계합니다.</p>
         </div>
     </div>
 
@@ -43,13 +40,13 @@
 
         {{-- 제품 정보 --}}
         <div class="text-center mb-6">
-            <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">{{ strtoupper(str_replace(' ', ' ', $product->category ?? 'HYDRA FORTE AMPOULE')) }}</p>
+            <img src="{{ asset('logo_black.png') }}" alt="essenciel" class="h-6 mx-auto mb-2">
             <h1 class="text-xl font-bold text-gray-900">{{ $product->name }}</h1>
         </div>
 
         {{-- CTA 버튼 --}}
         <div class="mb-6">
-            <a href="{{ route('survey.index', $product->code) }}" class="block w-full py-4 bg-slate-900 hover:bg-slate-800 text-white text-center font-semibold rounded-xl transition-all shadow-lg">
+            <a href="{{ route('survey.index', $product->code) }}" class="block w-full py-4 bg-black hover:bg-gray-900 text-white text-center font-semibold rounded-xl transition-all shadow-lg">
                 내가 사용해도 효과가 있을까?
             </a>
             <p class="text-center text-gray-400 text-xs mt-2">약 1분 소요</p>
@@ -109,7 +106,7 @@
             {{-- AI 분석 요약 --}}
             <div class="px-5 pb-5">
                 <div class="rounded-xl px-6 py-4" style="background-color: rgba({{ $rgbString }}, 0.15)">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-3">AI 분석요약</h3>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2">AI 분석요약</h3>
 
                     {{-- 로딩 중 표시 --}}
                     <div x-show="!collectionComplete" x-cloak class="space-y-3">
@@ -176,7 +173,7 @@
                                 );
                             };
                         @endphp
-                        <div class="space-y-3 text-lg text-gray-600 leading-relaxed">
+                        <div class="space-y-2 text-base text-gray-600 leading-relaxed">
                             @foreach($selectedSummaries as $summary)
                             <p>"{!! $formatSummary($summary) !!}"</p>
                             @endforeach
@@ -187,7 +184,7 @@
 
             {{-- 실시간 집계데이터 버튼 --}}
             <div class="px-5 pb-5">
-                <button @click="showModal = true" class="w-full flex items-center justify-between px-4 py-4 bg-slate-900 hover:bg-slate-800 rounded-xl transition-all group">
+                <button @click="showModal = true" class="w-full flex items-center justify-between px-4 py-4 bg-black hover:bg-gray-900 rounded-xl transition-all group">
                     <div class="flex items-center gap-2">
                         <template x-if="!collectionComplete">
                             <x-loading-spinner />
@@ -195,7 +192,7 @@
                         <template x-if="collectionComplete">
                             <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
                         </template>
-                        <span class="text-base font-medium text-white" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
+                        <span class="text-base font-medium" :style="collectionComplete ? 'color: {{ $pointColor }}' : 'color: white'" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
                     </div>
                     <div class="flex items-center gap-1" style="color: {{ $pointColor }}">
                         <span class="text-sm">상세보기</span>
@@ -218,11 +215,11 @@
         {{-- 나노 리포좀 기술 섹션 (통합) --}}
         <div class="bg-white rounded-2xl overflow-hidden mb-6" style="border: 1px solid #D9D9D9;">
             {{-- 헤더 --}}
-            <div class="flex items-center justify-between mb-4 p-5">
-                <h2 class="text-2xl font-semibold text-gray-900">나노 리포좀 기술</h2>
+            <div class="flex items-center justify-between p-5">
+                <h2 class="text-xl font-semibold text-gray-900">나노 리포좀 기술</h2>
                 <div class="text-right">
                     <p class="text-base text-gray-400">유효 성분</p>
-                    <p class="text-2xl font-bold text-gray-900">흡수율 UP</p>
+                    <p class="text-xl font-bold text-gray-900">흡수율 UP</p>
                 </div>
             </div>
 
@@ -245,20 +242,20 @@
             <p class="text-xs text-gray-400 text-center mt-2" style="margin-bottom: 40px;">*이해를 돕기 위한 영상입니다.</p>
 
             {{-- 기술 특징 --}}
-            <div class="space-y-2 mb-6 px-5" style="margin-bottom: 80px;">
+            <div class="space-y-2 px-5" style="margin-bottom: 40px;">
                 <div class="text-center py-4 bg-white rounded-lg border-2 border-gray-200"><span class="text-base font-bold">안정성 300% 향상 ↑</span></div>
                 <div class="text-center py-4 bg-white rounded-lg border-2 border-gray-200"><span class="text-base font-bold">단계별 전달 시스템으로 효과 지속성 ↑</span></div>
                 <div class="text-center py-4 bg-white rounded-lg border-2 border-gray-200"><span class="text-base font-bold">점진적 방출로 자극 최소화 ↓</span></div>
             </div>
 
             {{-- SCI급 논문 섹션 --}}
-            <div class="text-center mb-4 mt-20">
+            <div class="text-center py-8 mt-10" style="background-color: #F5F5F5;">
                 <p class="text-3xl text-gray-500 mb-1">SCI급 논문에 게재된</p>
                 <h2 class="text-3xl font-bold text-gray-900">나노 리포좀의 우수성</h2>
             </div>
 
             {{-- 논문 이미지 슬라이드 --}}
-            <div class="mb-6 overflow-hidden py-8 -mx-5" style="background-color: #F5F5F5;" x-data="articleSlider()">
+            <div class="overflow-hidden py-8 -mx-5" style="background-color: #F5F5F5;" x-data="articleSlider()">
                 <div class="overflow-hidden px-3">
                     <div class="flex gap-1"
                          :class="isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''"
@@ -278,9 +275,9 @@
                 </div>
             </div>
 
-            <div class="px-5 mb-6">
-                <div class="rounded-xl p-4 border-2" style="border-color: #D9D9D9;">
-                    <p class="text-base text-gray-900 leading-relaxed">
+            <div class="px-5 py-6" style="background-color: #F5F5F5;">
+                <div class="rounded-xl p-4 bg-white border-2" style="border-color: #D9D9D9;">
+                    <p class="text-sm text-gray-900 leading-relaxed">
                         SCI는 과학 분야에서 권위 있는 학술지로 인정받고 있으며, 나노 리포좀에 대한 연구결과는 SCI급 논문에 인용되어 전 세계 연구자들의 주목을 받고 있습니다.
                     </p>
                 </div>
@@ -304,7 +301,7 @@
                     </div>
                 </div>
 
-                <p class="text-xs text-gray-400 text-center mb-6" style="margin-bottom: 80px;">*첫 세정 후 일반 성분 대비 유효 성분 잔여량</p>
+                <p class="text-xs text-gray-400 text-center mb-6" style="margin-bottom: 40px;">*첫 세정 후 일반 성분 대비 유효 성분 잔여량</p>
 
                 {{-- 범례 --}}
                 <div class="flex items-center justify-end gap-8 mb-4">
