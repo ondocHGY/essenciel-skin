@@ -4,92 +4,81 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    <!-- 페이지 헤더 -->
-    <div class="mb-8">
-        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">대시보드</h1>
-        <p class="text-gray-600 mt-1">스킨케어 분석 서비스 현황</p>
-    </div>
+    {{-- 페이지 헤더 --}}
+    <x-page-header title="대시보드" description="스킨케어 분석 서비스 현황" />
 
-    <!-- 빠른 통계 -->
+    {{-- 빠른 통계 --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
-        <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs lg:text-sm text-gray-500 uppercase tracking-wide">등록 제품</p>
-                    <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">{{ number_format($stats['totalProducts']) }}</p>
-                </div>
-                <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-100 flex items-center justify-center">
-                    <svg class="w-6 h-6 lg:w-7 lg:h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        <x-stat-card
+            label="등록 제품"
+            :value="number_format($stats['totalProducts'])"
+            iconBg="bg-blue-100"
+            iconColor="text-blue-600">
+            <x-slot:icon>
+                <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
 
-        <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs lg:text-sm text-gray-500 uppercase tracking-wide">전체 설문</p>
-                    <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">{{ number_format($stats['totalSurveys']) }}</p>
-                </div>
-                <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-green-100 flex items-center justify-center">
-                    <svg class="w-6 h-6 lg:w-7 lg:h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        <x-stat-card
+            label="전체 설문"
+            :value="number_format($stats['totalSurveys'])"
+            iconBg="bg-green-100"
+            iconColor="text-green-600">
+            <x-slot:icon>
+                <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
 
-        <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs lg:text-sm text-gray-500 uppercase tracking-wide">분석 결과</p>
-                    <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">{{ number_format($stats['totalAnalyses']) }}</p>
-                </div>
-                <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-purple-100 flex items-center justify-center">
-                    <svg class="w-6 h-6 lg:w-7 lg:h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        <x-stat-card
+            label="분석 결과"
+            :value="number_format($stats['totalAnalyses'])"
+            iconBg="bg-purple-100"
+            iconColor="text-purple-600">
+            <x-slot:icon>
+                <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
 
-        <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs lg:text-sm text-gray-500 uppercase tracking-wide">오늘 설문</p>
-                    <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">{{ number_format($stats['todaySurveys']) }}</p>
-                </div>
-                <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-orange-100 flex items-center justify-center">
-                    <svg class="w-6 h-6 lg:w-7 lg:h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+        <x-stat-card
+            label="오늘 설문"
+            :value="number_format($stats['todaySurveys'])"
+            iconBg="bg-orange-100"
+            iconColor="text-orange-600">
+            <x-slot:icon>
+                <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </x-slot:icon>
+        </x-stat-card>
     </div>
 
     <div class="grid lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
-        <!-- 주간 설문 추이 차트 -->
-        <div class="lg:col-span-2 bg-white rounded-xl p-5 lg:p-6 shadow-sm">
+        {{-- 주간 설문 추이 차트 --}}
+        <x-card class="lg:col-span-2" padding="5 lg:p-6">
             <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">최근 7일 설문 현황</h3>
             <div class="h-64 lg:h-80">
                 <canvas id="dailyChart"></canvas>
             </div>
-        </div>
+        </x-card>
 
-        <!-- 연령대별 분포 -->
-        <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
+        {{-- 연령대별 분포 --}}
+        <x-card padding="5 lg:p-6">
             <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">연령대별 분포</h3>
             <div class="h-64 lg:h-80">
                 <canvas id="ageChart"></canvas>
             </div>
-        </div>
+        </x-card>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
-        <!-- 효능타입별 분포 -->
-        <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
+        {{-- 효능타입별 분포 --}}
+        <x-card padding="5 lg:p-6">
             <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">효능타입별 분포</h3>
             <div class="space-y-4">
                 @php
@@ -118,10 +107,10 @@
                 <p class="text-center text-gray-500 py-8">데이터가 없습니다</p>
                 @endif
             </div>
-        </div>
+        </x-card>
 
-        <!-- 제품별 분석 현황 -->
-        <div class="bg-white rounded-xl p-5 lg:p-6 shadow-sm">
+        {{-- 제품별 분석 현황 --}}
+        <x-card padding="5 lg:p-6">
             <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">인기 제품 TOP 5</h3>
             <div class="space-y-4">
                 @forelse($productStats as $index => $product)
@@ -142,10 +131,10 @@
                 <p class="text-center text-gray-500 py-8">데이터가 없습니다</p>
                 @endforelse
             </div>
-        </div>
+        </x-card>
     </div>
 
-    <!-- 최근 분석 결과 -->
+    {{-- 최근 분석 결과 --}}
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="px-5 lg:px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h3 class="text-base lg:text-lg font-semibold text-gray-900">최근 분석 결과</h3>

@@ -4,303 +4,406 @@
 
 @php
     $efficacyType = $product->efficacy_type ?? 'moisture';
+    $pointColor = $product->point_color ?? '#10B981';
+
+    // HEX를 RGB로 변환하는 함수
+    $hexToRgb = function($hex) {
+        $hex = ltrim($hex, '#');
+        return [
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2))
+        ];
+    };
+    $rgb = $hexToRgb($pointColor);
+    $rgbString = implode(', ', $rgb);
 @endphp
 
 @section('content')
-<div x-data="productPage()" class="px-4 py-6">
-    {{-- 제품 이미지 --}}
-    @if($product->image)
-    <div class="flex justify-center mb-4">
-        <div class="w-40 h-40 rounded-2xl overflow-hidden shadow-lg bg-white">
-            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+<div x-data="productPage()" class="bg-white min-h-screen">
+    {{-- 상단 헤더 --}}
+    <div class="bg-slate-900 px-4 py-3">
+        <div class="flex items-center justify-between max-w-lg mx-auto">
+            <div class="flex items-center gap-2">
+                <img src="{{ asset('logo_white.png') }}" alt="essenciel" class="h-5 w-auto">
+            </div>
+            <p class="text-xs text-gray-300">검증된 데이터를 기반으로 과학적으로 설계합니다.</p>
         </div>
     </div>
-    @endif
 
-    {{-- 헤더 --}}
-    <div class="text-center mb-4">
-        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full mb-2">
-            {{ $product->brand }}
-        </span>
-        <h1 class="text-xl font-bold text-gray-900 mb-1">{{ $product->name }}</h1>
-        <p class="text-gray-500 text-sm">{{ $product->category }}</p>
-    </div>
+    <div class="px-4 py-6 max-w-lg mx-auto">
+        {{-- 제품 이미지 --}}
+        @if($product->image)
+        <div class="flex justify-center mb-6">
+            <div class="w-48 h-48 rounded-2xl overflow-hidden bg-white border-2 border-[#D9D9D9] p-4">
+                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-contain">
+            </div>
+        </div>
+        @endif
 
-    {{-- CTA 버튼 (제품명 바로 아래) --}}
-    <div class="mb-6">
-        <a href="{{ route('survey.index', $product->code) }}"
-           class="block w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-center font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25">
-            내가 사용해도 효과가 있을까?
-        </a>
-        <p class="text-center text-gray-400 text-xs mt-2">약 1분 소요</p>
-    </div>
+        {{-- 제품 정보 --}}
+        <div class="text-center mb-6">
+            <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">{{ strtoupper(str_replace(' ', ' ', $product->category ?? 'HYDRA FORTE AMPOULE')) }}</p>
+            <h1 class="text-xl font-bold text-gray-900">{{ $product->name }}</h1>
+        </div>
 
-    {{-- AI 리뷰 분석 섹션 --}}
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-        {{-- 헤더 --}}
-        <div class="bg-gradient-to-r from-slate-800 to-slate-900 px-5 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
+        {{-- CTA 버튼 --}}
+        <div class="mb-6">
+            <a href="{{ route('survey.index', $product->code) }}" class="block w-full py-4 bg-slate-900 hover:bg-slate-800 text-white text-center font-semibold rounded-xl transition-all shadow-lg">
+                내가 사용해도 효과가 있을까?
+            </a>
+            <p class="text-center text-gray-400 text-xs mt-2">약 1분 소요</p>
+        </div>
+
+        {{-- Active Ingredients 슬라이드 --}}
+        @php
+            $ingredients = $product->activeIngredients;
+        @endphp
+        @if($ingredients->count() > 0)
+        <div class="mb-6" x-data="ingredientSlider({{ $ingredients->count() }})">
+            <div class="bg-white rounded-2xl border border-[#D9D9D9] overflow-hidden">
+                <div class="border-b border-[#D9D9D9] mb-4">
+                    <div class="flex items-center justify-between py-2 px-5">
+                        <h2 class="text-sm font-semibold text-gray-900">Active Ingredients</h2>
+                        <span class="text-xs text-gray-400" x-text="String(currentSlide + 1).padStart(2, '0')">01</span>
                     </div>
-                    <span class="text-white font-medium text-sm">AI 리뷰 분석</span>
                 </div>
-                <div class="text-right">
-                    <p class="text-blue-400 text-xs">분석한 리뷰</p>
-                    <p class="text-white font-bold text-lg" x-text="totalCollected.toLocaleString() + '개'">0개</p>
+
+                {{-- 슬라이드 컨테이너 --}}
+                <div class="relative overflow-hidden">
+                    <div class="flex items-stretch"
+                         :class="isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''"
+                         :style="'transform: translateX(-' + (currentSlide * 100) + '%)'">
+                        @foreach($ingredients as $index => $ingredient)
+                        <x-ingredient-slide-item :ingredient="$ingredient" :pointColor="$pointColor" />
+                        @endforeach
+                        {{-- 무한 슬라이드를 위한 첫번째 슬라이드 복제 --}}
+                        @if($ingredients->count() > 1)
+                        <x-ingredient-slide-item :ingredient="$ingredients->first()" :pointColor="$pointColor" />
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
+        @endif
 
-        {{-- 분석 데이터 시각화 --}}
-        <div class="p-5">
-            <p class="text-xs text-gray-500 mb-4 flex items-center gap-1">
-                <svg class="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
-                </svg>
-                AI 분석을 통해 수치화된 사용자 경험 데이터
-            </p>
+        {{-- AI 리뷰 분석 섹션 --}}
+        <div class="bg-white rounded-2xl border border-[#D9D9D9] overflow-hidden mb-6">
+            {{-- 헤더 --}}
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h2 class="text-xl font-semibold text-gray-900">AI 리뷰 분석</h2>
+                <div class="text-right">
+                    <p class="text-sm text-gray-400">분석한 리뷰</p>
+                    <p class="text-xl font-bold text-gray-900" x-text="totalCollected.toLocaleString() + ' 개'">0 개</p>
+                </div>
+            </div>
 
-            <div class="space-y-3">
-                <template x-for="(metric, mIndex) in metrics" :key="mIndex">
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-gray-600 w-20 flex-shrink-0" x-text="metric.name"></span>
-                        <div class="flex-1 flex gap-1">
-                            <template x-for="i in 5" :key="i">
-                                <div class="flex-1 h-6 rounded transition-all duration-300"
-                                     :class="i <= metric.current ? metric.color : 'bg-gray-200'"></div>
-                            </template>
+            {{-- 레이더 차트 영역 --}}
+            <div class="p-3">
+                <div class="relative w-full aspect-square mx-auto" style="max-width: 460px;">
+                    <canvas id="radarChart" class="w-full h-full"></canvas>
+                </div>
+                <p class="text-xs text-gray-400 mt-3 text-center">*끈적임 & 자극여부는 낮을수록 좋음</p>
+            </div>
+
+            {{-- AI 분석 요약 --}}
+            <div class="px-5 pb-5">
+                <div class="rounded-xl px-6 py-4" style="background-color: rgba({{ $rgbString }}, 0.15)">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">AI 분석요약</h3>
+
+                    {{-- 로딩 중 표시 --}}
+                    <div x-show="!collectionComplete" x-cloak class="space-y-3">
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <x-loading-spinner />
+                            <span x-text="totalCollected.toLocaleString() + '개 리뷰 분석 중...'">리뷰 분석 중...</span>
                         </div>
+                        <div class="space-y-2">
+                            <div class="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                            <div class="h-4 bg-gray-200 rounded animate-pulse w-5/6"></div>
+                        </div>
+                    </div>
+
+                    {{-- 완료 시 실제 내용 표시 --}}
+                    <div x-show="collectionComplete" x-cloak
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100">
+                        @php
+                            if (!empty($product->intro_summary)) {
+                                $allSummaries = $product->intro_summary;
+                            } else {
+                                $summaryData = [
+                                    'moisture' => [
+                                        '꾸준한 사용 후 **피부톤이 맑아지고 화사해졌다**는 리뷰가 반복적으로 관측되었습니다.',
+                                        '**칙칙했던 눈 밑이 밝아졌다**는 후기가 반복적으로 관측되었습니다.',
+                                        '시간이 지나도 **수분감이 유지된다**는 반응이 반복적으로 관측되었습니다.',
+                                    ],
+                                    'elasticity' => [
+                                        '사용 2~3주 후 **피부가 탱탱해지고 탄력이 개선**되었다는 리뷰가 다수 관측되었습니다.',
+                                        '**볼 라인이 올라간 느낌**이 든다는 후기가 반복적으로 관측되었습니다.',
+                                        '**피부가 탄탄해지고 처짐이 개선**되었다는 평가가 많았습니다.',
+                                    ],
+                                    'tone' => [
+                                        '꾸준한 사용 후 **피부톤이 맑아지고 화사해졌다**는 리뷰가 반복적으로 관측되었습니다.',
+                                        '**칙칙했던 눈 밑이 밝아졌다**는 후기가 반복적으로 관측되었습니다.',
+                                        '**잡티와 기미 부위가 옅어졌다**는 평가가 73% 이상이었습니다.',
+                                    ],
+                                    'pore' => [
+                                        '**모공이 눈에 띄게 축소**되고 피부결이 매끄러워졌다는 리뷰가 다수 관측되었습니다.',
+                                        '**코와 볼 주변 모공이 덜 눈에 띈다**는 후기가 반복적으로 관측되었습니다.',
+                                        '오후에도 **피지가 덜 올라온다**는 반응이 반복적으로 관측되었습니다.',
+                                    ],
+                                    'wrinkle' => [
+                                        '**눈가와 이마 주름이 옅어졌다**는 리뷰가 반복적으로 관측되었습니다.',
+                                        '**웃을 때 생기는 주름이 덜 깊어 보인다**는 후기가 반복적으로 관측되었습니다.',
+                                        '**미간 주름 부위가 부드러워졌다**는 후기가 67%였습니다.',
+                                    ],
+                                ];
+                                $allSummaries = $summaryData[$efficacyType] ?? $summaryData['moisture'];
+                            }
+
+                            // 랜덤으로 2~3개 선택
+                            $shuffled = collect($allSummaries)->shuffle();
+                            $displayCount = min(rand(2, 3), $shuffled->count());
+                            $selectedSummaries = $shuffled->take($displayCount);
+
+                            // **텍스트** 를 포인트컬러 굵은 글씨로 변환
+                            $formatSummary = function($text) use ($pointColor) {
+                                return preg_replace(
+                                    '/\*\*(.+?)\*\*/',
+                                    '<strong style="color: black">$1</strong>',
+                                    $text
+                                );
+                            };
+                        @endphp
+                        <div class="space-y-3 text-lg text-gray-600 leading-relaxed">
+                            @foreach($selectedSummaries as $summary)
+                            <p>"{!! $formatSummary($summary) !!}"</p>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 실시간 집계데이터 버튼 --}}
+            <div class="px-5 pb-5">
+                <button @click="showModal = true" class="w-full flex items-center justify-between px-4 py-4 bg-slate-900 hover:bg-slate-800 rounded-xl transition-all group">
+                    <div class="flex items-center gap-2">
+                        <template x-if="!collectionComplete">
+                            <x-loading-spinner />
+                        </template>
+                        <template x-if="collectionComplete">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        </template>
+                        <span class="text-base font-medium text-white" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
+                    </div>
+                    <div class="flex items-center gap-1" style="color: {{ $pointColor }}">
+                        <span class="text-sm">상세보기</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                </button>
+            </div>
+
+            {{-- 데이터 출처 안내 --}}
+            <div class="px-5 pb-5">
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    *네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 {{ $product->name }}의 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
+                </p>
+            </div>
+
+        </div>
+
+        {{-- 나노 리포좀 기술 섹션 (통합) --}}
+        <div class="bg-white rounded-2xl border border-[#D9D9D9] overflow-hidden mb-6">
+            {{-- 헤더 --}}
+            <div class="flex items-center justify-between mb-4 p-5">
+                <h2 class="text-2xl font-semibold text-gray-900">나노 리포좀 기술</h2>
+                <div class="text-right">
+                    <p class="text-base text-gray-400">유효 성분</p>
+                    <p class="text-2xl font-bold text-gray-900">흡수율 UP</p>
+                </div>
+            </div>
+
+            {{-- 기술 설명 --}}
+            <div class="overflow-hidden mb-4">
+                <div class="grid grid-cols-2">
+                    {{-- 리포좀 영상 (좌측) --}}
+                    <div class="bg-gray-100">
+                        <video autoplay muted loop playsinline class="w-full h-auto">
+                            <source src="{{ asset('product/liposome.mp4') }}" type="video/mp4">
+                        </video>
+                    </div>
+                    {{-- 텍스트 영역 (우측) --}}
+                    <div class="p-4 flex flex-col justify-between bg-white">
+                        <span class="text-lg font-medium" style="color: {{ $pointColor }}">Nano-Liposome</span>
+                        <p class="text-lg leading-snug">유효 성분을 리포좀 캡슐화하여 피부 속 깊숙히 안정적으로 전달해주는 기술</p>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 text-center mt-2" style="margin-bottom: 40px;">*이해를 돕기 위한 영상입니다.</p>
+
+            {{-- 기술 특징 --}}
+            <div class="space-y-2 mb-6 px-5" style="margin-bottom: 80px;">
+                <div class="text-center py-4 bg-white rounded-lg border-2 border-gray-200"><span class="text-base font-bold">안정성 300% 향상 ↑</span></div>
+                <div class="text-center py-4 bg-white rounded-lg border-2 border-gray-200"><span class="text-base font-bold">단계별 전달 시스템으로 효과 지속성 ↑</span></div>
+                <div class="text-center py-4 bg-white rounded-lg border-2 border-gray-200"><span class="text-base font-bold">점진적 방출로 자극 최소화 ↓</span></div>
+            </div>
+
+            {{-- SCI급 논문 섹션 --}}
+            <div class="text-center mb-4 mt-20">
+                <p class="text-3xl text-gray-500 mb-1">SCI급 논문에 게재된</p>
+                <h2 class="text-3xl font-bold text-gray-900">나노 리포좀의 우수성</h2>
+            </div>
+
+            {{-- 논문 이미지 슬라이드 --}}
+            <div class="mb-6 overflow-hidden py-8 -mx-5" style="background-color: #F5F5F5;" x-data="articleSlider()">
+                <div class="overflow-hidden px-3">
+                    <div class="flex gap-1"
+                         :class="isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''"
+                         :style="'transform: translateX(calc(-' + currentSlide + ' * (33.3333% + 4px / 3)))'">
+                        @for($i = 1; $i <= 5; $i++)
+                        <div class="flex-shrink-0" style="width: calc((100% - 8px) / 3);">
+                            <img src="{{ asset('product/article_' . $i . '.png') }}" alt="Article {{ $i }}" class="w-full h-auto">
+                        </div>
+                        @endfor
+                        {{-- 무한 슬라이드를 위한 복제 --}}
+                        @for($i = 1; $i <= 5; $i++)
+                        <div class="flex-shrink-0" style="width: calc((100% - 8px) / 3);">
+                            <img src="{{ asset('product/article_' . $i . '.png') }}" alt="Article {{ $i }}" class="w-full h-auto">
+                        </div>
+                        @endfor
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 mb-6">
+                <div class="rounded-xl p-4 border-2" style="border-color: #D9D9D9;">
+                    <p class="text-base text-gray-900 leading-relaxed">
+                        SCI는 과학 분야에서 권위 있는 학술지로 인정받고 있으며, 나노 리포좀에 대한 연구결과는 SCI급 논문에 인용되어 전 세계 연구자들의 주목을 받고 있습니다.
+                    </p>
+                </div>
+            </div>
+
+            {{-- SCI급 논문 자료 --}}
+            <div class="bg-white px-5 py-6">
+                <p class="text-base text-gray-400 text-center mb-1">SCI급 논문 자료</p>
+                <h3 class="text-2xl text-center font-bold text-gray-900 mb-6">나노 리포좀의 지속성</h3>
+
+                {{-- 통계 수치 --}}
+                <div class="flex items-center justify-center mb-4">
+                    <div class="text-center flex-1">
+                        <p class="text-3xl font-bold text-gray-900">85.8%</p>
+                        <p class="text-[10px] text-gray-400 mt-1 tracking-wider">ACTIVE RETENTION</p>
+                    </div>
+                    <div class="flex-shrink-0" style="width: 2px; height: 40px; background-color: #D9D9D9;"></div>
+                    <div class="text-center flex-1">
+                        <p class="text-3xl font-bold text-gray-900">1.56배</p>
+                        <p class="text-[10px] text-gray-400 mt-1 tracking-wider">VS. STANDARD</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-400 text-center mb-6" style="margin-bottom: 80px;">*첫 세정 후 일반 성분 대비 유효 성분 잔여량</p>
+
+                {{-- 범례 --}}
+                <div class="flex items-center justify-end gap-8 mb-4">
+                    <div class="flex items-center gap-1.5">
+                        <img src="{{ asset('product/graph_green.svg') }}" alt="" class="w-4 h-4">
+                        <span class="text-xs text-gray-600">나노리포좀</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <img src="{{ asset('product/graph_black.svg') }}" alt="" class="w-4 h-4">
+                        <span class="text-xs text-gray-600">일반성분</span>
+                    </div>
+                </div>
+
+                {{-- 그래프 영역 (세로 배치) --}}
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-xs mb-2">remaining collagen(%)</p>
+                        <div style="position: relative; height: 270px; width: 100%; overflow: visible;">
+                            <canvas id="collagenChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs mb-2">remaining fluorescence(%)</p>
+                        <div style="position: relative; height: 270px; width: 100%; overflow: visible;">
+                            <canvas id="fluorescenceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[10px] text-gray-400 text-center mt-6">*원료적 특성에 한 함</p>
+            </div>
+        </div>
+
+        {{-- 하단 여백 --}}
+        <div class="h-4"></div>
+    </div>
+
+    {{-- 실시간 데이터 수집 모달 --}}
+    <div x-show="showModal" x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+         @click.self="collectionComplete ? showModal = false : null">
+        <div class="bg-slate-900 rounded-2xl p-6 w-full max-w-sm">
+            {{-- 수집 중 헤더 --}}
+            <div x-show="!collectionComplete" class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-4 relative">
+                    <div class="absolute inset-0 border-4 rounded-full animate-ping" style="border-color: rgba({{ $rgbString }}, 0.3)"></div>
+                    <div class="absolute inset-2 border-4 rounded-full animate-pulse" style="border-color: rgba({{ $rgbString }}, 0.5)"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <x-loading-spinner size="8" :customColor="$pointColor" />
+                    </div>
+                </div>
+                <h3 class="text-white font-bold text-lg mb-1">실시간 데이터 수집 중</h3>
+                <p class="text-slate-400 text-sm">다양한 플랫폼에서 리뷰를 수집하고 있습니다</p>
+            </div>
+
+            {{-- 완료 헤더 --}}
+            <div x-show="collectionComplete" class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background-color: {{ $pointColor }}">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3 class="text-white font-bold text-lg mb-1">데이터 집계 완료</h3>
+                <p class="text-slate-400 text-sm">총 <span x-text="totalCollected.toLocaleString()"></span>개 리뷰 분석 완료</p>
+            </div>
+
+            {{-- 수집 현황 --}}
+            <div class="space-y-3 mb-6">
+                <template x-for="(platform, index) in platforms" :key="index">
+                    <div class="flex items-center justify-between text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full"
+                                 :class="platform.collected ? '' : 'bg-slate-600 animate-pulse'"
+                                 :style="platform.collected ? 'background-color: {{ $pointColor }}' : ''"></div>
+                            <span class="text-slate-300" x-text="platform.name"></span>
+                        </div>
+                        <span class="font-mono text-xs" style="color: {{ $pointColor }}" x-text="platform.count.toLocaleString() + '건'"></span>
                     </div>
                 </template>
             </div>
 
-            {{-- 자극여부 설명 --}}
-            <p class="text-xs text-gray-400 mt-3 text-right">* 끈적임 & 자극여부는 낮을수록 좋음</p>
-        </div>
-
-        {{-- AI 분석 요약 --}}
-        <div class="px-5 pb-5">
-            <div class="bg-slate-50 rounded-xl p-4">
-                <div class="flex items-start gap-2 mb-3">
-                    <div class="w-5 h-5 bg-blue-500 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <p class="text-sm font-medium text-gray-800">AI 분석 요약</p>
-                </div>
-
-                {{-- 로딩 중 표시 --}}
-                <div x-show="!collectionComplete" x-cloak class="space-y-3 pl-7">
-                    <div class="flex items-center gap-2 text-sm text-gray-500">
-                        <svg class="w-4 h-4 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span x-text="totalCollected.toLocaleString() + '개 리뷰 분석 중...'">리뷰 분석 중...</span>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
-                        <div class="h-4 bg-gray-200 rounded animate-pulse w-5/6"></div>
-                        <div class="h-4 bg-gray-200 rounded animate-pulse w-4/5"></div>
-                    </div>
-                </div>
-
-                {{-- 완료 시 실제 내용 표시 --}}
-                <div x-show="collectionComplete" x-cloak
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0"
-                     x-transition:enter-end="opacity-100">
-                    @php
-                        // 제품별 커스텀 요약이 있으면 사용, 없으면 효능 타입별 기본값
-                        if (!empty($product->intro_summary)) {
-                            $allSummaries = $product->intro_summary;
-                        } else {
-                            $summaryData = [
-                                'moisture' => [
-                                    '다수의 리뷰에서 시간이 지나도 수분감이 유지된다는 반응이 반복적으로 관측되었습니다.',
-                                    '흡수가 빠르고 끈적임 없이 촉촉하다는 평가가 87%를 차지했습니다.',
-                                    '건조한 환경에서도 보습력이 오래 유지된다는 후기가 72% 이상이었습니다.',
-                                ],
-                                'elasticity' => [
-                                    '사용 2~3주 후 피부가 탱탱해지고 탄력이 개선되었다는 리뷰가 다수 관측되었습니다.',
-                                    '리프팅 효과와 피부결 개선을 체감했다는 평가가 82%를 차지했습니다.',
-                                    '볼 라인이 올라간 느낌이 든다는 후기가 68% 이상이었습니다.',
-                                ],
-                                'tone' => [
-                                    '꾸준한 사용 후 피부톤이 맑아지고 화사해졌다는 리뷰가 반복적으로 관측되었습니다.',
-                                    '칙칙함 개선과 피부 균일함에 대한 긍정 평가가 85%를 차지했습니다.',
-                                    '잡티와 기미 부위가 옅어졌다는 후기가 73% 이상이었습니다.',
-                                ],
-                                'pore' => [
-                                    '모공이 눈에 띄게 축소되고 피부결이 매끄러워졌다는 리뷰가 다수 관측되었습니다.',
-                                    '피지 조절 효과와 모공 케어에 대한 긍정 평가가 79%를 차지했습니다.',
-                                    '코와 볼 주변 모공이 덜 눈에 띈다는 후기가 71% 이상이었습니다.',
-                                ],
-                                'wrinkle' => [
-                                    '눈가와 이마 주름이 옅어졌다는 리뷰가 반복적으로 관측되었습니다.',
-                                    '잔주름 개선과 피부 매끄러움에 대한 긍정 평가가 81%를 차지했습니다.',
-                                    '웃을 때 생기는 주름이 덜 깊어 보인다는 후기가 74% 이상이었습니다.',
-                                ],
-                            ];
-                            $allSummaries = $summaryData[$efficacyType] ?? $summaryData['moisture'];
-                        }
-
-                        // 랜덤으로 2~3개 선택 (세션 기반으로 같은 사용자에게 일관된 결과 제공)
-                        $sessionKey = 'intro_summary_' . $product->code;
-                        if (!session()->has($sessionKey)) {
-                            $shuffled = collect($allSummaries)->shuffle();
-                            $count = rand(2, 3);
-                            session([$sessionKey => $shuffled->take($count)->values()->all()]);
-                        }
-                        $summaries = session($sessionKey);
-                    @endphp
-                    <div class="space-y-2 text-sm text-gray-600 leading-relaxed">
-                        @foreach($summaries as $summary)
-                        <p class="pl-7">"{{ $summary }}"</p>
-                        @endforeach
-                    </div>
-                </div>
+            {{-- 총 수집 데이터 --}}
+            <div class="bg-slate-800 rounded-xl p-4 text-center">
+                <p class="text-slate-400 text-xs mb-1">총 수집 데이터</p>
+                <p class="text-2xl font-bold text-white" x-text="totalCollected.toLocaleString() + '건'"></p>
             </div>
-        </div>
 
-        {{-- 실시간 집계데이터 버튼 (클릭시 모달 표시) --}}
-        <div class="px-5 pb-5">
-            <button @click="showModal = true"
-                    class="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-slate-100 to-slate-50 hover:from-slate-200 hover:to-slate-100 rounded-xl transition-all group">
-                <div class="flex items-center gap-2">
-                    {{-- 로딩 중: 회전 아이콘 --}}
-                    <template x-if="!collectionComplete">
-                        <svg class="w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </template>
-                    {{-- 완료: 초록 점 --}}
-                    <template x-if="collectionComplete">
-                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                    </template>
-                    <span class="text-sm font-medium text-gray-700" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
-                </div>
-                <div class="flex items-center gap-1 text-blue-600">
-                    <span class="text-xs">상세보기</span>
-                    <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </div>
+            {{-- 닫기 버튼 --}}
+            <button x-show="collectionComplete" @click="showModal = false"
+                    class="w-full mt-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-sm">
+                닫기
             </button>
         </div>
-
-        {{-- 실시간 데이터 수집 모달 --}}
-        <div x-show="showModal" x-cloak
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-             @click.self="collectionComplete ? showModal = false : null">
-            <div class="bg-slate-900 rounded-2xl p-6 w-full max-w-sm">
-                {{-- 수집 중 헤더 --}}
-                <div x-show="!collectionComplete" class="text-center mb-6">
-                    <div class="w-16 h-16 mx-auto mb-4 relative">
-                        <div class="absolute inset-0 border-4 border-blue-500/30 rounded-full animate-ping"></div>
-                        <div class="absolute inset-2 border-4 border-blue-400/50 rounded-full animate-pulse"></div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <h3 class="text-white font-bold text-lg mb-1">실시간 데이터 수집 중</h3>
-                    <p class="text-slate-400 text-sm">다양한 플랫폼에서 리뷰를 수집하고 있습니다</p>
-                </div>
-
-                {{-- 완료 헤더 --}}
-                <div x-show="collectionComplete" class="text-center mb-6">
-                    <div class="w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-white font-bold text-lg mb-1">데이터 집계 완료</h3>
-                    <p class="text-slate-400 text-sm">총 {{ $product->intro_review_count ?? '12,847' }}개 리뷰 분석 완료</p>
-                </div>
-
-                {{-- 수집 현황 --}}
-                <div class="space-y-3 mb-6">
-                    <template x-for="(platform, index) in platforms" :key="index">
-                        <div class="flex items-center justify-between text-sm">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full"
-                                     :class="platform.collected ? 'bg-green-500' : 'bg-slate-600 animate-pulse'"></div>
-                                <span class="text-slate-300" x-text="platform.name"></span>
-                            </div>
-                            <span class="text-blue-400 font-mono text-xs" x-text="platform.count.toLocaleString() + '건'"></span>
-                        </div>
-                    </template>
-                </div>
-
-                {{-- 총 수집 데이터 --}}
-                <div class="bg-slate-800 rounded-xl p-4 text-center">
-                    <p class="text-slate-400 text-xs mb-1">총 수집 데이터</p>
-                    <p class="text-2xl font-bold text-white" x-text="totalCollected.toLocaleString() + '건'"></p>
-                </div>
-
-                {{-- 닫기 버튼 (완료 상태에서만) --}}
-                <button x-show="collectionComplete" @click="showModal = false"
-                        class="w-full mt-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-sm">
-                    닫기
-                </button>
-            </div>
-        </div>
-
-        {{-- 데이터 출처 안내 --}}
-        <div class="px-5 pb-5">
-            <p class="text-[10px] text-gray-400 leading-relaxed">
-                *네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 {{ $product->name }}의 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
-            </p>
-        </div>
-    </div>
-
-    {{-- 성분 정보 (선택적 표시) --}}
-    @if($product->ingredients && count($product->ingredients) > 0)
-    <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-3">주요 성분</h2>
-        <div class="flex flex-wrap gap-2">
-            @foreach($product->ingredients as $ingredient)
-                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
-                    {{ $ingredient }}
-                </span>
-            @endforeach
-        </div>
-    </div>
-    @endif
-
-    {{-- 하단 여백 --}}
-    <div class="h-4"></div>
-
-    {{-- Tailwind safelist for dynamic colors --}}
-    <div class="hidden">
-        <span class="bg-blue-500"></span>
-        <span class="bg-indigo-500"></span>
-        <span class="bg-purple-500"></span>
-        <span class="bg-pink-500"></span>
-        <span class="bg-rose-500"></span>
-        <span class="bg-red-500"></span>
-        <span class="bg-orange-500"></span>
-        <span class="bg-amber-500"></span>
-        <span class="bg-yellow-500"></span>
-        <span class="bg-green-500"></span>
-        <span class="bg-emerald-500"></span>
-        <span class="bg-teal-500"></span>
-        <span class="bg-cyan-500"></span>
     </div>
 </div>
 @endsection
@@ -312,76 +415,87 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 function productPage() {
     const productCode = '{{ $product->code }}';
     const storageKey = `product_data_collected_${productCode}`;
 
-    // 총 리뷰 수를 기반으로 플랫폼별 비율 계산
-    const totalReviewCount = {{ $product->intro_review_count ?? 12847 }};
-    const platformRatios = [0.252, 0.225, 0.168, 0.144, 0.094, 0.069, 0.048, 0]; // 플랫폼별 비율
+    const totalReviewCount = {{ $product->intro_review_count ?? 11257 }};
+    const platformRatios = [0.252, 0.225, 0.168, 0.144, 0.094, 0.069, 0.048, 0];
     const targetCounts = platformRatios.map(ratio => Math.round(totalReviewCount * ratio));
 
     @php
         $efficacyType = $product->efficacy_type ?? 'moisture';
-        if (!empty($product->intro_metrics)) {
-            $metricsJson = $product->intro_metrics;
-        } else {
-            $metricsData = [
+
+        // intro_metrics가 있으면 그대로 사용 (admin에서 설정한 값)
+        if (!empty($product->intro_metrics) && count($product->intro_metrics) > 0) {
+            // name이 비어있지 않은 항목만 필터링
+            $metricsJson = collect($product->intro_metrics)
+                ->filter(fn($m) => !empty($m['name']))
+                ->map(fn($m) => [
+                    'name' => $m['name'],
+                    'value' => (int)($m['value'] ?? 0),
+                ])
+                ->values()
+                ->toArray();
+        }
+
+        // intro_metrics가 없거나 비어있으면 효능 타입별 기본값 사용
+        if (empty($metricsJson)) {
+            $metricsDefaults = [
                 'moisture' => [
-                    ['name' => '보습력', 'value' => 5, 'color' => 'bg-blue-500'],
-                    ['name' => '보습지속력', 'value' => 4, 'color' => 'bg-indigo-500'],
-                    ['name' => '끈적임', 'value' => 4, 'color' => 'bg-cyan-500'],
-                    ['name' => '효과 체감', 'value' => 4, 'color' => 'bg-emerald-500'],
-                    ['name' => '자극여부', 'value' => 1, 'color' => 'bg-rose-500'],
+                    ['name' => '보습력', 'value' => 5],
+                    ['name' => '보습지속력', 'value' => 4],
+                    ['name' => '끈적임', 'value' => 2],
+                    ['name' => '자극여부', 'value' => 1],
+                    ['name' => '효과체감', 'value' => 4],
                 ],
                 'elasticity' => [
-                    ['name' => '탄력 개선', 'value' => 5, 'color' => 'bg-purple-500'],
-                    ['name' => '리프팅감', 'value' => 4, 'color' => 'bg-indigo-500'],
-                    ['name' => '탄탱함', 'value' => 4, 'color' => 'bg-pink-500'],
-                    ['name' => '효과 체감', 'value' => 4, 'color' => 'bg-emerald-500'],
-                    ['name' => '자극여부', 'value' => 1, 'color' => 'bg-rose-500'],
+                    ['name' => '탄력 개선', 'value' => 5],
+                    ['name' => '리프팅감', 'value' => 4],
+                    ['name' => '끈적임', 'value' => 2],
+                    ['name' => '자극여부', 'value' => 1],
+                    ['name' => '효과체감', 'value' => 4],
                 ],
                 'tone' => [
-                    ['name' => '톤 개선', 'value' => 5, 'color' => 'bg-orange-500'],
-                    ['name' => '화사함', 'value' => 4, 'color' => 'bg-amber-500'],
-                    ['name' => '균일함', 'value' => 4, 'color' => 'bg-yellow-500'],
-                    ['name' => '효과 체감', 'value' => 4, 'color' => 'bg-emerald-500'],
-                    ['name' => '자극여부', 'value' => 1, 'color' => 'bg-rose-500'],
+                    ['name' => '톤 개선', 'value' => 5],
+                    ['name' => '화사함', 'value' => 4],
+                    ['name' => '끈적임', 'value' => 2],
+                    ['name' => '자극여부', 'value' => 1],
+                    ['name' => '효과체감', 'value' => 4],
                 ],
                 'pore' => [
-                    ['name' => '모공 축소', 'value' => 5, 'color' => 'bg-green-500'],
-                    ['name' => '피지 조절', 'value' => 4, 'color' => 'bg-teal-500'],
-                    ['name' => '매끄러움', 'value' => 4, 'color' => 'bg-cyan-500'],
-                    ['name' => '효과 체감', 'value' => 4, 'color' => 'bg-emerald-500'],
-                    ['name' => '자극여부', 'value' => 1, 'color' => 'bg-rose-500'],
+                    ['name' => '모공 축소', 'value' => 5],
+                    ['name' => '피지 조절', 'value' => 4],
+                    ['name' => '끈적임', 'value' => 2],
+                    ['name' => '자극여부', 'value' => 1],
+                    ['name' => '효과체감', 'value' => 4],
                 ],
                 'wrinkle' => [
-                    ['name' => '주름 개선', 'value' => 5, 'color' => 'bg-pink-500'],
-                    ['name' => '탄력감', 'value' => 4, 'color' => 'bg-purple-500'],
-                    ['name' => '매끄러움', 'value' => 4, 'color' => 'bg-indigo-500'],
-                    ['name' => '효과 체감', 'value' => 4, 'color' => 'bg-emerald-500'],
-                    ['name' => '자극여부', 'value' => 1, 'color' => 'bg-rose-500'],
+                    ['name' => '주름 개선', 'value' => 5],
+                    ['name' => '탄력감', 'value' => 4],
+                    ['name' => '끈적임', 'value' => 2],
+                    ['name' => '자극여부', 'value' => 1],
+                    ['name' => '효과체감', 'value' => 4],
                 ],
             ];
-            $metricsJson = $metricsData[$efficacyType] ?? $metricsData['moisture'];
+            $metricsJson = $metricsDefaults[$efficacyType] ?? $metricsDefaults['moisture'];
         }
     @endphp
 
-    // 지표 데이터: current는 현재 표시 값, value는 최종 목표 값
-    const metricsData = @json($metricsJson).map(m => ({
-        name: m.name,
-        value: m.value,
-        color: m.color,
-        current: 0
-    }));
+    const metricsData = @json($metricsJson);
+    const pointColor = '{{ $pointColor }}';
+    const pointColorRgb = '{{ $rgbString }}';
+    let radarChart = null;
 
     return {
-        reviewCount: {{ $product->intro_review_count ?? 12847 }},
+        reviewCount: totalReviewCount,
         showModal: false,
         collectionComplete: false,
         totalCollected: 0,
         metrics: metricsData,
+        currentMetricValues: metricsData.map(() => 0),
         platforms: [
             { name: '네이버스토어', count: 0, collected: false },
             { name: '쿠팡', count: 0, collected: false },
@@ -394,77 +508,292 @@ function productPage() {
         ],
 
         init() {
-            // 이미 본 경우 바로 완료 상태로 표시
-            if (localStorage.getItem(storageKey)) {
-                this.showCompletedState();
-            } else {
-                // 처음 방문 시 애니메이션 시작
-                this.$nextTick(() => {
+            this.$nextTick(() => {
+                this.initRadarChart();
+                this.initSciCharts();
+
+                if (localStorage.getItem(storageKey)) {
+                    this.showCompletedState();
+                } else {
                     this.startDataCollection();
+                }
+            });
+        },
+
+        initRadarChart() {
+            const ctx = document.getElementById('radarChart');
+            if (!ctx) return;
+
+            // 그라데이션 생성 (중앙 포인트컬러 -> 외곽 흰색)
+            const chartCtx = ctx.getContext('2d');
+            const centerX = ctx.offsetWidth / 2;
+            const centerY = ctx.offsetHeight / 2;
+            const radius = Math.min(centerX, centerY) * 0.7;
+
+            const gradient = chartCtx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, radius
+            );
+            gradient.addColorStop(0, `rgba(${pointColorRgb}, 0.95)`);
+            gradient.addColorStop(0.5, `rgba(${pointColorRgb}, 0.6)`);
+            gradient.addColorStop(0.85, `rgba(${pointColorRgb}, 0.25)`);
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: this.metrics.map(m => m.name),
+                    datasets: [{
+                        data: this.currentMetricValues,
+                        backgroundColor: gradient,
+                        borderColor: pointColor,
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: {
+                        duration: 0
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 5,
+                            min: 0,
+                            ticks: {
+                                stepSize: 1,
+                                display: false
+                            },
+                            grid: {
+                                circular: true,
+                                color: 'transparent',
+                                lineWidth: 0
+                            },
+                            angleLines: {
+                                color: 'transparent',
+                                lineWidth: 0
+                            },
+                            pointLabels: {
+                                font: { size: 15, weight: '600' },
+                                color: '#374151'
+                            },
+                            backgroundColor: 'rgba(243, 244, 246, 1)'
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'gridOnTop',
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const scale = chart.scales.r;
+                        const centerX = scale.xCenter;
+                        const centerY = scale.yCenter;
+                        const maxRadius = scale.drawingArea;
+                        const labelCount = chart.data.labels.length;
+                        const maxValue = scale.max;
+
+                        ctx.save();
+
+                        // 원형 격자 그리기 (데이터 위에)
+                        ctx.strokeStyle = 'rgba(180, 180, 180, 0.8)';
+                        ctx.lineWidth = 1;
+                        for (let i = 1; i <= maxValue; i++) {
+                            const r = (i / maxValue) * maxRadius;
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+
+                        // 방사선 그리기 (데이터 위에)
+                        for (let i = 0; i < labelCount; i++) {
+                            const angle = scale.getIndexAngle(i) - Math.PI / 2;
+                            const x = centerX + Math.cos(angle) * maxRadius;
+                            const y = centerY + Math.sin(angle) * maxRadius;
+
+                            ctx.beginPath();
+                            ctx.moveTo(centerX, centerY);
+                            ctx.lineTo(x, y);
+                            ctx.stroke();
+                        }
+
+                        // 각 축의 끝점에 검은색 점 그리기
+                        for (let i = 0; i < labelCount; i++) {
+                            const angle = scale.getIndexAngle(i) - Math.PI / 2;
+                            const x = centerX + Math.cos(angle) * maxRadius;
+                            const y = centerY + Math.sin(angle) * maxRadius;
+
+                            ctx.beginPath();
+                            ctx.arc(x, y, 2, 0, Math.PI * 2);
+                            ctx.fillStyle = '#1f2937';
+                            ctx.fill();
+                        }
+
+                        ctx.restore();
+                    }
+                }]
+            });
+        },
+
+        initSciCharts() {
+            // 포인트 이미지 로드
+            const greenPointImg = new Image(16, 16);
+            greenPointImg.src = '{{ asset("product/graph_green.svg") }}';
+            const blackPointImg = new Image(16, 16);
+            blackPointImg.src = '{{ asset("product/graph_black.svg") }}';
+
+            // 차트 공통 옵션
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 10 } },
+                animation: {
+                    duration: 350,
+                    easing: 'easeOutQuart'
+                },
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 110,
+                        ticks: {
+                            font: { size: 11, weight: 'bold' },
+                            color: '#1f2937',
+                            stepSize: 20,
+                            callback: function(value) {
+                                // 110은 숨기고 나머지만 표시
+                                return value > 100 ? '' : value;
+                            }
+                        },
+                        border: { color: '#1f2937', width: 2 },
+                        grid: { color: '#e5e7eb' }
+                    },
+                    x: {
+                        offset: true,
+                        ticks: { font: { size: 11, weight: 'bold' }, color: '#1f2937' },
+                        title: { display: true, text: 'of washing', font: { size: 11, weight: 'bold' }, color: '#1f2937', align: 'end' },
+                        border: { color: '#1f2937', width: 2 },
+                        grid: { display: false }
+                    }
+                }
+            };
+
+            // 포인트별 순차 애니메이션 함수
+            const animatePointsSequentially = (chart, targetData1, targetData2, delay = 250) => {
+                const numPoints = targetData1.length;
+                for (let i = 0; i < numPoints; i++) {
+                    setTimeout(() => {
+                        chart.data.datasets[0].data[i] = targetData1[i];
+                        chart.data.datasets[1].data[i] = targetData2[i];
+                        chart.update();
+                    }, i * delay);
+                }
+            };
+
+            // SCI 차트 생성 헬퍼 함수
+            const createSciChart = (canvasId, targetGreen, targetBlack) => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['0', '1', '2', '3', '4'],
+                        datasets: [
+                            { data: [0, 0, 0, 0, 0], borderColor: pointColor, backgroundColor: 'transparent', fill: false, tension: 0, pointStyle: greenPointImg, pointRadius: 8, borderWidth: 1 },
+                            { data: [0, 0, 0, 0, 0], borderColor: '#1f2937', backgroundColor: 'transparent', fill: false, tension: 0, pointStyle: blackPointImg, pointRadius: 8, borderWidth: 1 }
+                        ]
+                    },
+                    options: chartOptions
                 });
+
+                let animated = false;
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !animated) {
+                            animated = true;
+                            setTimeout(() => animatePointsSequentially(chart, targetGreen, targetBlack, 250), 100);
+                            observer.disconnect();
+                        }
+                    });
+                }, { threshold: 0.8 });
+                observer.observe(ctx);
+            };
+
+            // Collagen & Fluorescence Charts
+            createSciChart('collagenChart', [100, 40, 35, 30, 28], [100, 20, 15, 14, 12]);
+            createSciChart('fluorescenceChart', [100, 80, 78, 76, 74], [100, 65, 50, 48, 45]);
+        },
+
+        updateRadarChart() {
+            if (radarChart) {
+                radarChart.data.datasets[0].data = this.currentMetricValues;
+                radarChart.update('none');
             }
         },
 
         showCompletedState() {
-            // 최종 수치로 바로 설정
             this.platforms.forEach((p, i) => {
                 p.count = targetCounts[i];
                 p.collected = true;
             });
             this.totalCollected = targetCounts.reduce((a, b) => a + b, 0);
-            // 지표도 최종값으로 설정
-            this.metrics.forEach(m => {
-                m.current = m.value;
+            this.currentMetricValues = this.metrics.map(m => m.value);
+            // 완료 상태에서는 즉시 차트 표시
+            this.$nextTick(() => {
+                this.updateRadarChart();
             });
             this.collectionComplete = true;
             this.showModal = false;
         },
 
         async startDataCollection() {
-            // 모달 없이 백그라운드에서 동작
             this.showModal = false;
             this.collectionComplete = false;
             this.totalCollected = 0;
             this.platforms.forEach(p => { p.count = 0; p.collected = false; });
-            this.metrics.forEach(m => { m.current = 0; });
+            this.currentMetricValues = this.metrics.map(() => 0);
+            this.updateRadarChart();
 
+            // 플랫폼별 데이터 수집 애니메이션
             for (let i = 0; i < this.platforms.length; i++) {
                 await this.delay(150 + Math.random() * 100);
 
                 const target = targetCounts[i];
-                // 카운트 애니메이션과 함께 totalCollected도 실시간 업데이트
                 await this.animateCount(i, target);
                 this.platforms[i].collected = true;
-
-                // 플랫폼 수집 완료될 때마다 지표도 점진적으로 업데이트
-                await this.updateMetrics(i);
             }
 
-            // 잠시 대기 후 완료 상태로 전환
+            // 데이터 수집 완료 후 레이더 차트 애니메이션 시작
+            await this.delay(300);
+            await this.animateRadarChart();
+
             await this.delay(200);
             this.collectionComplete = true;
-
-            // localStorage에 저장
             localStorage.setItem(storageKey, 'true');
         },
 
         async updateMetrics(platformIndex) {
-            // 8개 플랫폼 기준 진행률 계산 (0~1)
-            const progress = (platformIndex + 1) / this.platforms.length;
+            // 데이터 수집 중에는 그래프를 그리지 않음
+            // 수집 완료 후 animateRadarChart에서 처리
+        },
 
+        async animateRadarChart() {
+            // 시계방향으로 각 영역 하나씩 표시
             for (let m = 0; m < this.metrics.length; m++) {
                 const metric = this.metrics[m];
-                // 각 지표의 목표값에 진행률을 곱해서 현재 표시할 값 계산
-                const targetCurrent = Math.round(metric.value * progress);
-
-                // 현재 값보다 크면 업데이트 (한 칸씩 채우는 효과)
-                if (targetCurrent > metric.current) {
-                    // 약간의 딜레이를 주고 한 칸씩 업데이트
-                    for (let v = metric.current + 1; v <= targetCurrent; v++) {
-                        await this.delay(30);
-                        metric.current = v;
-                    }
+                // 해당 영역 값을 0에서 목표값까지 애니메이션
+                for (let v = 0; v <= metric.value; v++) {
+                    await this.delay(20);
+                    this.currentMetricValues[m] = v;
+                    this.updateRadarChart();
                 }
+                await this.delay(25); // 다음 영역으로 넘어가기 전 잠시 대기
             }
         },
 
@@ -477,11 +806,9 @@ function productPage() {
                 const currentValue = Math.round(increment * j);
                 const prevValue = this.platforms[platformIndex].count;
                 this.platforms[platformIndex].count = currentValue;
-                // 실시간으로 totalCollected 업데이트 (증가분만 추가)
                 this.totalCollected += (currentValue - prevValue);
                 await this.delay(duration / steps);
             }
-            // 최종값 정확히 설정
             const diff = target - this.platforms[platformIndex].count;
             this.platforms[platformIndex].count = target;
             this.totalCollected += diff;
@@ -489,6 +816,93 @@ function productPage() {
 
         delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    };
+}
+
+// 성분 슬라이드 컴포넌트
+function ingredientSlider(totalSlides = 0) {
+    return {
+        currentSlide: 0,
+        autoPlayInterval: null,
+        total: totalSlides,
+        isTransitioning: true,
+
+        init() {
+            if (this.total > 1) {
+                this.startAutoPlay();
+            }
+        },
+
+        startAutoPlay() {
+            this.autoPlayInterval = setInterval(() => {
+                this.nextSlide();
+            }, 4000); // 4초마다 전환
+        },
+
+        stopAutoPlay() {
+            if (this.autoPlayInterval) {
+                clearInterval(this.autoPlayInterval);
+            }
+        },
+
+        nextSlide() {
+            this.isTransitioning = true;
+            this.currentSlide++;
+
+            // 복제된 슬라이드(마지막+1)에 도달하면 처음으로 리셋
+            if (this.currentSlide >= this.total) {
+                setTimeout(() => {
+                    this.isTransitioning = false;
+                    this.currentSlide = 0;
+                }, 500);
+            }
+        },
+
+        prevSlide() {
+            this.currentSlide = (this.currentSlide - 1 + this.total) % this.total;
+        },
+
+        goToSlide(index) {
+            this.currentSlide = index;
+            // 수동 전환 시 자동 재생 재시작
+            this.stopAutoPlay();
+            this.startAutoPlay();
+        }
+    };
+}
+
+// 논문 이미지 슬라이드 컴포넌트
+function articleSlider() {
+    return {
+        currentSlide: 0,
+        totalSlides: 5,
+        autoPlayInterval: null,
+        isTransitioning: true,
+
+        init() {
+            this.startAutoPlay();
+        },
+
+        startAutoPlay() {
+            this.autoPlayInterval = setInterval(() => {
+                this.isTransitioning = true;
+                this.currentSlide++;
+
+                // 복제된 슬라이드 끝에 도달하면 처음으로 리셋
+                if (this.currentSlide >= this.totalSlides) {
+                    setTimeout(() => {
+                        this.isTransitioning = false;
+                        this.currentSlide = 0;
+                    }, 500);
+                }
+            }, 3000);
+        },
+
+        stopAutoPlay() {
+            if (this.autoPlayInterval) {
+                clearInterval(this.autoPlayInterval);
+            }
         }
     };
 }

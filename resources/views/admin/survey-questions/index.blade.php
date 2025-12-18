@@ -4,29 +4,18 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    <!-- 페이지 헤더 -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">설문 질문 관리</h1>
-            <p class="text-gray-600 mt-1">총 {{ $questions->count() }}개의 질문이 등록되어 있습니다</p>
-        </div>
-        <a href="{{ route('admin.survey-questions.create') }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+    {{-- 페이지 헤더 --}}
+    <x-page-header title="설문 질문 관리" :description="'총 ' . $questions->count() . '개의 질문이 등록되어 있습니다'">
+        <x-button :href="route('admin.survey-questions.create')" variant="primary" size="md">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
             질문 추가
-        </a>
-    </div>
+        </x-button>
+    </x-page-header>
 
-    @if(session('success'))
-    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        {{ session('success') }}
-    </div>
-    @endif
+    {{-- 플래시 메시지 --}}
+    <x-flash-messages />
 
     <!-- 설명 카드 -->
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">

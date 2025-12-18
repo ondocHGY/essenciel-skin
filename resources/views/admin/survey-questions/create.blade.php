@@ -4,27 +4,14 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto" x-data="questionForm()">
-    <!-- 페이지 헤더 -->
-    <div class="mb-8">
-        <a href="{{ route('admin.survey-questions.index') }}" class="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 mb-4">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-            목록으로
-        </a>
-        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">설문 질문 추가</h1>
-        <p class="text-gray-600 mt-1">새로운 설문 질문과 옵션을 등록합니다</p>
-    </div>
+    {{-- 페이지 헤더 --}}
+    <x-page-header
+        title="설문 질문 추가"
+        description="새로운 설문 질문과 옵션을 등록합니다"
+        :backUrl="route('admin.survey-questions.index')" />
 
-    @if($errors->any())
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-        <ul class="list-disc list-inside text-sm">
-            @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
+    {{-- 플래시 메시지 --}}
+    <x-flash-messages />
 
     <form action="{{ route('admin.survey-questions.store') }}" method="POST">
         @csrf
@@ -153,14 +140,12 @@
 
         <!-- 제출 버튼 -->
         <div class="flex items-center justify-end gap-3">
-            <a href="{{ route('admin.survey-questions.index') }}"
-               class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+            <x-button :href="route('admin.survey-questions.index')" variant="outline" size="lg">
                 취소
-            </a>
-            <button type="submit"
-                    class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            </x-button>
+            <x-button type="submit" variant="primary" size="lg">
                 질문 등록
-            </button>
+            </x-button>
         </div>
     </form>
 </div>

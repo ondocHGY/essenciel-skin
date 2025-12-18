@@ -34,8 +34,6 @@ class ProductController extends Controller
             'category' => 'required|string|max:255',
             'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,wrinkle',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'ingredients' => 'nullable|array',
-            'ingredients.*' => 'nullable|string|max:255',
             'base_curve' => 'required|array',
             'base_curve.moisture' => 'required|array|size:5',
             'base_curve.elasticity' => 'required|array|size:5',
@@ -46,11 +44,6 @@ class ProductController extends Controller
 
         // 기본 효능 타입 설정
         $validated['efficacy_type'] = $validated['efficacy_type'] ?? 'moisture';
-
-        // 빈 성분 필터링
-        if (isset($validated['ingredients'])) {
-            $validated['ingredients'] = array_values(array_filter($validated['ingredients'], fn($v) => !empty(trim($v))));
-        }
 
         // 이미지 업로드 처리
         if ($request->hasFile('image')) {
@@ -79,9 +72,8 @@ class ProductController extends Controller
             'brand' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,wrinkle',
+            'point_color' => 'nullable|string|max:7',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'ingredients' => 'nullable|array',
-            'ingredients.*' => 'nullable|string|max:255',
             'efficacy_phases' => 'nullable|array',
             'efficacy_phases.phase1' => 'nullable|string',
             'efficacy_phases.phase2' => 'nullable|string',
@@ -106,13 +98,6 @@ class ProductController extends Controller
 
         // 기본 효능 타입 설정
         $validated['efficacy_type'] = $validated['efficacy_type'] ?? $product->efficacy_type ?? 'moisture';
-
-        // 빈 성분 필터링
-        if (isset($validated['ingredients'])) {
-            $validated['ingredients'] = array_values(array_filter($validated['ingredients'], fn($v) => !empty(trim($v))));
-        } else {
-            $validated['ingredients'] = [];
-        }
 
         // 효능 단계 설명 처리 (빈 값 필터링)
         if (isset($validated['efficacy_phases'])) {

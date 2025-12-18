@@ -4,41 +4,29 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    <!-- 페이지 헤더 -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('admin.surveys.index') }}" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
-            <div>
-                <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">설문 결과 #{{ $result->id }}</h1>
-                <p class="text-gray-600 mt-1">{{ $result->created_at->format('Y년 m월 d일 H:i:s') }}</p>
-            </div>
-        </div>
-        <div class="flex gap-3">
-            <a href="{{ route('result.show', $result->product?->code) }}" target="_blank"
-               class="inline-flex items-center gap-2 px-4 py-2 text-gray-600 bg-white border border-gray-300 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm">
+    {{-- 페이지 헤더 --}}
+    <x-page-header
+        :title="'설문 결과 #' . $result->id"
+        :description="$result->created_at->format('Y년 m월 d일 H:i:s')"
+        :backUrl="route('admin.surveys.index')">
+        <x-button :href="route('result.show', $result->product?->code)" variant="outline" size="md" target="_blank">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+            결과 페이지
+        </x-button>
+        <form action="{{ route('admin.surveys.destroy', $result) }}" method="POST"
+              onsubmit="return confirm('정말 삭제하시겠습니까?')">
+            @csrf
+            @method('DELETE')
+            <x-button type="submit" variant="danger" size="md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                결과 페이지
-            </a>
-            <form action="{{ route('admin.surveys.destroy', $result) }}" method="POST"
-                  onsubmit="return confirm('정말 삭제하시겠습니까?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors text-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    삭제
-                </button>
-            </form>
-        </div>
-    </div>
+                삭제
+            </x-button>
+        </form>
+    </x-page-header>
 
     <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
         <!-- 제품 정보 -->
