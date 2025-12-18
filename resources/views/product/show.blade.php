@@ -32,8 +32,8 @@
         {{-- 제품 이미지 --}}
         @if($product->image)
         <div class="flex justify-center mb-6">
-            <div class="w-48 h-48 rounded-2xl overflow-hidden bg-white p-4" style="border: 2px solid #D9D9D9;">
-                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-contain">
+            <div class="w-48 h-48 rounded-2xl overflow-hidden bg-white" style="border: 2px solid #D9D9D9;">
+                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
             </div>
         </div>
         @endif
