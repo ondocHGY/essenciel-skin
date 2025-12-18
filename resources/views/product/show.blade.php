@@ -235,7 +235,7 @@
                     {{-- 세로 구분선 + 텍스트 영역 (우측) --}}
                     <div class="p-4 flex flex-col justify-between bg-white" style="border-left: 1px solid #D9D9D9;">
                         <span class="text-lg font-medium" style="color: {{ $pointColor }}">Nano-Liposome</span>
-                        <p class="text-lg leading-snug">유효 성분을 리포좀 캡슐화하여 피부 속 깊숙히 안정적으로 전달해주는 기술</p>
+                        <p class="text-base leading-snug">유효 성분을 리포좀 캡슐화하여 피부 속 깊숙히 안정적으로 전달해주는 기술</p>
                     </div>
                 </div>
             </div>
