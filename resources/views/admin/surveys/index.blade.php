@@ -4,29 +4,18 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    <!-- 페이지 헤더 -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">설문 결과 관리</h1>
-            <p class="text-gray-600 mt-1">총 {{ $results->total() }}건의 분석 결과</p>
-        </div>
-        <a href="{{ route('admin.surveys.export', request()->query()) }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
+    {{-- 페이지 헤더 --}}
+    <x-page-header title="설문 결과 관리" :description="'총 ' . $results->total() . '건의 분석 결과'">
+        <x-button :href="route('admin.surveys.export', request()->query())" variant="success" size="md">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
             CSV 내보내기
-        </a>
-    </div>
+        </x-button>
+    </x-page-header>
 
-    @if(session('success'))
-    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        {{ session('success') }}
-    </div>
-    @endif
+    {{-- 플래시 메시지 --}}
+    <x-flash-messages />
 
     <!-- 필터 -->
     <div class="bg-white rounded-xl shadow-sm p-5 lg:p-6 mb-6">
@@ -67,12 +56,12 @@
                 </div>
 
                 <div class="flex items-end gap-2">
-                    <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                    <x-button type="submit" variant="primary" size="md" class="flex-1">
                         검색
-                    </button>
-                    <a href="{{ route('admin.surveys.index') }}" class="px-4 py-2.5 text-gray-600 bg-gray-100 font-medium rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                    </x-button>
+                    <x-button :href="route('admin.surveys.index')" variant="secondary" size="md">
                         초기화
-                    </a>
+                    </x-button>
                 </div>
             </div>
         </form>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\SurveyController as AdminSurveyController;
 use App\Http\Controllers\Admin\SurveyQuestionController as AdminSurveyQuestionController;
+use App\Http\Controllers\Admin\ProductIngredientController as AdminProductIngredientController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,6 +41,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
         Route::post('/products/{product}/qr', [AdminProductController::class, 'generateQR'])->name('products.generateQR');
+
+        // 제품 성분 관리
+        Route::get('/products/{product}/ingredients', [AdminProductIngredientController::class, 'index'])->name('products.ingredients.index');
+        Route::get('/products/{product}/ingredients/create', [AdminProductIngredientController::class, 'create'])->name('products.ingredients.create');
+        Route::post('/products/{product}/ingredients', [AdminProductIngredientController::class, 'store'])->name('products.ingredients.store');
+        Route::get('/products/{product}/ingredients/{ingredient}/edit', [AdminProductIngredientController::class, 'edit'])->name('products.ingredients.edit');
+        Route::put('/products/{product}/ingredients/{ingredient}', [AdminProductIngredientController::class, 'update'])->name('products.ingredients.update');
+        Route::delete('/products/{product}/ingredients/{ingredient}', [AdminProductIngredientController::class, 'destroy'])->name('products.ingredients.destroy');
+        Route::post('/products/{product}/ingredients/reorder', [AdminProductIngredientController::class, 'reorder'])->name('products.ingredients.reorder');
 
         // 설문 결과 관리
         Route::get('/surveys', [AdminSurveyController::class, 'index'])->name('surveys.index');

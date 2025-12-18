@@ -4,28 +4,14 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <!-- 페이지 헤더 -->
-    <div class="flex items-center gap-3 mb-8">
-        <a href="{{ route('admin.products.index') }}" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-        </a>
-        <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">제품 추가</h1>
-            <p class="text-gray-600 mt-1">새로운 제품을 등록합니다</p>
-        </div>
-    </div>
+    {{-- 페이지 헤더 --}}
+    <x-page-header
+        title="제품 추가"
+        description="새로운 제품을 등록합니다"
+        :backUrl="route('admin.products.index')" />
 
-    @if($errors->any())
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-        <ul class="list-disc pl-5 space-y-1">
-            @foreach($errors->all() as $error)
-                <li class="text-sm">{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
+    {{-- 플래시 메시지 --}}
+    <x-flash-messages />
 
     <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
@@ -150,78 +136,6 @@
                         const file = event.target.files[0];
                         if (file) {
                             this.preview = URL.createObjectURL(file);
-                        }
-                    }
-                }
-            }
-        </script>
-
-        <!-- 주요 성분 -->
-        <div class="bg-white rounded-xl shadow-sm p-6" x-data="ingredientsEditor()">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900">주요 성분</h2>
-                    <p class="text-sm text-gray-500 mt-1">제품의 핵심 성분을 입력합니다 (주요 성분 영역에 표시됨)</p>
-                </div>
-            </div>
-
-            <!-- 성분 목록 -->
-            <div class="space-y-2 mb-4">
-                <template x-for="(ingredient, index) in ingredients" :key="index">
-                    <div class="flex items-center gap-2">
-                        <input type="text" :name="'ingredients[]'" x-model="ingredients[index]"
-                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="성분명 입력">
-                        <button type="button" @click="removeIngredient(index)"
-                                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </template>
-            </div>
-
-            <!-- 성분 추가 버튼 -->
-            <button type="button" @click="addIngredient()"
-                    class="w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg hover:border-blue-400 hover:text-blue-500 transition-colors flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                성분 추가
-            </button>
-
-            <!-- 빠른 추가 -->
-            <div class="mt-4 pt-4 border-t border-gray-200">
-                <p class="text-sm text-gray-600 mb-2">자주 사용하는 성분:</p>
-                <div class="flex flex-wrap gap-2">
-                    <template x-for="preset in presetIngredients" :key="preset">
-                        <button type="button" @click="addPresetIngredient(preset)"
-                                class="px-3 py-1 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-full transition-colors"
-                                x-text="preset"></button>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            function ingredientsEditor() {
-                return {
-                    ingredients: {!! json_encode(old('ingredients', [])) !!},
-                    presetIngredients: [
-                        '히알루론산', '나이아신아마이드', '레티놀', '비타민C', '펩타이드',
-                        '세라마이드', '콜라겐', '아데노신', '알부틴', 'AHA', 'BHA',
-                        '녹차추출물', '병풀추출물', '스쿠알란', '판테놀'
-                    ],
-                    addIngredient() {
-                        this.ingredients.push('');
-                    },
-                    removeIngredient(index) {
-                        this.ingredients.splice(index, 1);
-                    },
-                    addPresetIngredient(ingredient) {
-                        if (!this.ingredients.includes(ingredient)) {
-                            this.ingredients.push(ingredient);
                         }
                     }
                 }
@@ -944,14 +858,12 @@
         </script>
 
         <div class="flex gap-4">
-            <button type="submit"
-                    class="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors">
+            <x-button type="submit" variant="primary" size="xl" class="flex-1">
                 제품 등록
-            </button>
-            <a href="{{ route('admin.products.index') }}"
-               class="px-8 py-3 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-center">
+            </x-button>
+            <x-button :href="route('admin.products.index')" variant="outline" size="xl" class="px-8">
                 취소
-            </a>
+            </x-button>
         </div>
     </form>
 </div>

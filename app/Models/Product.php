@@ -21,17 +21,20 @@ class Product extends Model
         'intro_summary',
         'intro_review_count',
         'image',
-        'ingredients',
         'ingredient_details',
         'nanoliposome_info',
+        'technology_section',
+        'sci_section',
         'base_curve',
         'qr_path',
+        'point_color',
     ];
 
     protected $casts = [
-        'ingredients' => 'array',
         'ingredient_details' => 'array',
         'nanoliposome_info' => 'array',
+        'technology_section' => 'array',
+        'sci_section' => 'array',
         'efficacy_curve' => 'array',
         'efficacy_phases' => 'array',
         'efficacy_milestones' => 'array',
@@ -114,5 +117,21 @@ class Product extends Model
     public function analysisResults(): HasMany
     {
         return $this->hasMany(AnalysisResult::class);
+    }
+
+    /**
+     * 제품 성분 (Active Ingredients)
+     */
+    public function productIngredients(): HasMany
+    {
+        return $this->hasMany(ProductIngredient::class)->ordered();
+    }
+
+    /**
+     * 활성화된 제품 성분만 조회
+     */
+    public function activeIngredients(): HasMany
+    {
+        return $this->hasMany(ProductIngredient::class)->active()->ordered();
     }
 }
