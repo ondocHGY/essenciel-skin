@@ -751,13 +751,26 @@ function productPage() {
                 p.collected = true;
             });
             this.totalCollected = targetCounts.reduce((a, b) => a + b, 0);
-            this.currentMetricValues = this.metrics.map(m => m.value);
-            // 완료 상태에서는 즉시 차트 표시
-            this.$nextTick(() => {
-                this.updateRadarChart();
-            });
             this.collectionComplete = true;
             this.showModal = false;
+
+            // 레이더 차트는 항상 애니메이션으로 그리기
+            this.currentMetricValues = this.metrics.map(() => 0);
+            this.$nextTick(() => {
+                this.animateRadarChart();
+            });
+        },
+
+        async animateRadarChart() {
+            const targetValues = this.metrics.map(m => m.value);
+            const steps = 20;
+            const delay = 20;
+
+            for (let step = 1; step <= steps; step++) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+                this.currentMetricValues = targetValues.map(v => (v * step) / steps);
+                this.updateRadarChart();
+            }
         },
 
         async startDataCollection() {
