@@ -22,9 +22,9 @@
 @section('content')
 <div x-data="productPage()" class="bg-white min-h-screen">
     {{-- 상단 헤더 (스크롤 시 고정) --}}
-    <div class="bg-black px-4 py-4 sticky top-0 z-50">
-        <div class="flex items-center justify-between max-w-lg mx-auto">
-            <p class="text-xs text-white">에센시엘은 검증된 데이터를 기반으로 과학적으로 설계합니다.</p>
+    <div class="bg-black py-3 sticky top-0 z-50 overflow-hidden">
+        <div class="marquee-track">
+            <span class="marquee-text text-sm text-white">에센시엘은 검증된 데이터를 기반으로 과학적으로 설계합니다.</span>
         </div>
     </div>
 
@@ -192,7 +192,7 @@
                         <template x-if="collectionComplete">
                             <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
                         </template>
-                        <span class="text-base font-medium" :style="collectionComplete ? 'color: {{ $pointColor }}' : 'color: white'" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
+                        <span class="text-base font-medium" :style="collectionComplete ? 'color: white' : 'color: white'" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
                     </div>
                     <div class="flex items-center gap-1" style="color: {{ $pointColor }}">
                         <span class="text-sm">상세보기</span>
@@ -249,13 +249,13 @@
             </div>
 
             {{-- SCI급 논문 섹션 --}}
-            <div class="text-center py-8 mt-10" style="background-color: #F5F5F5;">
-                <p class="text-3xl text-gray-500 mb-1">SCI급 논문에 게재된</p>
-                <h2 class="text-3xl font-bold text-gray-900">나노 리포좀의 우수성</h2>
+            <div class="text-center" style="background-color: #F5F5F5; padding-top: 48px; padding-bottom: 24px; margin-top: 48px;">
+                <p class="text-base text-gray-500 mb-1">SCI급 논문에 게재된</p>
+                <h2 class="text-2xl font-bold text-gray-900">나노 리포좀의 우수성</h2>
             </div>
 
             {{-- 논문 이미지 슬라이드 --}}
-            <div class="overflow-hidden py-8 -mx-5" style="background-color: #F5F5F5;" x-data="articleSlider()">
+            <div class="overflow-hidden -mx-5" style="background-color: #F5F5F5;" x-data="articleSlider()">
                 <div class="overflow-hidden px-3">
                     <div class="flex gap-1"
                          :class="isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''"
@@ -275,7 +275,7 @@
                 </div>
             </div>
 
-            <div class="px-5 py-6" style="background-color: #F5F5F5;">
+            <div class="px-5" style="background-color: #F5F5F5; padding-top: 24px; padding-bottom: 48px; ">
                 <div class="rounded-xl p-4 bg-white border-2" style="border-color: #D9D9D9;">
                     <p class="text-sm text-gray-900 leading-relaxed">
                         SCI는 과학 분야에서 권위 있는 학술지로 인정받고 있으며, 나노 리포좀에 대한 연구결과는 SCI급 논문에 인용되어 전 세계 연구자들의 주목을 받고 있습니다.
@@ -408,6 +408,28 @@
 @push('styles')
 <style>
     [x-cloak] { display: none !important; }
+
+    /* 무한 롤링 마퀴 */
+    .marquee-track {
+        display: flex;
+        width: max-content;
+        animation: marquee 18s linear infinite;
+    }
+    .marquee-text {
+        padding-right: 30vw;
+        white-space: nowrap;
+    }
+    .marquee-track::after {
+        content: '에센시엘은 검증된 데이터를 기반으로 과학적으로 설계합니다.';
+        padding-right: 30vw;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        color: white;
+    }
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
 </style>
 @endpush
 
@@ -689,7 +711,7 @@ function productPage() {
             };
 
             // 포인트별 순차 애니메이션 함수
-            const animatePointsSequentially = (chart, targetData1, targetData2, delay = 250) => {
+            const animatePointsSequentially = (chart, targetData1, targetData2, delay = 450) => {
                 const numPoints = targetData1.length;
                 for (let i = 0; i < numPoints; i++) {
                     setTimeout(() => {
@@ -700,10 +722,20 @@ function productPage() {
                 }
             };
 
+            // 차트 리셋 및 다시 그리기 함수
+            const resetAndAnimateChart = (chart, targetData1, targetData2, delay = 450) => {
+                chart.data.datasets[0].data = [0, 0, 0, 0, 0];
+                chart.data.datasets[1].data = [0, 0, 0, 0, 0];
+                chart.update();
+                setTimeout(() => {
+                    animatePointsSequentially(chart, targetData1, targetData2, delay);
+                }, 1000); // 0 상태에서 1초 멈춤
+            };
+
             // SCI 차트 생성 헬퍼 함수
             const createSciChart = (canvasId, targetGreen, targetBlack) => {
                 const ctx = document.getElementById(canvasId);
-                if (!ctx) return;
+                if (!ctx) return null;
 
                 const chart = new Chart(ctx, {
                     type: 'line',
@@ -722,12 +754,19 @@ function productPage() {
                     entries.forEach(entry => {
                         if (entry.isIntersecting && !animated) {
                             animated = true;
-                            setTimeout(() => animatePointsSequentially(chart, targetGreen, targetBlack, 250), 100);
+                            setTimeout(() => animatePointsSequentially(chart, targetGreen, targetBlack, 450), 100);
                             observer.disconnect();
+
+                            // 10초마다 차트 다시 그리기
+                            setInterval(() => {
+                                resetAndAnimateChart(chart, targetGreen, targetBlack, 450);
+                            }, 10000);
                         }
                     });
                 }, { threshold: 0.8 });
                 observer.observe(ctx);
+
+                return chart;
             };
 
             // Collagen & Fluorescence Charts
@@ -807,12 +846,34 @@ function productPage() {
                 const metric = this.metrics[m];
                 // 해당 영역 값을 0에서 목표값까지 애니메이션
                 for (let v = 0; v <= metric.value; v++) {
-                    await this.delay(20);
+                    await this.delay(50); // 속도 느리게 (20 -> 50)
                     this.currentMetricValues[m] = v;
                     this.updateRadarChart();
                 }
-                await this.delay(25); // 다음 영역으로 넘어가기 전 잠시 대기
+                await this.delay(100); // 다음 영역으로 넘어가기 전 대기 (25 -> 100)
             }
+
+            // 차트 완료 후 일정 시간마다 다시 그리기
+            this.startRadarChartLoop();
+        },
+
+        startRadarChartLoop() {
+            // 8초마다 레이더 차트 다시 그리기
+            setInterval(async () => {
+                this.currentMetricValues = this.metrics.map(() => 0);
+                this.updateRadarChart();
+                await this.delay(500);
+
+                for (let m = 0; m < this.metrics.length; m++) {
+                    const metric = this.metrics[m];
+                    for (let v = 0; v <= metric.value; v++) {
+                        await this.delay(50);
+                        this.currentMetricValues[m] = v;
+                        this.updateRadarChart();
+                    }
+                    await this.delay(100);
+                }
+            }, 8000);
         },
 
         async animateCount(platformIndex, target) {
