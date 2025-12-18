@@ -32,7 +32,7 @@
         {{-- 제품 이미지 --}}
         @if($product->image)
         <div class="flex justify-center mb-6">
-            <div class="w-48 h-48 rounded-2xl overflow-hidden bg-white" style="border: 2px solid #D9D9D9;">
+            <div class="w-48 h-48 rounded-2xl overflow-hidden bg-white" style="border: 1px solid #D9D9D9;">
                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
             </div>
         </div>
@@ -306,11 +306,11 @@
                 {{-- 범례 --}}
                 <div class="flex items-center justify-end gap-8 mb-4">
                     <div class="flex items-center gap-1.5">
-                        <img src="{{ asset('product/graph_green.svg') }}" alt="" class="w-4 h-4">
+                        <img src="{{ asset('product/graph_green.png') }}" alt="" class="w-4 h-4">
                         <span class="text-xs text-gray-600">나노리포좀</span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <img src="{{ asset('product/graph_black.svg') }}" alt="" class="w-4 h-4">
+                        <img src="{{ asset('product/graph_black.png') }}" alt="" class="w-4 h-4">
                         <span class="text-xs text-gray-600">일반성분</span>
                     </div>
                 </div>
