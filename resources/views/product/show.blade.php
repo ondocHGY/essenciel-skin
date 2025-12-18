@@ -105,7 +105,7 @@
 
             {{-- AI 분석 요약 --}}
             <div class="px-5 pb-5">
-                <div class="rounded-xl px-6 py-4" style="background-color: rgba({{ $rgbString }}, 0.15)">
+                <div class="rounded-xl px-6 py-4" style="background-color: rgba({{ $rgbString }}, 0.15); margin-top:24px">
                     <h3 class="text-base font-semibold text-gray-900 mb-2">AI 분석요약</h3>
 
                     {{-- 로딩 중 표시 --}}
@@ -662,9 +662,9 @@ function productPage() {
         initSciCharts() {
             // 포인트 이미지 로드
             const greenPointImg = new Image(16, 16);
-            greenPointImg.src = '{{ asset("product/graph_green.svg") }}';
+            greenPointImg.src = '{{ asset("product/graph_green.png") }}';
             const blackPointImg = new Image(16, 16);
-            blackPointImg.src = '{{ asset("product/graph_black.svg") }}';
+            blackPointImg.src = '{{ asset("product/graph_black.png") }}';
 
             // 차트 공통 옵션
             const chartOptions = {
