@@ -40,7 +40,7 @@
 
         {{-- 제품 정보 --}}
         <div class="text-center mb-6">
-            <img src="{{ asset('logo_black.png') }}" alt="essenciel" class="h-6 mx-auto mb-2">
+            <img src="{{ asset('logo_black.png') }}" alt="essenciel" class="h-7 mx-auto mb-2">
             <h1 class="text-xl font-bold text-gray-900">{{ $product->name }}</h1>
         </div>
 
