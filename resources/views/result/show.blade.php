@@ -185,10 +185,10 @@
                     @php $avgPos = $averagePositions[$loop->index] ?? 50; @endphp
                     <div x-data="profileGauge({{ $loop->index }}, {{ ($data['level'] / 5) * 100 }})" x-init="startAnimation()">
                         {{-- 텍스트 (두 줄) --}}
-                        <p class="mb-1 font-semibold" style="font-size: 27px; color: #999999;">
+                        <p class="mb-1 font-semibold" style="font-size: 24px; color: #999999;">
                             당신의 <span style="color: #000000;">{{ $data['label'] }}</span>{{ $eunNeun($data['label']) }}
                         </p>
-                        <p class="mb-8 font-semibold" style="font-size: 27px; color: #999999;">
+                        <p class="mb-8 font-semibold" style="font-size: 24px; color: #999999;">
                             <span style="color: #999999;">{{ $data['description'] }}</span>입니다.
                         </p>
 
@@ -276,67 +276,23 @@
             </div>
         </div>
 
-        {{-- 마일스톤 카드 슬라이더 (별도 섹션) --}}
-        <div class="overflow-hidden mb-8 -mx-4">
-            <div class="milestone-slider flex gap-4 px-4">
-                @php
-                    $totalTicks = 28; // 28일 기준
-                    $tickRadius = 42; // 틱 원 반지름
-                    $tickLength = 8; // 틱 길이
-                @endphp
-                {{-- 카드 1: 7-10일 (10개 틱 색칠) --}}
-                <div class="milestone-card flex-shrink-0 bg-black rounded-2xl px-5 py-2 flex items-center gap-3" style="width: 320px; height: 115px;">
-                    <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 70px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
-                    <div class="relative flex-shrink-0" style="width: 100px; height: 100px;">
-                        <svg class="w-full h-full" viewBox="0 0 100 100">
-                            @for($i = 0; $i < $totalTicks; $i++)
-                            @php
-                                $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                $x2 = 50 + $tickRadius * cos($angle);
-                                $y2 = 50 + $tickRadius * sin($angle);
-                                $isFilled = $i < 10; // 7-10일 = 10틱 색칠
-                            @endphp
-                            <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                  x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                  stroke="{{ $isFilled ? $pointColor : '#FFFFFF' }}"
-                                  stroke-width="3" stroke-linecap="round"/>
-                            @endfor
-                        </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[0] ?? '')) !!}</span>
-                        </div>
-                    </div>
-                    <span class="text-white text-xl font-bold flex-shrink-0">7-10일</span>
-                </div>
-                {{-- 카드 2: 21-28일 (28개 틱 모두 색칠) --}}
-                <div class="milestone-card flex-shrink-0 bg-black rounded-2xl px-5 py-2 flex items-center gap-3" style="width: 320px; height: 115px;">
-                    <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 70px;">{!! nl2br(e($milestoneLabels[1] ?? '효과 최대 발현')) !!}</p>
-                    <div class="relative flex-shrink-0" style="width: 100px; height: 100px;">
-                        <svg class="w-full h-full" viewBox="0 0 100 100">
-                            @for($i = 0; $i < $totalTicks; $i++)
-                            @php
-                                $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                $x2 = 50 + $tickRadius * cos($angle);
-                                $y2 = 50 + $tickRadius * sin($angle);
-                            @endphp
-                            <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                  x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                  stroke="{{ $pointColor }}"
-                                  stroke-width="3" stroke-linecap="round"/>
-                            @endfor
-                        </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[1] ?? '')) !!}</span>
-                        </div>
-                    </div>
-                    <span class="text-white text-xl font-bold flex-shrink-0">21-28일</span>
-                </div>
-                {{-- 무한 롤링을 위한 복제 카드 --}}
-                <div class="milestone-card flex-shrink-0 bg-black rounded-2xl px-5 py-2 flex items-center gap-3" style="width: 320px; height: 115px;">
+        {{-- 마일스톤 카드 슬라이드쇼 (자동 전환) --}}
+        <div class="mb-8 px-4" x-data="milestoneSlideshow()" x-init="startAutoSlide()">
+            @php
+                $totalTicks = 28; // 28일 기준
+                $tickRadius = 42; // 틱 원 반지름
+                $tickLength = 8; // 틱 길이
+            @endphp
+            <div class="relative overflow-hidden" style="height: 115px;">
+                {{-- 카드 1: 7-10일 --}}
+                <div x-show="currentSlide === 0"
+                     x-transition:enter="transition ease-out duration-500"
+                     x-transition:enter-start="opacity-0 transform translate-x-full"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     x-transition:leave="transition ease-in duration-500 absolute inset-x-0"
+                     x-transition:leave-start="opacity-100 transform translate-x-0"
+                     x-transition:leave-end="opacity-0 transform -translate-x-full"
+                     class="bg-black rounded-2xl px-5 py-2 flex items-center gap-3 mx-auto" style="max-width: 320px; height: 115px;">
                     <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 70px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
                     <div class="relative flex-shrink-0" style="width: 100px; height: 100px;">
                         <svg class="w-full h-full" viewBox="0 0 100 100">
@@ -361,7 +317,15 @@
                     </div>
                     <span class="text-white text-xl font-bold flex-shrink-0">7-10일</span>
                 </div>
-                <div class="milestone-card flex-shrink-0 bg-black rounded-2xl px-5 py-2 flex items-center gap-3" style="width: 320px; height: 115px;">
+                {{-- 카드 2: 21-28일 --}}
+                <div x-show="currentSlide === 1"
+                     x-transition:enter="transition ease-out duration-500"
+                     x-transition:enter-start="opacity-0 transform translate-x-full"
+                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                     x-transition:leave="transition ease-in duration-500 absolute inset-x-0"
+                     x-transition:leave-start="opacity-100 transform translate-x-0"
+                     x-transition:leave-end="opacity-0 transform -translate-x-full"
+                     class="bg-black rounded-2xl px-5 py-2 flex items-center gap-3 mx-auto" style="max-width: 320px; height: 115px;">
                     <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 70px;">{!! nl2br(e($milestoneLabels[1] ?? '효과 최대 발현')) !!}</p>
                     <div class="relative flex-shrink-0" style="width: 100px; height: 100px;">
                         <svg class="w-full h-full" viewBox="0 0 100 100">
@@ -647,12 +611,12 @@
                         <div class="bg-white rounded-2xl p-6 h-[200px] overflow-hidden relative" style="border: 1px solid #D9D9D9;">
                             {{-- 라벨 (카드 오른쪽 상단, 이미지 영역 위) --}}
                             @if($isBoostType)
-                                <div class="absolute top-10 right-20 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+                                <div class="absolute top-10 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">효과 향상</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Improved effectiveness</div>
                                 </div>
                             @else
-                                <div class="absolute top-10 right-20 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+                                <div class="absolute top-10 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">효능 도달</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Time to results</div>
                                 </div>
@@ -664,7 +628,7 @@
                             {{-- 텍스트 영역 (카드 왼쪽 하단) --}}
                             <div class="absolute bottom-4 left-6">
                                 @if($isBoostType)
-                                    <p class="text-4xl font-bold text-gray-900 mb-1">{{ $effectBoost }}% 향상</p>
+                                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ $effectBoost }}% 향상</p>
                                     <div class="flex items-center gap-2 text-sm text-gray-500">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -674,7 +638,7 @@
                                         <span>Boost</span>
                                     </div>
                                 @else
-                                    <p class="text-4xl font-bold text-gray-900 mb-1">{{ $daysSaved }}일 단축</p>
+                                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ $daysSaved }}일 단축</p>
                                     <div class="flex items-center gap-2 text-sm text-gray-500">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -686,16 +650,16 @@
                                 @endif
                             </div>
 
-                            {{-- 이미지 영역 (카드 오른쪽 하단) --}}
-                            <div class="absolute bottom-4 right-6 flex justify-end">
+                            {{-- 이미지 영역 (카드 오른쪽, 카드 너비의 55% 차지) --}}
+                            <div class="absolute bottom-4 right-4 w-[50%] flex justify-end">
                                 @if($imageType === 'boost_line')
-                                    <img src="/images/effects/향상2.png" alt="효과 향상" class="max-w-[240px] object-contain">
+                                    <img src="/images/effects/향상2.png" alt="효과 향상" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'boost_bar')
-                                    <img src="/images/effects/향상1.png" alt="효과 향상" class="max-w-[240px] object-contain">
+                                    <img src="/images/effects/향상1.png" alt="효과 향상" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'faster_timeline')
-                                    <img src="/images/effects/단축1.png" alt="효능 도달" class="max-w-[240px] object-contain">
+                                    <img src="/images/effects/단축1.png" alt="효능 도달" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'faster_clock')
-                                    <img src="/images/effects/단축2.png" alt="효능 도달" class="max-w-[240px] object-contain translate-y-4">
+                                    <img src="/images/effects/단축2.png" alt="효능 도달" class="w-full h-auto object-contain translate-y-4">
                                 @endif
                             </div>
                         </div>
@@ -764,14 +728,6 @@
         100% { transform: translateX(-33.333%); }
     }
 
-    /* 마일스톤 카드 슬라이더 */
-    .milestone-slider {
-        animation: milestoneSlide 12s linear infinite;
-    }
-    @keyframes milestoneSlide {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(calc(-320px * 2 - 32px)); }
-    }
 
 </style>
 @endpush
@@ -1000,29 +956,52 @@ function lifestyleSlider() {
     };
 }
 
-// 피부 반응 프로파일 게이지 애니메이션 (반복)
+// 마일스톤 카드 슬라이드쇼
+function milestoneSlideshow() {
+    return {
+        currentSlide: 0,
+        totalSlides: 2,
+        autoSlideInterval: null,
+
+        startAutoSlide() {
+            this.autoSlideInterval = setInterval(() => {
+                this.nextSlide();
+            }, 4000); // 4초마다 전환
+        },
+
+        nextSlide() {
+            this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+        },
+
+        goToSlide(index) {
+            this.currentSlide = index;
+            // 수동 전환 시 자동 슬라이드 리셋
+            clearInterval(this.autoSlideInterval);
+            this.startAutoSlide();
+        }
+    };
+}
+
+// 피부 반응 프로파일 게이지 애니메이션 (동시 시작, 반복)
 function profileGauge(index, targetWidth) {
     return {
         currentWidth: 0,
         targetWidth: targetWidth,
-        delay: index * 300 + 500,
         repeatInterval: 5000, // 5초마다 반복
 
         startAnimation() {
-            // 첫 애니메이션
+            // 모든 게이지 동시에 시작
             setTimeout(() => {
                 this.currentWidth = this.targetWidth;
-            }, this.delay);
+            }, 500);
 
-            // 반복 애니메이션
+            // 반복 애니메이션 (동시에 리셋 후 동시에 시작)
             setInterval(() => {
-                // 리셋
                 this.currentWidth = 0;
-                // 순차적으로 다시 애니메이션
                 setTimeout(() => {
                     this.currentWidth = this.targetWidth;
-                }, this.delay);
-            }, this.repeatInterval + 2000); // 전체 애니메이션 완료 후 반복
+                }, 500);
+            }, this.repeatInterval + 1500);
         }
     };
 }
