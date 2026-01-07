@@ -152,8 +152,8 @@
 
             {{-- 상품명 + 결과 생성 상태 (게이지 하단) --}}
             <div class="text-center -mt-2 mb-4">
-                <p class="text-xl font-bold text-gray-900">{{ $product->name }}</p>
-                <p class="text-base text-gray-500" x-text="gaugeProgress >= 100 ? '결과 생성완료' : '결과 생성중'">결과 생성중</p>
+                <p class="text-sm text-gray-500">{{ $product->name }}</p>
+                <p class="text-sm text-gray-500" x-text="gaugeProgress >= 100 ? '결과 생성완료' : '결과 생성중'">결과 생성중</p>
             </div>
 
             {{-- 분석 완료 버튼 --}}
@@ -185,11 +185,11 @@
                     @php $avgPos = $averagePositions[$loop->index] ?? 50; @endphp
                     <div x-data="profileGauge({{ $loop->index }}, {{ ($data['level'] / 5) * 100 }})" x-init="startAnimation()">
                         {{-- 텍스트 (두 줄) --}}
-                        <p class="mb-1" style="font-size: 27px; color: #999999;">
-                            당신의 <span class="font-bold" style="color: #000000;">{{ $data['label'] }}</span>{{ $eunNeun($data['label']) }}
+                        <p class="mb-1 font-semibold" style="font-size: 27px; color: #999999;">
+                            당신의 <span style="color: #000000;">{{ $data['label'] }}</span>{{ $eunNeun($data['label']) }}
                         </p>
-                        <p class="mb-8" style="font-size: 27px; color: #999999;">
-                            <span class="font-bold" style="color: #000000;">{{ $data['description'] }}</span>입니다.
+                        <p class="mb-8 font-semibold" style="font-size: 27px; color: #999999;">
+                            <span style="color: #999999;">{{ $data['description'] }}</span>입니다.
                         </p>
 
                         {{-- 게이지 바 --}}
@@ -702,9 +702,9 @@
                         <div class="bg-gray-100 rounded-xl px-6 py-3 mt-2 mb-10">
                             <p class="text-sm text-gray-700">
                                 @if($isBoostType)
-                                    <span class="font-semibold">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> 효과가 최대 {{ $effectBoost }}% 향상될 것으로 예상됩니다.
+                                    <span class="font-semibold text-black">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> 효과가 최대 {{ $effectBoost }}% 향상될 것으로 예상됩니다.
                                 @else
-                                    <span class="font-semibold">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> 효능 도달시점이 최대 {{ $daysSaved }}일 단축될 것으로 예상됩니다.
+                                    <span class="font-semibold text-black">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> 효능 도달시점이 최대 {{ $daysSaved }}일 단축될 것으로 예상됩니다.
                                 @endif
                             </p>
                         </div>
