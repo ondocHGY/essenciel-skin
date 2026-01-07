@@ -695,7 +695,7 @@
                                 @elseif($imageType === 'faster_timeline')
                                     <img src="/images/effects/단축1.png" alt="효능 도달" class="max-w-[240px] object-contain">
                                 @elseif($imageType === 'faster_clock')
-                                    <img src="/images/effects/단축2.png" alt="효능 도달" class="max-w-[240px] object-contain">
+                                    <img src="/images/effects/단축2.png" alt="효능 도달" class="max-w-[240px] object-contain translate-y-4">
                                 @endif
                             </div>
                         </div>
