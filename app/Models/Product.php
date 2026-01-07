@@ -16,6 +16,7 @@ class Product extends Model
         'efficacy_curve',
         'efficacy_phases',
         'efficacy_milestones',
+        'milestone_center_texts',
         'efficacy_metrics',
         'intro_metrics',
         'intro_summary',
@@ -38,6 +39,7 @@ class Product extends Model
         'efficacy_curve' => 'array',
         'efficacy_phases' => 'array',
         'efficacy_milestones' => 'array',
+        'milestone_center_texts' => 'array',
         'efficacy_metrics' => 'array',
         'intro_metrics' => 'array',
         'intro_summary' => 'array',
@@ -100,6 +102,27 @@ class Product extends Model
             'tone' => ['초기 톤 개선 체감', '색소 완화 안정화'],
             'pore' => ['초기 모공 케어 체감', '모공 개선 안정화'],
             'wrinkle' => ['초기 주름 완화 체감', '주름 개선 안정화'],
+        ];
+
+        return $defaults[$this->efficacy_type] ?? $defaults['moisture'];
+    }
+
+    /**
+     * 마일스톤 카드 가운데 텍스트 반환
+     */
+    public function getMilestoneCenterTexts(): array
+    {
+        if ($this->milestone_center_texts) {
+            return $this->milestone_center_texts;
+        }
+
+        // 기본값 (효능 타입별) - 개행문자 포함
+        $defaults = [
+            'moisture' => ["피부 수분\n흡수 시작", "수분 밸런스\n안정화"],
+            'elasticity' => ["콜라겐 생성\n촉진 시작", "탄력 효과\n안정화"],
+            'tone' => ["멜라닌 생성\n억제 시작", "피부톤 균일화\n안정화"],
+            'pore' => ["피지 분비\n조절 시작", "모공 케어\n안정화"],
+            'wrinkle' => ["표피 재생\n촉진 시작", "주름 개선\n안정화"],
         ];
 
         return $defaults[$this->efficacy_type] ?? $defaults['moisture'];

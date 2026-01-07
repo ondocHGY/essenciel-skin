@@ -222,23 +222,43 @@
             <!-- 마일스톤 라벨 -->
             <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
                 <h3 class="text-sm font-medium text-gray-900 mb-3">마일스톤 라벨</h3>
-                <p class="text-xs text-gray-500 mb-3">결과 페이지 상단에 표시되는 기간별 효과 라벨입니다</p>
+                <p class="text-xs text-gray-500 mb-3">결과 페이지 상단에 표시되는 기간별 효과 라벨입니다. 줄바꿈을 사용하면 카드에서 여러 줄로 표시됩니다.</p>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs text-gray-600 block mb-1">7-10일 (초기 체감)</label>
-                        <input type="text" name="efficacy_milestones[0]"
-                               value="{{ old('efficacy_milestones.0', $product->efficacy_milestones[0] ?? '') }}"
+                        <textarea name="efficacy_milestones[0]" rows="2"
                                x-model="milestones[0]"
-                               placeholder="예: 초기 톤 개선 체감"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               placeholder="예: 초기 톤&#10;개선 체감"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ old('efficacy_milestones.0', $product->efficacy_milestones[0] ?? '') }}</textarea>
                     </div>
                     <div>
                         <label class="text-xs text-gray-600 block mb-1">21-28일 (안정화)</label>
-                        <input type="text" name="efficacy_milestones[1]"
-                               value="{{ old('efficacy_milestones.1', $product->efficacy_milestones[1] ?? '') }}"
+                        <textarea name="efficacy_milestones[1]" rows="2"
                                x-model="milestones[1]"
-                               placeholder="예: 색소 완화 안정화"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               placeholder="예: 색소 완화&#10;안정화"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ old('efficacy_milestones.1', $product->efficacy_milestones[1] ?? '') }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 마일스톤 가운데 문구 -->
+            <div class="mb-6 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">마일스톤 가운데 문구</h3>
+                <p class="text-xs text-gray-500 mb-3">마일스톤 카드 틱 게이지 중앙에 표시되는 문구입니다. 줄바꿈을 사용하면 여러 줄로 표시됩니다.</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-gray-600 block mb-1">7-10일 게이지 중앙</label>
+                        <textarea name="milestone_center_texts[0]" rows="2"
+                               x-model="centerTexts[0]"
+                               placeholder="예: 피부 수분&#10;흡수 시작"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">{{ old('milestone_center_texts.0', $product->milestone_center_texts[0] ?? '') }}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-600 block mb-1">21-28일 게이지 중앙</label>
+                        <textarea name="milestone_center_texts[1]" rows="2"
+                               x-model="centerTexts[1]"
+                               placeholder="예: 수분 밸런스&#10;안정화"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">{{ old('milestone_center_texts.1', $product->milestone_center_texts[1] ?? '') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -306,6 +326,10 @@
                         "{{ $product->efficacy_milestones[0] ?? '' }}",
                         "{{ $product->efficacy_milestones[1] ?? '' }}"
                     ],
+                    centerTexts: [
+                        "{{ $product->milestone_center_texts[0] ?? '' }}",
+                        "{{ $product->milestone_center_texts[1] ?? '' }}"
+                    ],
                     phases: {
                         phase1: `{{ $product->efficacy_phases['phase1'] ?? '' }}`,
                         phase2: `{{ $product->efficacy_phases['phase2'] ?? '' }}`,
@@ -315,6 +339,7 @@
                         const presets = {
                             moisture: {
                                 milestones: ['초기 보습 체감', '수분 밸런스 안정화'],
+                                centerTexts: ['피부 수분\n흡수 시작', '수분 밸런스\n안정화'],
                                 phases: {
                                     phase1: '유효 성분이 피부에 전달되며, 수분 흡수 준비 단계에 들어갑니다.',
                                     phase2: '피부 수분도 변화가 느껴지기 시작하며, 건조함이 점차 완화됩니다.',
@@ -323,6 +348,7 @@
                             },
                             elasticity: {
                                 milestones: ['초기 탄력 체감', '탄력 효과 안정화'],
+                                centerTexts: ['콜라겐 생성\n촉진 시작', '탄력 효과\n안정화'],
                                 phases: {
                                     phase1: '유효 성분이 피부에 전달되며, 콜라겐 합성 촉진 준비 단계에 들어갑니다.',
                                     phase2: '피부 탄력 변화가 느껴지기 시작하며, 처짐이 점차 개선됩니다.',
@@ -331,6 +357,7 @@
                             },
                             tone: {
                                 milestones: ['초기 톤 개선 체감', '색소 완화 안정화'],
+                                centerTexts: ['멜라닌 생성\n억제 시작', '피부톤 균일화\n안정화'],
                                 phases: {
                                     phase1: '유효 성분이 피부에 전달되며, 멜라닌 생성 신호를 완화할 준비 단계에 들어갑니다.',
                                     phase2: '피부 톤 변화가 눈으로 느껴지기 시작하며, 칙칙함이 점차 완화됩니다.',
@@ -339,6 +366,7 @@
                             },
                             pore: {
                                 milestones: ['초기 모공 케어 체감', '모공 개선 안정화'],
+                                centerTexts: ['피지 분비\n조절 시작', '모공 케어\n안정화'],
                                 phases: {
                                     phase1: '유효 성분이 피부에 전달되며, 모공 정화 준비 단계에 들어갑니다.',
                                     phase2: '모공 축소 변화가 눈으로 느껴지기 시작하며, 피지 분비가 조절됩니다.',
@@ -347,6 +375,7 @@
                             },
                             wrinkle: {
                                 milestones: ['초기 주름 완화 체감', '주름 개선 안정화'],
+                                centerTexts: ['표피 재생\n촉진 시작', '주름 개선\n안정화'],
                                 phases: {
                                     phase1: '유효 성분이 피부에 전달되며, 표피 재생 촉진 준비 단계에 들어갑니다.',
                                     phase2: '주름 완화 변화가 느껴지기 시작하며, 미세주름이 점차 개선됩니다.',
@@ -356,6 +385,7 @@
                         };
                         if (presets[type]) {
                             this.milestones = [...presets[type].milestones];
+                            this.centerTexts = [...presets[type].centerTexts];
                             this.phases = {...presets[type].phases};
                         }
                     }

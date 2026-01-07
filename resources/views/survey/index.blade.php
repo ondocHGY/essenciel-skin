@@ -9,15 +9,15 @@
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         class="fixed inset-0 z-50 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center">
+         class="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-gray-900 to-black flex items-center justify-center">
         <div class="text-center px-8 max-w-sm">
             {{-- AI 아이콘 애니메이션 --}}
             <div class="relative w-32 h-32 mx-auto mb-8">
-                <div class="absolute inset-0 border-4 border-blue-400/30 rounded-full animate-ping"></div>
-                <div class="absolute inset-2 border-4 border-purple-400/40 rounded-full animate-pulse"></div>
-                <div class="absolute inset-4 border-2 border-cyan-400/50 rounded-full animate-spin" style="animation-duration: 3s;"></div>
+                <div class="absolute inset-0 border-4 border-gray-400/30 rounded-full animate-ping"></div>
+                <div class="absolute inset-2 border-4 border-gray-400/40 rounded-full animate-pulse"></div>
+                <div class="absolute inset-4 border-2 border-gray-400/50 rounded-full animate-spin" style="animation-duration: 3s;"></div>
                 <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/50">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gray-700 to-black rounded-2xl flex items-center justify-center shadow-lg shadow-black/50">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                   d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -25,15 +25,15 @@
                     </div>
                 </div>
                 <div class="absolute inset-0 overflow-hidden rounded-full">
-                    <div class="h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scan"></div>
+                    <div class="h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent animate-scan"></div>
                 </div>
             </div>
 
             <h2 class="text-xl font-bold text-white mb-2">AI 피부 분석 중</h2>
-            <p class="text-blue-200 text-sm mb-6" x-text="analyzeStatusText"></p>
+            <p class="text-gray-300 text-sm mb-6" x-text="analyzeStatusText"></p>
 
             <div class="w-full bg-white/20 rounded-full h-2 mb-4 overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
+                <div class="h-full bg-gradient-to-r from-gray-600 via-gray-700 to-black rounded-full transition-all duration-300 ease-out"
                      :style="{ width: analyzeProgress + '%' }"></div>
             </div>
 
@@ -67,7 +67,7 @@
             <span x-text="Math.round(((currentQuestion + 1) / questions.length) * 100) + '%'"></span>
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div class="h-full bg-blue-600 rounded-full transition-all duration-300"
+            <div class="h-full bg-black rounded-full transition-all duration-300"
                  :style="{ width: ((currentQuestion + 1) / questions.length) * 100 + '%' }"></div>
         </div>
     </div>
@@ -96,13 +96,13 @@
                                        :value="option.value"
                                        x-model="formData[question.name]"
                                        class="peer sr-only">
-                                <div class="p-4 border-2 rounded-xl transition-all peer-checked:border-blue-600 peer-checked:bg-blue-50 border-gray-200 hover:border-gray-300">
+                                <div class="p-4 border-2 rounded-xl transition-all peer-checked:border-black peer-checked:bg-gray-100 border-gray-200 hover:border-gray-300">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-blue-600 flex items-center justify-center transition-all"
-                                             :class="formData[question.name] === option.value ? 'border-blue-600 bg-blue-600' : ''">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-black flex items-center justify-center transition-all"
+                                             :class="formData[question.name] === option.value ? 'border-black bg-black' : ''">
                                             <div x-show="formData[question.name] === option.value" class="w-2 h-2 rounded-full bg-white"></div>
                                         </div>
-                                        <span class="font-medium" :class="formData[question.name] === option.value ? 'text-blue-700' : 'text-gray-700'" x-text="option.label"></span>
+                                        <span class="font-medium" :class="formData[question.name] === option.value ? 'text-black' : 'text-gray-700'" x-text="option.label"></span>
                                     </div>
                                     <p x-show="option.desc" class="text-xs text-gray-500 mt-2 ml-8" x-text="option.desc"></p>
                                 </div>
@@ -121,11 +121,11 @@
                     이전
                 </button>
                 <button type="button" x-show="currentQuestion < questions.length - 1" @click="nextQuestion" :disabled="!canProceed"
-                        class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
+                        class="flex-1 py-4 bg-black text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-800">
                     다음
                 </button>
                 <button type="submit" x-show="currentQuestion === questions.length - 1" :disabled="!canProceed || isSubmitting"
-                        class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
+                        class="flex-1 py-4 bg-black text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-800">
                     <span x-show="!isSubmitting">분석 시작</span>
                     <span x-show="isSubmitting">분석 중...</span>
                 </button>

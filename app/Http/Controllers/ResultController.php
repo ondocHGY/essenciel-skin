@@ -46,7 +46,37 @@ class ResultController extends Controller
         // Chart.js용 데이터 준비
         $chartData = $this->prepareChartData($result, $product);
 
-        return view('result.show', compact('product', 'result', 'chartData'));
+        // 공유 URL
+        $shareUrl = $result->getShareUrl();
+
+        return view('result.show', compact('product', 'result', 'chartData', 'shareUrl'));
+    }
+
+    public function share(string $token)
+    {
+        $result = AnalysisResult::where('share_token', $token)
+            ->with(['product', 'profile'])
+            ->firstOrFail();
+
+        $product = $result->product;
+
+        // metrics에 radarBefore/radarAfter가 없으면 추가
+        $metrics = $result->metrics;
+        if ($metrics) {
+            $metrics = $this->ensureRadarScores($metrics);
+            $result->metrics = $metrics;
+        }
+
+        // Chart.js용 데이터 준비
+        $chartData = $this->prepareChartData($result, $product);
+
+        // 공유 URL (자기 자신)
+        $shareUrl = $result->getShareUrl();
+
+        // 공유 페이지임을 표시
+        $isShared = true;
+
+        return view('result.show', compact('product', 'result', 'chartData', 'shareUrl', 'isShared'));
     }
 
     private function ensureRadarScores(array $metrics): array

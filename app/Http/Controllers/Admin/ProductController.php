@@ -80,6 +80,8 @@ class ProductController extends Controller
             'efficacy_phases.phase3' => 'nullable|string',
             'efficacy_milestones' => 'nullable|array',
             'efficacy_milestones.*' => 'nullable|string',
+            'milestone_center_texts' => 'nullable|array',
+            'milestone_center_texts.*' => 'nullable|string',
             'efficacy_metrics' => 'nullable|array',
             'efficacy_metrics.name' => 'nullable|string|max:255',
             'efficacy_metrics.unit' => 'nullable|string|max:50',
@@ -114,6 +116,16 @@ class ProductController extends Controller
                 $validated['efficacy_milestones'] = null;
             } else {
                 $validated['efficacy_milestones'] = array_values($validated['efficacy_milestones']);
+            }
+        }
+
+        // 마일스톤 가운데 문구 처리 (빈 값 필터링)
+        if (isset($validated['milestone_center_texts'])) {
+            $validated['milestone_center_texts'] = array_filter($validated['milestone_center_texts'], fn($v) => !empty(trim($v)));
+            if (empty($validated['milestone_center_texts'])) {
+                $validated['milestone_center_texts'] = null;
+            } else {
+                $validated['milestone_center_texts'] = array_values($validated['milestone_center_texts']);
             }
         }
 

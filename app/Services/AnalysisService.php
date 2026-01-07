@@ -876,16 +876,21 @@ class AnalysisService
             default => 0,
         };
 
+        // score를 1-5 level로 변환 (score 범위: -5 ~ +5 → level 범위: 1 ~ 5)
+        $regenerationLevel = max(1, min(5, round(($regenerationScore + 5) / 2)));
+
         $characteristics['regeneration'] = [
             'label' => '재생 속도',
             'score' => $regenerationScore,
-            'description' => match(true) {
-                $regenerationScore >= 3 => '평균보다 빠르고',
-                $regenerationScore >= 1 => '평균 수준이며',
-                $regenerationScore >= -1 => '평균보다 느리고',
-                default => '다소 느린 편이고',
+            'level' => $regenerationLevel,
+            'description' => match($regenerationLevel) {
+                5 => '매우 빠른 편',
+                4 => '빠른 편',
+                3 => '보통',
+                2 => '느린 편',
+                default => '매우 느린 편',
             },
-            'status' => $regenerationScore >= 1 ? 'positive' : ($regenerationScore >= -1 ? 'neutral' : 'negative'),
+            'status' => $regenerationLevel >= 4 ? 'positive' : ($regenerationLevel >= 2 ? 'neutral' : 'negative'),
         ];
 
         // 2. 수분 유지력 판단 (수분 섭취, 음주, 스킨케어 기반)
@@ -913,17 +918,21 @@ class AnalysisService
             default => 0,
         };
 
+        // score를 1-5 level로 변환 (score 범위: -6 ~ +6 → level 범위: 1 ~ 5)
+        $moistureLevel = max(1, min(5, round(($moistureScore + 6) / 2.4)));
+
         $characteristics['moisture_retention'] = [
             'label' => '수분 유지력',
             'score' => $moistureScore,
-            'description' => match(true) {
-                $moistureScore >= 4 => '높으며',
-                $moistureScore >= 2 => '양호하며',
-                $moistureScore >= 0 => '보통이며',
-                $moistureScore >= -2 => '낮으며',
-                default => '매우 낮으며',
+            'level' => $moistureLevel,
+            'description' => match($moistureLevel) {
+                5 => '매우 높은 편',
+                4 => '높은 편',
+                3 => '보통',
+                2 => '낮은 편',
+                default => '매우 낮은 편',
             },
-            'status' => $moistureScore >= 2 ? 'positive' : ($moistureScore >= 0 ? 'neutral' : 'negative'),
+            'status' => $moistureLevel >= 4 ? 'positive' : ($moistureLevel >= 2 ? 'neutral' : 'negative'),
         ];
 
         // 3. 색소 반응성 판단 (자외선 노출, 스트레스 기반)
@@ -950,16 +959,21 @@ class AnalysisService
             default => -1,
         };
 
+        // score를 1-5 level로 변환 (score 범위: -3 ~ +4 → level 범위: 1 ~ 5)
+        $pigmentLevel = max(1, min(5, round(($pigmentScore + 3) / 1.4)));
+
         $characteristics['pigment_reactivity'] = [
             'label' => '색소 반응성',
             'score' => $pigmentScore,
-            'description' => match(true) {
-                $pigmentScore >= 3 => '높은 편입니다.',
-                $pigmentScore >= 1 => '다소 높은 편입니다.',
-                $pigmentScore >= -1 => '보통입니다.',
-                default => '낮은 편입니다.',
+            'level' => $pigmentLevel,
+            'description' => match($pigmentLevel) {
+                5 => '매우 높은 편',
+                4 => '높은 편',
+                3 => '보통',
+                2 => '낮은 편',
+                default => '매우 낮은 편',
             },
-            'status' => $pigmentScore <= -1 ? 'positive' : ($pigmentScore <= 1 ? 'neutral' : 'negative'),
+            'status' => $pigmentLevel <= 2 ? 'positive' : ($pigmentLevel <= 4 ? 'neutral' : 'negative'),
         ];
 
         // 4. 민감도 판단 (자극 관련 - 흡연, 스트레스, 수면 기반)
@@ -986,16 +1000,21 @@ class AnalysisService
             default => 0,
         };
 
+        // score를 1-5 level로 변환 (score 범위: -3 ~ +6 → level 범위: 1 ~ 5)
+        $sensitivityLevel = max(1, min(5, round(($sensitivityScore + 3) / 1.8)));
+
         $characteristics['sensitivity'] = [
             'label' => '피부 민감도',
             'score' => $sensitivityScore,
-            'description' => match(true) {
-                $sensitivityScore >= 3 => '민감한 편이에요.',
-                $sensitivityScore >= 1 => '약간 민감해요.',
-                $sensitivityScore >= -1 => '보통이에요.',
-                default => '안정적이에요.',
+            'level' => $sensitivityLevel,
+            'description' => match($sensitivityLevel) {
+                5 => '매우 민감',
+                4 => '민감한 편',
+                3 => '보통',
+                2 => '안정적인 편',
+                default => '매우 안정적',
             },
-            'status' => $sensitivityScore <= 0 ? 'positive' : ($sensitivityScore <= 2 ? 'neutral' : 'negative'),
+            'status' => $sensitivityLevel <= 2 ? 'positive' : ($sensitivityLevel <= 4 ? 'neutral' : 'negative'),
         ];
 
         // 종합 요약 문장 생성

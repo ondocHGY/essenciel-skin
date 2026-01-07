@@ -21,6 +21,9 @@ Route::get('/p/{code}/survey', [SurveyController::class, 'index'])->name('survey
 Route::post('/p/{code}/survey', [SurveyController::class, 'store'])->name('survey.store');
 Route::get('/p/{code}/result', [ResultController::class, 'show'])->name('result.show');
 
+// 공유 결과 라우트
+Route::get('/share/{token}', [ResultController::class, 'share'])->name('result.share');
+
 // 관리자 라우트
 Route::prefix('admin')->name('admin.')->group(function () {
     // 인증 라우트 (미들웨어 없음)
