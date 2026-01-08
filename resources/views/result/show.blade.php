@@ -187,10 +187,19 @@
                 <p class="text-sm text-gray-500" x-text="gaugeProgress >= 100 ? '결과 생성완료' : '결과 생성중'">결과 생성중</p>
             </div>
 
-            {{-- 분석 완료 버튼 --}}
-            <button class="w-3/5 mx-auto py-3 bg-black text-white text-center font-semibold rounded-xl">
-                분석 완료
-            </button>
+            {{-- 분석 완료 버튼 (채워지는 애니메이션) --}}
+            <div x-data="analysisCompleteBtn()" x-init="startFill()" class="w-3/5 mx-auto">
+                <div class="relative py-3 bg-white rounded-xl overflow-hidden">
+                    {{-- 검은색 채움 (왼쪽→오른쪽) --}}
+                    <div class="absolute inset-0 bg-black"
+                         :style="'width: ' + (fillProgress * 100) + '%'"></div>
+                    {{-- 텍스트 --}}
+                    <span class="relative z-10 font-semibold transition-all duration-300"
+                          :class="fillProgress >= 1 ? 'text-white' : 'text-transparent'">
+                        분석 완료
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1138,6 +1147,33 @@ function profileGauge(index, targetWidth) {
                     this.currentWidth = this.targetWidth;
                 }, 500);
             }, this.repeatInterval + 1500);
+        }
+    };
+}
+
+// 분석 완료 버튼 채움 애니메이션
+function analysisCompleteBtn() {
+    return {
+        fillProgress: 0,
+
+        startFill() {
+            // 페이지 로드 후 약간의 딜레이 후 시작
+            setTimeout(() => {
+                // 1초에 걸쳐 채워짐
+                const duration = 1000;
+                const startTime = performance.now();
+
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    this.fillProgress = Math.min(elapsed / duration, 1);
+
+                    if (this.fillProgress < 1) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+
+                requestAnimationFrame(animate);
+            }, 500);
         }
     };
 }
