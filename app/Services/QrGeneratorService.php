@@ -34,4 +34,22 @@ class QrGeneratorService
 
         return null;
     }
+
+    /**
+     * 커스텀 URL로 QR 코드 생성
+     */
+    public function generateFromUrl(string $url, ?string $filename = null): string
+    {
+        $qrCode = QrCode::format('png')
+            ->size(300)
+            ->margin(2)
+            ->generate($url);
+
+        $filename = $filename ?: 'custom_' . time() . '_' . uniqid();
+        $path = 'qrcodes/' . $filename . '.png';
+
+        Storage::disk('public')->put($path, $qrCode);
+
+        return $path;
+    }
 }

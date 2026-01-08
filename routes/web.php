@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\SurveyController as AdminSurveyController;
 use App\Http\Controllers\Admin\SurveyQuestionController as AdminSurveyQuestionController;
 use App\Http\Controllers\Admin\ProductIngredientController as AdminProductIngredientController;
+use App\Http\Controllers\Admin\CustomQrCodeController as AdminCustomQrCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -68,5 +69,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/survey-questions/{surveyQuestion}', [AdminSurveyQuestionController::class, 'update'])->name('survey-questions.update');
         Route::delete('/survey-questions/{surveyQuestion}', [AdminSurveyQuestionController::class, 'destroy'])->name('survey-questions.destroy');
         Route::post('/survey-questions/update-order', [AdminSurveyQuestionController::class, 'updateOrder'])->name('survey-questions.update-order');
+
+        // 커스텀 QR 코드 생성
+        Route::get('/custom-qr', [AdminCustomQrCodeController::class, 'index'])->name('custom-qr.index');
+        Route::post('/custom-qr/generate', [AdminCustomQrCodeController::class, 'generate'])->name('custom-qr.generate');
     });
 });

@@ -276,78 +276,118 @@
             </div>
         </div>
 
-        {{-- 마일스톤 카드 슬라이드쇼 (자동 전환) --}}
-        <div class="mb-8 px-4" x-data="milestoneSlideshow()" x-init="startAutoSlide()">
+        {{-- 마일스톤 카드 슬라이드쇼 (1.5개 노출, 무한 자동 슬라이드) --}}
+        <div class="mb-8" x-data="milestoneCarousel()" x-init="init()">
             @php
                 $totalTicks = 28; // 28일 기준
                 $tickRadius = 42; // 틱 원 반지름
                 $tickLength = 8; // 틱 길이
             @endphp
-            <div class="relative overflow-hidden" style="height: 115px;">
-                {{-- 카드 1: 7-10일 --}}
-                <div x-show="currentSlide === 0"
-                     x-transition:enter="transition ease-out duration-500"
-                     x-transition:enter-start="opacity-0 transform translate-x-full"
-                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                     x-transition:leave="transition ease-in duration-500 absolute inset-x-0"
-                     x-transition:leave-start="opacity-100 transform translate-x-0"
-                     x-transition:leave-end="opacity-0 transform -translate-x-full"
-                     class="bg-black rounded-2xl px-5 py-2 flex items-center gap-3 mx-auto" style="max-width: 320px; height: 115px;">
-                    <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 70px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
-                    <div class="relative flex-shrink-0" style="width: 100px; height: 100px;">
-                        <svg class="w-full h-full" viewBox="0 0 100 100">
-                            @for($i = 0; $i < $totalTicks; $i++)
-                            @php
-                                $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                $x2 = 50 + $tickRadius * cos($angle);
-                                $y2 = 50 + $tickRadius * sin($angle);
-                                $isFilled = $i < 10;
-                            @endphp
-                            <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                  x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                  stroke="{{ $isFilled ? $pointColor : '#FFFFFF' }}"
-                                  stroke-width="3" stroke-linecap="round"/>
-                            @endfor
-                        </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[0] ?? '')) !!}</span>
+            <div class="relative overflow-hidden">
+                <div class="milestone-track flex gap-3 pl-4"
+                     style="transition: transform 500ms ease-out; transform: translateX(0px);">
+                    {{-- 카드 1: 7-10일 --}}
+                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
+                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
+                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                @for($i = 0; $i < $totalTicks; $i++)
+                                @php
+                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
+                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
+                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
+                                    $x2 = 50 + $tickRadius * cos($angle);
+                                    $y2 = 50 + $tickRadius * sin($angle);
+                                    $isFilled = $i < 10;
+                                @endphp
+                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
+                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
+                                      stroke="{{ $isFilled ? $pointColor : '#FFFFFF' }}"
+                                      stroke-width="3" stroke-linecap="round"/>
+                                @endfor
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[0] ?? '')) !!}</span>
+                            </div>
                         </div>
+                        <span class="text-white text-lg font-bold flex-shrink-0">7-10일</span>
                     </div>
-                    <span class="text-white text-xl font-bold flex-shrink-0">7-10일</span>
-                </div>
-                {{-- 카드 2: 21-28일 --}}
-                <div x-show="currentSlide === 1"
-                     x-transition:enter="transition ease-out duration-500"
-                     x-transition:enter-start="opacity-0 transform translate-x-full"
-                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                     x-transition:leave="transition ease-in duration-500 absolute inset-x-0"
-                     x-transition:leave-start="opacity-100 transform translate-x-0"
-                     x-transition:leave-end="opacity-0 transform -translate-x-full"
-                     class="bg-black rounded-2xl px-5 py-2 flex items-center gap-3 mx-auto" style="max-width: 320px; height: 115px;">
-                    <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 70px;">{!! nl2br(e($milestoneLabels[1] ?? '효과 최대 발현')) !!}</p>
-                    <div class="relative flex-shrink-0" style="width: 100px; height: 100px;">
-                        <svg class="w-full h-full" viewBox="0 0 100 100">
-                            @for($i = 0; $i < $totalTicks; $i++)
-                            @php
-                                $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                $x2 = 50 + $tickRadius * cos($angle);
-                                $y2 = 50 + $tickRadius * sin($angle);
-                            @endphp
-                            <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                  x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                  stroke="{{ $pointColor }}"
-                                  stroke-width="3" stroke-linecap="round"/>
-                            @endfor
-                        </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[1] ?? '')) !!}</span>
+                    {{-- 카드 2: 21-28일 --}}
+                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
+                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[1] ?? '효과 최대 발현')) !!}</p>
+                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                @for($i = 0; $i < $totalTicks; $i++)
+                                @php
+                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
+                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
+                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
+                                    $x2 = 50 + $tickRadius * cos($angle);
+                                    $y2 = 50 + $tickRadius * sin($angle);
+                                @endphp
+                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
+                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
+                                      stroke="{{ $pointColor }}"
+                                      stroke-width="3" stroke-linecap="round"/>
+                                @endfor
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[1] ?? '')) !!}</span>
+                            </div>
                         </div>
+                        <span class="text-white text-lg font-bold flex-shrink-0">21-28일</span>
                     </div>
-                    <span class="text-white text-xl font-bold flex-shrink-0">21-28일</span>
+                    {{-- 무한 루프를 위한 복제 카드 1 --}}
+                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
+                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
+                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                @for($i = 0; $i < $totalTicks; $i++)
+                                @php
+                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
+                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
+                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
+                                    $x2 = 50 + $tickRadius * cos($angle);
+                                    $y2 = 50 + $tickRadius * sin($angle);
+                                    $isFilled = $i < 10;
+                                @endphp
+                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
+                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
+                                      stroke="{{ $isFilled ? $pointColor : '#FFFFFF' }}"
+                                      stroke-width="3" stroke-linecap="round"/>
+                                @endfor
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[0] ?? '')) !!}</span>
+                            </div>
+                        </div>
+                        <span class="text-white text-lg font-bold flex-shrink-0">7-10일</span>
+                    </div>
+                    {{-- 무한 루프를 위한 복제 카드 2 --}}
+                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
+                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[1] ?? '효과 최대 발현')) !!}</p>
+                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                @for($i = 0; $i < $totalTicks; $i++)
+                                @php
+                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
+                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
+                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
+                                    $x2 = 50 + $tickRadius * cos($angle);
+                                    $y2 = 50 + $tickRadius * sin($angle);
+                                @endphp
+                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
+                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
+                                      stroke="{{ $pointColor }}"
+                                      stroke-width="3" stroke-linecap="round"/>
+                                @endfor
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[1] ?? '')) !!}</span>
+                            </div>
+                        </div>
+                        <span class="text-white text-lg font-bold flex-shrink-0">21-28일</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -621,12 +661,12 @@
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Time to results</div>
                                 </div>
                             @endif
-                            <div class="flex items-center gap-2 mb-4">
+                            <div class="flex items-center gap-2 mb-4 z-10">
                                 <span class="text-2xl">{{ $icon }}</span>
                                 <span class="font-bold text-lg text-gray-900">{{ $actionShort }}</span>
                             </div>
                             {{-- 텍스트 영역 (카드 왼쪽 하단) --}}
-                            <div class="absolute bottom-4 left-6">
+                            <div class="absolute bottom-4 left-6 z-10">
                                 @if($isBoostType)
                                     <p class="text-3xl font-bold text-gray-900 mb-1">{{ $effectBoost }}% 향상</p>
                                     <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -650,8 +690,8 @@
                                 @endif
                             </div>
 
-                            {{-- 이미지 영역 (카드 오른쪽, 카드 너비의 55% 차지) --}}
-                            <div class="absolute bottom-4 right-4 w-[50%] flex justify-end">
+                            {{-- 이미지 영역 (카드 오른쪽) --}}
+                            <div class="absolute bottom-4 right-4 flex justify-end {{ $imageType === 'faster_clock' ? 'w-[55%]' : 'w-[50%]' }}">
                                 @if($imageType === 'boost_line')
                                     <img src="/images/effects/향상2.png" alt="효과 향상" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'boost_bar')
@@ -956,28 +996,56 @@ function lifestyleSlider() {
     };
 }
 
-// 마일스톤 카드 슬라이드쇼
-function milestoneSlideshow() {
+// 마일스톤 카드 캐러셀 (1.5개 노출, 무한 자동 슬라이드)
+function milestoneCarousel() {
     return {
-        currentSlide: 0,
-        totalSlides: 2,
+        cardWidth: 280,
+        gap: 12,
+        totalCards: 2,
+        currentIndex: 0,
         autoSlideInterval: null,
+        isTransitioning: false,
+        track: null,
 
-        startAutoSlide() {
+        init() {
+            this.track = this.$el.querySelector('.milestone-track');
+            // 3초마다 자동 슬라이드
             this.autoSlideInterval = setInterval(() => {
                 this.nextSlide();
-            }, 4000); // 4초마다 전환
+            }, 3000);
         },
 
         nextSlide() {
-            this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
-        },
+            if (this.isTransitioning) return;
+            this.isTransitioning = true;
 
-        goToSlide(index) {
-            this.currentSlide = index;
-            // 수동 전환 시 자동 슬라이드 리셋
-            clearInterval(this.autoSlideInterval);
-            this.startAutoSlide();
+            this.currentIndex++;
+            const offset = this.currentIndex * (this.cardWidth + this.gap);
+
+            // 슬라이드 애니메이션 적용
+            this.track.style.transform = `translateX(-${offset}px)`;
+
+            // 복제 카드(인덱스 2)로 슬라이드 후 리셋
+            if (this.currentIndex >= this.totalCards) {
+                setTimeout(() => {
+                    // 트랜지션 비활성화
+                    this.track.style.transition = 'none';
+                    // 인덱스 0으로 즉시 이동 (복제 카드와 원본이 동일하므로 시각적 변화 없음)
+                    this.track.style.transform = 'translateX(0px)';
+                    this.currentIndex = 0;
+
+                    // 강제 리플로우로 변경사항 즉시 적용
+                    void this.track.offsetWidth;
+
+                    // 트랜지션 복원
+                    this.track.style.transition = 'transform 500ms ease-out';
+                    this.isTransitioning = false;
+                }, 520);
+            } else {
+                setTimeout(() => {
+                    this.isTransitioning = false;
+                }, 500);
+            }
         }
     };
 }
