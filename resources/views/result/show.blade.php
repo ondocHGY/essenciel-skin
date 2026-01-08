@@ -60,6 +60,15 @@
     $darkerRgb = $darkenColor($rgb);
     $darkerPointColor = sprintf('#%02x%02x%02x', $darkerRgb[0], $darkerRgb[1], $darkerRgb[2]);
 
+    // 텍스트용 매우 진한 색상 (#acdda5 → #369755 기준)
+    // 녹색 계열: R*0.31, G*0.68, B*0.52
+    $textDarkerRgb = [
+        max(0, round($rgb[0] * 0.314)),  // R
+        max(0, round($rgb[1] * 0.683)),  // G
+        max(0, round($rgb[2] * 0.515)),  // B
+    ];
+    $textPointColor = sprintf('#%02x%02x%02x', $textDarkerRgb[0], $textDarkerRgb[1], $textDarkerRgb[2]);
+
     $improvementPercent = round($result->metrics['change_percent'] ?? 0);
     $milestoneLabels = $product->getEfficacyMilestoneLabels();
     $milestoneCenterTexts = $product->getMilestoneCenterTexts();
@@ -202,11 +211,19 @@
                                  :style="'width: ' + currentWidth + '%; background: linear-gradient(to right, {{ $pointColor }}, {{ $darkerPointColor }})'">
                             </div>
                         </div>
-                        {{-- 하단 라벨 --}}
+                        {{-- 하단 라벨 (항목별로 다른 텍스트) --}}
+                        @php
+                            $gaugeLabels = [
+                                'regeneration' => ['느림', '보통', '빠름'],
+                                'moisture_retention' => ['적음', '보통', '많음'],
+                                'pigment_reactivity' => ['낮음', '보통', '높음'],
+                            ];
+                            $labels = $gaugeLabels[$key] ?? ['적음', '보통', '많음'];
+                        @endphp
                         <div class="flex justify-between mt-3 px-1">
-                            <span class="text-base text-gray-400">적음</span>
-                            <span class="text-base text-gray-400">보통</span>
-                            <span class="text-base text-gray-400">많음</span>
+                            <span class="text-base text-gray-400">{{ $labels[0] }}</span>
+                            <span class="text-base text-gray-400">{{ $labels[1] }}</span>
+                            <span class="text-base text-gray-400">{{ $labels[2] }}</span>
                         </div>
                     </div>
                     @endforeach
@@ -270,7 +287,7 @@
                 <div class="rounded-xl p-5" style="background-color: {{ $lightTintColor }}; border: 1px solid {{ $pointColor }};">
                     <p class="text-base leading-relaxed" style="color: #999999;">
                         고객님이 <span class="font-semibold" style="color: #000000;">{{ $product->name }}</span>{{ $eulReul($product->name) }}
-                        꾸준히 사용할 경우 한달 뒤 <span class="font-bold" style="color: {{ $pointColor }};">{{ $efficacyName }}{{ $iGa($efficacyName) }} {{ $improvementPercent }}% 개선</span>될 것으로 예측됩니다.
+                        꾸준히 사용할 경우 한달 뒤 <span class="font-bold" style="color: {{ $textPointColor }};">{{ $efficacyName }}{{ $iGa($efficacyName) }} {{ $improvementPercent }}% 개선</span>될 것으로 예측됩니다.
                     </p>
                 </div>
             </div>
@@ -283,9 +300,12 @@
                 $tickRadius = 42; // 틱 원 반지름
                 $tickLength = 8; // 틱 길이
             @endphp
-            <div class="relative overflow-hidden ml-4">
-                <div class="milestone-track flex gap-3"
-                     style="transition: transform 500ms ease-out; transform: translateX(0px);">
+            <div class="relative ml-4">
+                {{-- 왼쪽 오버레이 (이전 슬라이드 완전 가림) --}}
+                <div class="absolute left-0 top-0 bottom-0 w-4 bg-[#f3f4f6] z-10" style="margin-left: -16px;"></div>
+                <div class="overflow-hidden" style="clip-path: inset(0 0 0 0);">
+                    <div class="milestone-track flex gap-3"
+                         style="transition: transform 500ms ease-out; transform: translateX(0px);">
                     {{-- 카드 1: 7-10일 --}}
                     <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
                         <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
@@ -389,6 +409,7 @@
                         <span class="text-white text-lg font-bold flex-shrink-0">21-28일</span>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
 
@@ -485,13 +506,36 @@
 
             {{-- 수동 슬라이더 카드 --}}
             @php
-                $lifestyleFactors = [
-                    ['emoji' => '😫', 'title' => '스트레스 수준이 높아', 'desc' => '피부톤 개선 효능 체감이 평균보다 늦어질 수 있습니다.'],
-                    ['emoji' => '🚬', 'title' => '흡연 습관', 'desc' => '피부 재생 속도가 느려져 효과 발현이 지연될 수 있습니다.'],
-                    ['emoji' => '🍺', 'title' => '음주 빈도가 높아', 'desc' => '피부 수분 유지력이 저하되어 효능이 감소할 수 있습니다.'],
+                // 설문 결과에서 negative 상태인 라이프스타일 요소들만 필터링
+                $rawFactors = $result->lifestyle_factors ?? [];
+                $negativeFactors = array_filter($rawFactors, fn($f) => ($f['status'] ?? '') === 'negative');
+
+                // 이모지 및 설명 텍스트 매핑
+                $factorMeta = [
+                    'sleep' => ['emoji' => '😴', 'title' => '수면 시간이 부족해', 'desc' => '피부 재생이 충분히 이루어지지 않아 효과 발현이 지연될 수 있습니다.'],
+                    'uv' => ['emoji' => '☀️', 'title' => '자외선 노출이 많아', 'desc' => '피부 손상이 누적되어 효능 체감이 늦어질 수 있습니다.'],
+                    'stress' => ['emoji' => '😫', 'title' => '스트레스 수준이 높아', 'desc' => '피부톤 개선 효능 체감이 평균보다 늦어질 수 있습니다.'],
+                    'water' => ['emoji' => '💧', 'title' => '수분 섭취가 부족해', 'desc' => '피부 수분 공급이 원활하지 않아 효능이 감소할 수 있습니다.'],
+                    'alcohol' => ['emoji' => '🍺', 'title' => '음주 빈도가 높아', 'desc' => '피부 수분 유지력이 저하되어 효능이 감소할 수 있습니다.'],
+                    'smoking' => ['emoji' => '🚬', 'title' => '흡연 습관으로 인해', 'desc' => '피부 재생 속도가 느려져 효과 발현이 지연될 수 있습니다.'],
+                    'skincare' => ['emoji' => '🧴', 'title' => '스킨케어가 기본 단계라', 'desc' => '제품 흡수와 효과 발현이 최적화되지 않을 수 있습니다.'],
                 ];
+
+                $lifestyleFactors = [];
+                foreach ($negativeFactors as $key => $factor) {
+                    if (isset($factorMeta[$key])) {
+                        $lifestyleFactors[] = $factorMeta[$key];
+                    }
+                }
+
+                // negative 요소가 없으면 기본 메시지
+                if (empty($lifestyleFactors)) {
+                    $lifestyleFactors = [
+                        ['emoji' => '✨', 'title' => '생활 습관이 양호해요', 'desc' => '현재 생활 습관이 피부 효능 발현에 긍정적으로 작용합니다.'],
+                    ];
+                }
             @endphp
-            <div x-data="lifestyleSlider()" class="flex items-stretch gap-3">
+            <div x-data="lifestyleSlider({{ count($lifestyleFactors) }})" class="flex items-stretch gap-3">
                 {{-- 카드 영역 --}}
                 <div class="flex-1 overflow-hidden rounded-2xl" style="border: 1px solid #E5E5E5;">
                     <div class="flex transition-transform duration-300 ease-out" :style="'transform: translateX(-' + (currentIndex * 100) + '%)'">
@@ -499,8 +543,8 @@
                         <div class="w-full flex-shrink-0 bg-white p-5 flex items-center gap-3">
                             <div class="text-3xl flex-shrink-0">{{ $factor['emoji'] }}</div>
                             <div class="flex-1">
-                                <p class="text-lg font-bold text-gray-900 mb-1">{{ $factor['title'] }}</p>
-                                <p class="text-lg text-gray-500 leading-relaxed">{{ $factor['desc'] }}</p>
+                                <p class="text-base font-bold text-gray-900 mb-1">{{ $factor['title'] }}</p>
+                                <p class="text-base text-gray-500 leading-relaxed">{{ $factor['desc'] }}</p>
                             </div>
                         </div>
                         @endforeach
@@ -661,7 +705,7 @@
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Time to results</div>
                                 </div>
                             @endif
-                            <div class="flex items-center gap-2 mb-4 z-10">
+                            <div class="flex items-center gap-2 mb-4 relative z-10">
                                 <span class="text-2xl">{{ $icon }}</span>
                                 <span class="font-bold text-lg text-gray-900">{{ $actionShort }}</span>
                             </div>
@@ -697,7 +741,7 @@
                                 @elseif($imageType === 'boost_bar')
                                     <img src="/images/effects/향상1.png" alt="효과 향상" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'faster_timeline')
-                                    <img src="/images/effects/단축1.png" alt="효능 도달" class="w-full h-auto object-contain -translate-y-12">
+                                    <img src="/images/effects/단축1.png" alt="효능 도달" class="w-full h-auto object-contain -translate-y-10">
                                 @elseif($imageType === 'faster_clock')
                                     <img src="/images/effects/단축2.png" alt="효능 도달" class="w-full h-auto object-contain translate-y-4">
                                 @endif
@@ -985,13 +1029,15 @@ function resultPage() {
 }
 
 // 생활 요인 수동 슬라이더
-function lifestyleSlider() {
+function lifestyleSlider(totalSlides = 1) {
     return {
         currentIndex: 0,
-        totalSlides: 3,
+        totalSlides: totalSlides,
 
         next() {
-            this.currentIndex = (this.currentIndex + 1) % this.totalSlides;
+            if (this.totalSlides > 1) {
+                this.currentIndex = (this.currentIndex + 1) % this.totalSlides;
+            }
         }
     };
 }
