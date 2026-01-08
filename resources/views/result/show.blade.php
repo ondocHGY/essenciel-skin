@@ -193,10 +193,10 @@
                         </p>
 
                         {{-- 게이지 바 --}}
-                        <div class="relative rounded-full overflow-visible" style="background-color: #E8E8E8; height: 28px;">
+                        <div class="relative rounded-full overflow-visible" style="background-color: #E8E8E8; height: 32px;">
                             {{-- 평균 지점 표시 --}}
                             <div class="absolute transform -translate-x-1/2 text-base text-gray-500 font-medium" style="left: {{ $avgPos }}%; top: -28px;">평균</div>
-                            <div class="absolute top-0 transform -translate-x-1/2 bg-gray-800 z-10" style="left: {{ $avgPos }}%; height: 28px; width: 3px;"></div>
+                            <div class="absolute top-0 transform -translate-x-1/2 bg-gray-800 z-10" style="left: {{ $avgPos }}%; height: 32px; width: 3px;"></div>
                             {{-- 게이지 (포인트 컬러 그라데이션) --}}
                             <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
                                  :style="'width: ' + currentWidth + '%; background: linear-gradient(to right, {{ $pointColor }}, {{ $darkerPointColor }})'">
