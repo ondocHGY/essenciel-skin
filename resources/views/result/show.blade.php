@@ -193,10 +193,10 @@
                         </p>
 
                         {{-- 게이지 바 --}}
-                        <div class="relative rounded-full overflow-visible" style="background-color: #E8E8E8; height: 38px;">
+                        <div class="relative rounded-full overflow-visible" style="background-color: #E8E8E8; height: 28px;">
                             {{-- 평균 지점 표시 --}}
-                            <div class="absolute transform -translate-x-1/2 text-lg text-gray-500 font-medium" style="left: {{ $avgPos }}%; top: -28px;">평균</div>
-                            <div class="absolute top-0 transform -translate-x-1/2 bg-gray-800 z-10" style="left: {{ $avgPos }}%; height: 38px; width: 3px;"></div>
+                            <div class="absolute transform -translate-x-1/2 text-base text-gray-500 font-medium" style="left: {{ $avgPos }}%; top: -28px;">평균</div>
+                            <div class="absolute top-0 transform -translate-x-1/2 bg-gray-800 z-10" style="left: {{ $avgPos }}%; height: 28px; width: 3px;"></div>
                             {{-- 게이지 (포인트 컬러 그라데이션) --}}
                             <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
                                  :style="'width: ' + currentWidth + '%; background: linear-gradient(to right, {{ $pointColor }}, {{ $darkerPointColor }})'">
@@ -204,9 +204,9 @@
                         </div>
                         {{-- 하단 라벨 --}}
                         <div class="flex justify-between mt-3 px-1">
-                            <span class="text-lg text-gray-400">적음</span>
-                            <span class="text-lg text-gray-400">보통</span>
-                            <span class="text-lg text-gray-400">많음</span>
+                            <span class="text-base text-gray-400">적음</span>
+                            <span class="text-base text-gray-400">보통</span>
+                            <span class="text-base text-gray-400">많음</span>
                         </div>
                     </div>
                     @endforeach
@@ -268,7 +268,7 @@
 
                 {{-- 설명 텍스트 --}}
                 <div class="rounded-xl p-5" style="background-color: {{ $lightTintColor }}; border: 1px solid {{ $pointColor }};">
-                    <p class="text-lg leading-relaxed" style="color: #999999;">
+                    <p class="text-base leading-relaxed" style="color: #999999;">
                         고객님이 <span class="font-semibold" style="color: #000000;">{{ $product->name }}</span>{{ $eulReul($product->name) }}
                         꾸준히 사용할 경우 한달 뒤 <span class="font-bold" style="color: {{ $pointColor }};">{{ $efficacyName }}{{ $iGa($efficacyName) }} {{ $improvementPercent }}% 개선</span>될 것으로 예측됩니다.
                     </p>
@@ -697,7 +697,7 @@
                                 @elseif($imageType === 'boost_bar')
                                     <img src="/images/effects/향상1.png" alt="효과 향상" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'faster_timeline')
-                                    <img src="/images/effects/단축1.png" alt="효능 도달" class="w-full h-auto object-contain">
+                                    <img src="/images/effects/단축1.png" alt="효능 도달" class="w-full h-auto object-contain -translate-y-12">
                                 @elseif($imageType === 'faster_clock')
                                     <img src="/images/effects/단축2.png" alt="효능 도달" class="w-full h-auto object-contain translate-y-4">
                                 @endif

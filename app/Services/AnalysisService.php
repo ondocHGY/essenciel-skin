@@ -758,7 +758,7 @@ class AnalysisService
                 'currentModifier' => $this->getModifier('uv_exposure', $lifestyle['uv_exposure'] ?? 'normal', $this->uvModifiers),
                 'optimalValue' => 'indoor',
                 'optimalModifier' => $getOptimalModifier('uv_exposure', 1.15),
-                'icon' => '🧴',
+                'icon' => '☀️',
                 'action' => '자외선 차단제를 꼼꼼히 바르면',
                 'actionShort' => '자외선 차단제 사용',
             ],
