@@ -283,8 +283,8 @@
                 $tickRadius = 42; // 틱 원 반지름
                 $tickLength = 8; // 틱 길이
             @endphp
-            <div class="relative overflow-hidden">
-                <div class="milestone-track flex gap-3 pl-4"
+            <div class="relative overflow-hidden ml-4">
+                <div class="milestone-track flex gap-3"
                      style="transition: transform 500ms ease-out; transform: translateX(0px);">
                     {{-- 카드 1: 7-10일 --}}
                     <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
@@ -651,12 +651,12 @@
                         <div class="bg-white rounded-2xl p-6 h-[200px] overflow-hidden relative" style="border: 1px solid #D9D9D9;">
                             {{-- 라벨 (카드 오른쪽 상단, 이미지 영역 위) --}}
                             @if($isBoostType)
-                                <div class="absolute top-10 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+                                <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">효과 향상</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Improved effectiveness</div>
                                 </div>
                             @else
-                                <div class="absolute top-10 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+                                <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">효능 도달</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Time to results</div>
                                 </div>
