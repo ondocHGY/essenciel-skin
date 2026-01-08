@@ -717,7 +717,7 @@
                         <div class="bg-white rounded-2xl p-3 h-[200px] overflow-hidden relative" style="border: 1px solid #D9D9D9;">
                             {{-- 라벨 (카드 오른쪽 상단, 이미지 영역 위) --}}
                             @if($isBoostType)
-                                <div class="absolute top-16 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+                                <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">효과 향상</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Improved effectiveness</div>
                                 </div>
