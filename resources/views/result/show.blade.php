@@ -78,22 +78,44 @@
     $skinProfile = $result->skin_profile ?? [];
     $characteristics = $skinProfile['characteristics'] ?? [];
 
-    // 특성별 레벨 및 설명 (1-5 스케일)
+    // 특성별 레벨 및 설명 (1-5 스케일) - level 기반으로 description 생성
+    $regenerationLevel = $characteristics['regeneration']['level'] ?? 3;
+    $moistureLevel = $characteristics['moisture_retention']['level'] ?? 3;
+    $pigmentLevel = $characteristics['pigment_reactivity']['level'] ?? 3;
+
     $profileData = [
         'regeneration' => [
             'label' => '피부재생속도',
-            'level' => $characteristics['regeneration']['level'] ?? 3,
-            'description' => $characteristics['regeneration']['description'] ?? '보통 수준',
+            'level' => $regenerationLevel,
+            'description' => match($regenerationLevel) {
+                5 => '매우 빠른 편',
+                4 => '빠른 편',
+                3 => '보통',
+                2 => '느린 편',
+                default => '매우 느린 편',
+            },
         ],
         'moisture_retention' => [
             'label' => '피부 수분유지력',
-            'level' => $characteristics['moisture_retention']['level'] ?? 3,
-            'description' => $characteristics['moisture_retention']['description'] ?? '보통 수준',
+            'level' => $moistureLevel,
+            'description' => match($moistureLevel) {
+                5 => '매우 많은 편',
+                4 => '많은 편',
+                3 => '보통',
+                2 => '적은 편',
+                default => '매우 적은 편',
+            },
         ],
         'pigment_reactivity' => [
             'label' => '피부 색소 반응성',
-            'level' => $characteristics['pigment_reactivity']['level'] ?? 3,
-            'description' => $characteristics['pigment_reactivity']['description'] ?? '보통 수준',
+            'level' => $pigmentLevel,
+            'description' => match($pigmentLevel) {
+                5 => '매우 높은 편',
+                4 => '높은 편',
+                3 => '보통',
+                2 => '낮은 편',
+                default => '매우 낮은 편',
+            },
         ],
     ];
 @endphp
@@ -215,10 +237,10 @@
                         @php
                             $gaugeLabels = [
                                 'regeneration' => ['느림', '보통', '빠름'],
-                                'moisture_retention' => ['적음', '보통', '많음'],
+                                'moisture_retention' => ['낮음', '보통', '높음'],
                                 'pigment_reactivity' => ['낮음', '보통', '높음'],
                             ];
-                            $labels = $gaugeLabels[$key] ?? ['적음', '보통', '많음'];
+                            $labels = $gaugeLabels[$key] ?? ['낮음', '보통', '높음'];
                         @endphp
                         <div class="flex justify-between mt-3 px-1">
                             <span class="text-base text-gray-400">{{ $labels[0] }}</span>
@@ -327,7 +349,7 @@
                                 @endfor
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[0] ?? '')) !!}</span>
+                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
                             </div>
                         </div>
                         <span class="text-white text-lg font-bold flex-shrink-0">7-10일</span>
@@ -352,7 +374,7 @@
                                 @endfor
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[1] ?? '')) !!}</span>
+                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
                             </div>
                         </div>
                         <span class="text-white text-lg font-bold flex-shrink-0">21-28일</span>
@@ -378,7 +400,7 @@
                                 @endfor
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[0] ?? '')) !!}</span>
+                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
                             </div>
                         </div>
                         <span class="text-white text-lg font-bold flex-shrink-0">7-10일</span>
@@ -403,7 +425,7 @@
                                 @endfor
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2">{!! nl2br(e($milestoneCenterTexts[1] ?? '')) !!}</span>
+                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
                             </div>
                         </div>
                         <span class="text-white text-lg font-bold flex-shrink-0">21-28일</span>
@@ -692,10 +714,10 @@
                     @endphp
 
                     <div>
-                        <div class="bg-white rounded-2xl p-6 h-[200px] overflow-hidden relative" style="border: 1px solid #D9D9D9;">
+                        <div class="bg-white rounded-2xl p-3 h-[200px] overflow-hidden relative" style="border: 1px solid #D9D9D9;">
                             {{-- 라벨 (카드 오른쪽 상단, 이미지 영역 위) --}}
                             @if($isBoostType)
-                                <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+                                <div class="absolute top-16 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">효과 향상</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Improved effectiveness</div>
                                 </div>
@@ -705,14 +727,14 @@
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Time to results</div>
                                 </div>
                             @endif
-                            <div class="flex items-center gap-2 mb-4 relative z-10">
+                            <div class="inline-flex items-center gap-2 mb-4 relative z-10 backdrop-blur-sm rounded-full px-2 py-0.5" style="background: linear-gradient(to right, rgba(255,255,255,0.8), rgba(255,255,255,0.2));">
                                 <span class="text-2xl">{{ $icon }}</span>
                                 <span class="font-bold text-lg text-gray-900">{{ $actionShort }}</span>
                             </div>
                             {{-- 텍스트 영역 (카드 왼쪽 하단) --}}
                             <div class="absolute bottom-4 left-6 z-10">
                                 @if($isBoostType)
-                                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ $effectBoost }}% 향상</p>
+                                    <p class="text-3xl font-bold text-gray-900 mb-4">{{ $effectBoost }}% 향상</p>
                                     <div class="flex items-center gap-2 text-sm text-gray-500">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -722,7 +744,7 @@
                                         <span>Boost</span>
                                     </div>
                                 @else
-                                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ $daysSaved }}일 단축</p>
+                                    <p class="text-3xl font-bold text-gray-900 mb-4">{{ $daysSaved }}일 단축</p>
                                     <div class="flex items-center gap-2 text-sm text-gray-500">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -735,7 +757,7 @@
                             </div>
 
                             {{-- 이미지 영역 (카드 오른쪽) --}}
-                            <div class="absolute bottom-4 right-4 flex justify-end {{ $imageType === 'faster_clock' ? 'w-[55%]' : 'w-[50%]' }}">
+                            <div class="absolute bottom-4 right-4 flex justify-end z-0 {{ $imageType === 'faster_clock' ? 'w-[55%]' : 'w-[50%]' }}">
                                 @if($imageType === 'boost_line')
                                     <img src="/images/effects/향상2.png" alt="효과 향상" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'boost_bar')
