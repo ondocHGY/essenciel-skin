@@ -553,6 +553,11 @@ class AnalysisService
             $dailyValues[$day] = round($initialValue + $dayImprovement, 2);
         }
 
+        // 퍼센트 계산: 초기값이 0이거나 매우 작으면 (모공, 진정 등) 개선량 자체가 % 단위
+        $changePercent = $initialValue >= 1
+            ? round(($improvement / $initialValue) * 100, 1)
+            : round($improvement, 1);
+
         return [
             'efficacy_type' => $efficacyType,
             'name' => $config['name'],
@@ -561,7 +566,7 @@ class AnalysisService
             'initial' => round($initialValue, 2),
             'final' => round($finalValue, 2),
             'change' => round($improvement, 2),
-            'change_percent' => round(($improvement / max($initialValue, 0.01)) * 100, 1),
+            'change_percent' => $changePercent,
             'daily' => $dailyValues,
             'timeline_percent' => $timeline,
         ];
