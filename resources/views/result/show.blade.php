@@ -1006,7 +1006,7 @@ function resultPage() {
                             gradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');                 // D28 (검은색)
                             return gradient;
                         },
-                        tension: 0.4,
+                        tension: 0,
                         fill: true,
                         pointRadius: 3,
                         pointHoverRadius: 5,
@@ -1294,7 +1294,7 @@ function timelineAnimation() {
                             gradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
                             return gradient;
                         },
-                        tension: 0.4,
+                        tension: 0,
                         fill: true,
                         pointRadius: 3,
                         pointHoverRadius: 5,
