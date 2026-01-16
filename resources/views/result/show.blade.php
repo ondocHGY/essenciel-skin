@@ -611,7 +611,7 @@
                 $isMorningGood = $morningEffect > 100;
                 $isEveningGood = $eveningEffect > 100;
             @endphp
-            <div class="rounded-2xl p-5" style="background-color: #F0FFF4; border: 1px solid #D9D9D9;">
+            <div class="rounded-2xl p-5" style="background-color: {{ $lightTintColor }}; border: 1px solid #D9D9D9;">
                 <h3 class="text-xl font-bold text-gray-900 mb-2">최적 사용 시간</h3>
                 <p class="text-sm text-gray-600 mb-4">{{ $timingReason }}</p>
 

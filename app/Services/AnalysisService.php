@@ -133,12 +133,12 @@ class AnalysisService
             'targetImprovement' => 25,
             'description' => '모공 면적 감소 비율',
         ],
-        'wrinkle' => [
-            'name' => '주름 개선도',
+        'soothing' => [
+            'name' => '피부 진정도',
             'unit' => '%',
             'baseline' => [0, 0],
-            'targetImprovement' => 30,
-            'description' => '주름 깊이 감소 비율',
+            'targetImprovement' => 35,
+            'description' => '피부 자극 완화 비율',
         ],
     ];
 
@@ -198,7 +198,7 @@ class AnalysisService
             'elasticity' => [3, 10, 22, 40, 60, 75],
             'tone' => [2, 8, 18, 35, 55, 70],
             'pore' => [3, 12, 25, 45, 65, 80],
-            'wrinkle' => [2, 7, 15, 30, 50, 68],
+            'soothing' => [8, 20, 35, 55, 75, 88],
         ];
 
         return $curves[$efficacyType] ?? $curves['moisture'];
@@ -291,13 +291,13 @@ class AnalysisService
                 21 => '매끈한 피부결 형성',
                 28 => '깨끗한 모공 관리 완성',
             ],
-            'wrinkle' => [
-                1 => '표피 재생 사이클 활성화',
-                3 => '미세주름 완화 시작',
-                7 => '주름 깊이 감소 감지',
-                14 => '눈에 띄는 주름 개선',
-                21 => '피부결 매끄러움 향상',
-                28 => '주름 개선 효과 정착',
+            'soothing' => [
+                1 => '진정 성분 흡수 활성화',
+                3 => '피부 자극 완화 시작',
+                7 => '붉은기 감소 감지',
+                14 => '눈에 띄는 진정 효과',
+                21 => '피부 안정화 진행',
+                28 => '진정 효과 정착',
             ],
         ];
 
@@ -372,13 +372,13 @@ class AnalysisService
                 21 => "매끈한 피부결 {$value}% 형성",
                 28 => "깨끗한 모공 관리 {$value}% 완성",
             ],
-            'wrinkle' => [
-                1 => "표피 재생 사이클 +{$improvement}%p 활성화",
-                3 => "미세주름 완화 {$value}% 진행",
-                7 => "주름 깊이 감소 {$value}% 확인",
-                14 => "눈에 띄는 주름 개선 {$value}%",
-                21 => "피부결 매끄러움 {$value}% 향상",
-                28 => "주름 개선 효과 {$value}% 완성",
+            'soothing' => [
+                1 => "진정 성분 흡수 +{$improvement}%p 활성화",
+                3 => "피부 자극 완화 {$value}% 진행",
+                7 => "붉은기 감소 {$value}% 확인",
+                14 => "눈에 띄는 진정 효과 {$value}%",
+                21 => "피부 안정화 {$value}% 진행",
+                28 => "진정 효과 {$value}% 완성",
             ],
         ];
 
@@ -620,7 +620,13 @@ class AnalysisService
                 'morning_effect' => 100,
                 'evening_effect' => 123,
             ],
-            'wrinkle', 'elasticity' => [
+            'soothing' => [
+                'best_time' => '저녁',
+                'reason' => '밤 동안 피부 재생과 진정 작용 극대화',
+                'morning_effect' => 100,
+                'evening_effect' => 125,
+            ],
+            'elasticity' => [
                 'best_time' => '저녁',
                 'reason' => '수면 중 콜라겐 합성 촉진 (성장호르몬 분비 시간대)',
                 'morning_effect' => 100,
@@ -660,7 +666,7 @@ class AnalysisService
             'elasticity' => ['optimal' => '500원 동전 크기 (약 1ml)', 'less_effect' => 55, 'optimal_effect' => 100, 'more_effect' => 102],
             'tone' => ['optimal' => '100원 동전 크기 (약 0.5ml)', 'less_effect' => 65, 'optimal_effect' => 100, 'more_effect' => 100],
             'pore' => ['optimal' => '100원 동전 크기 (약 0.5ml)', 'less_effect' => 70, 'optimal_effect' => 100, 'more_effect' => 95],
-            'wrinkle' => ['optimal' => '500원 동전 크기 (약 1ml)', 'less_effect' => 50, 'optimal_effect' => 100, 'more_effect' => 105],
+            'soothing' => ['optimal' => '500원 동전 크기 (약 1ml)', 'less_effect' => 55, 'optimal_effect' => 100, 'more_effect' => 100],
             default => ['optimal' => '500원 동전 크기', 'less_effect' => 60, 'optimal_effect' => 100, 'more_effect' => 100],
         };
 
@@ -670,7 +676,7 @@ class AnalysisService
             'elasticity' => ['seconds' => 60, 'tip' => '리프팅 방향으로 마사지하며 흡수'],
             'tone' => ['seconds' => 45, 'tip' => '색소 침착 부위 집중 도포'],
             'pore' => ['seconds' => 30, 'tip' => 'T존 집중, 모공 방향으로 흡수'],
-            'wrinkle' => ['seconds' => 90, 'tip' => '주름 결 따라 부드럽게 마사지'],
+            'soothing' => ['seconds' => 30, 'tip' => '자극 부위에 살짝 두드리며 흡수'],
             default => ['seconds' => 45, 'tip' => '부드럽게 두드리며 흡수'],
         };
 
@@ -680,7 +686,7 @@ class AnalysisService
             'elasticity' => 10,
             'tone' => 7,
             'pore' => 5,
-            'wrinkle' => 14,
+            'soothing' => 3,
             default => 7,
         };
         $adjustedFeelDays = max(1, round($baseFeelDays / $modifier));

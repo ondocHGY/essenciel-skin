@@ -32,14 +32,14 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,wrinkle',
+            'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,soothing',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'base_curve' => 'required|array',
             'base_curve.moisture' => 'required|array|size:5',
             'base_curve.elasticity' => 'required|array|size:5',
             'base_curve.tone' => 'required|array|size:5',
             'base_curve.pore' => 'required|array|size:5',
-            'base_curve.wrinkle' => 'required|array|size:5',
+            'base_curve.soothing' => 'required|array|size:5',
         ]);
 
         // 기본 효능 타입 설정
@@ -71,7 +71,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,wrinkle',
+            'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,soothing',
             'point_color' => 'nullable|string|max:7',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'efficacy_phases' => 'nullable|array',

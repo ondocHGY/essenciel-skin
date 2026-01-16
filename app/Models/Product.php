@@ -77,10 +77,10 @@ class Product extends Model
                 'phase2' => '모공 축소 변화가 눈으로 느껴지기 시작하며, 피지 분비가 조절됩니다.',
                 'phase3' => '모공 케어 효과가 안정화되며, 매끈한 피부결이 유지되는 단계입니다.',
             ],
-            'wrinkle' => [
-                'phase1' => '유효 성분이 피부에 전달되며, 표피 재생 촉진 준비 단계에 들어갑니다.',
-                'phase2' => '주름 완화 변화가 느껴지기 시작하며, 미세주름이 점차 개선됩니다.',
-                'phase3' => '주름 개선 효과가 안정화되며, 매끄러운 피부결이 유지되는 단계입니다.',
+            'soothing' => [
+                'phase1' => '유효 성분이 피부에 전달되며, 진정 작용 준비 단계에 들어갑니다.',
+                'phase2' => '피부 자극이 완화되기 시작하며, 붉은기가 점차 진정됩니다.',
+                'phase3' => '진정 효과가 안정화되며, 편안한 피부 상태가 유지되는 단계입니다.',
             ],
         ];
 
@@ -101,7 +101,7 @@ class Product extends Model
             'elasticity' => ['초기 탄력 체감', '탄력 효과 안정화'],
             'tone' => ['초기 톤 개선 체감', '색소 완화 안정화'],
             'pore' => ['초기 모공 케어 체감', '모공 개선 안정화'],
-            'wrinkle' => ['초기 주름 완화 체감', '주름 개선 안정화'],
+            'soothing' => ['초기 진정 효과 체감', '피부 진정 안정화'],
         ];
 
         return $defaults[$this->efficacy_type] ?? $defaults['moisture'];
@@ -122,7 +122,7 @@ class Product extends Model
             'elasticity' => ["콜라겐 생성\n촉진 시작", "탄력 효과\n안정화"],
             'tone' => ["멜라닌 생성\n억제 시작", "피부톤 균일화\n안정화"],
             'pore' => ["피지 분비\n조절 시작", "모공 케어\n안정화"],
-            'wrinkle' => ["표피 재생\n촉진 시작", "주름 개선\n안정화"],
+            'soothing' => ["진정 성분\n흡수 시작", "피부 진정\n안정화"],
         ];
 
         return $defaults[$this->efficacy_type] ?? $defaults['moisture'];
@@ -134,7 +134,7 @@ class Product extends Model
         'elasticity' => '탄력 개선',
         'tone' => '피부톤 개선',
         'pore' => '모공 케어',
-        'wrinkle' => '주름 개선',
+        'soothing' => '피부 진정',
     ];
 
     public function analysisResults(): HasMany

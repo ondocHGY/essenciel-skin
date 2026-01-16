@@ -137,13 +137,13 @@
                             <span class="text-sm font-medium text-gray-700">모공 케어</span>
                         </div>
                     </label>
-                    <!-- 주름 개선 -->
-                    <label class="relative cursor-pointer" @click="selected = 'wrinkle'">
-                        <input type="radio" name="efficacy_type" value="wrinkle" class="sr-only" :checked="selected === 'wrinkle'">
+                    <!-- 피부 진정 -->
+                    <label class="relative cursor-pointer" @click="selected = 'soothing'">
+                        <input type="radio" name="efficacy_type" value="soothing" class="sr-only" :checked="selected === 'soothing'">
                         <div class="p-4 text-center border-2 rounded-xl transition-all border-gray-200 hover:border-gray-300"
-                             :class="selected === 'wrinkle' ? 'border-pink-500 bg-pink-50' : ''">
-                            <span class="text-2xl block mb-1">〰️</span>
-                            <span class="text-sm font-medium text-gray-700">주름 개선</span>
+                             :class="selected === 'soothing' ? 'border-pink-500 bg-pink-50' : ''">
+                            <span class="text-2xl block mb-1">🌿</span>
+                            <span class="text-sm font-medium text-gray-700">피부 진정</span>
                         </div>
                     </label>
                 </div>
@@ -373,13 +373,13 @@
                                     phase3: '모공 케어 효과가 안정화되며, 매끈한 피부결이 유지되는 단계입니다.'
                                 }
                             },
-                            wrinkle: {
-                                milestones: ['초기 주름 완화 체감', '주름 개선 안정화'],
-                                centerTexts: ['표피 재생\n촉진 시작', '주름 개선\n안정화'],
+                            soothing: {
+                                milestones: ['초기 진정 효과 체감', '피부 진정 안정화'],
+                                centerTexts: ['진정 성분\n흡수 시작', '피부 진정\n안정화'],
                                 phases: {
-                                    phase1: '유효 성분이 피부에 전달되며, 표피 재생 촉진 준비 단계에 들어갑니다.',
-                                    phase2: '주름 완화 변화가 느껴지기 시작하며, 미세주름이 점차 개선됩니다.',
-                                    phase3: '주름 개선 효과가 안정화되며, 매끄러운 피부결이 유지되는 단계입니다.'
+                                    phase1: '유효 성분이 피부에 전달되며, 진정 작용 준비 단계에 들어갑니다.',
+                                    phase2: '피부 자극이 완화되기 시작하며, 붉은기가 점차 진정됩니다.',
+                                    phase3: '진정 효과가 안정화되며, 편안한 피부 상태가 유지되는 단계입니다.'
                                 }
                             }
                         };
@@ -491,7 +491,7 @@
                             elasticity: { name: '피부 탄력도', unit: 'R', baseline_min: 0.65, baseline_max: 0.85, target_improvement: 0.15, description: '피부 탄성 회복력 지수' },
                             tone: { name: '피부 밝기', unit: 'L*', baseline_min: 58, baseline_max: 68, target_improvement: 5, description: '멜라닌 지수 기반 밝기' },
                             pore: { name: '모공 축소율', unit: '%', baseline_min: 0, baseline_max: 0, target_improvement: 25, description: '모공 면적 감소 비율' },
-                            wrinkle: { name: '주름 개선도', unit: '%', baseline_min: 0, baseline_max: 0, target_improvement: 30, description: '주름 깊이 감소 비율' }
+                            soothing: { name: '피부 진정도', unit: '%', baseline_min: 0, baseline_max: 0, target_improvement: 35, description: '피부 자극 완화 비율' }
                         };
                         if (presets[type]) {
                             this.metrics = {...presets[type]};
@@ -677,10 +677,10 @@
                         { name: '효과 체감', value: 4, color: 'bg-emerald-500' },
                         { name: '자극여부', value: 1, color: 'bg-rose-500' },
                     ],
-                    wrinkle: [
-                        { name: '주름 개선', value: 5, color: 'bg-pink-500' },
-                        { name: '탄력감', value: 4, color: 'bg-purple-500' },
-                        { name: '매끄러움', value: 4, color: 'bg-indigo-500' },
+                    soothing: [
+                        { name: '진정 효과', value: 5, color: 'bg-green-500' },
+                        { name: '붉은기 완화', value: 4, color: 'bg-teal-500' },
+                        { name: '편안함', value: 4, color: 'bg-cyan-500' },
                         { name: '효과 체감', value: 4, color: 'bg-emerald-500' },
                         { name: '자극여부', value: 1, color: 'bg-rose-500' },
                     ],
@@ -734,17 +734,17 @@
                         'T존 부위 피지 컨트롤이 확실하다는 평가가 다수 관측되었습니다.',
                         '모공 주변 피부톤도 함께 개선되었다는 후기가 많았습니다.',
                     ],
-                    wrinkle: [
-                        '눈가와 이마 주름이 옅어졌다는 리뷰가 반복적으로 관측되었습니다.',
-                        '잔주름 개선과 피부 매끄러움에 대한 긍정 평가가 81%를 차지했습니다.',
-                        '웃을 때 생기는 주름이 덜 깊어 보인다는 후기가 74% 이상이었습니다.',
-                        '이마 주름이 눈에 띄게 완화되었다는 반응이 다수 관측되었습니다.',
-                        '눈가 잔주름이 매끄러워졌다는 평가가 많았습니다.',
-                        '미간 주름 부위가 부드러워졌다는 후기가 67%였습니다.',
-                        '팔자주름이 덜 깊어 보인다는 의견이 다수 확인되었습니다.',
-                        '피부가 전체적으로 매끄럽고 탄탄해졌다는 반응이 많았습니다.',
-                        '메이크업이 주름에 끼지 않는다는 후기가 반복적으로 관측되었습니다.',
-                        '피부 나이가 어려 보인다는 주변 반응이 있었다는 평가가 많았습니다.',
+                    soothing: [
+                        '민감한 피부에도 자극 없이 사용할 수 있다는 리뷰가 반복적으로 관측되었습니다.',
+                        '피부 진정과 붉은기 완화에 대한 긍정 평가가 86%를 차지했습니다.',
+                        '트러블 부위가 빠르게 진정되었다는 후기가 78% 이상이었습니다.',
+                        '피부가 편안하고 안정감을 느낀다는 반응이 다수 관측되었습니다.',
+                        '붉은기가 눈에 띄게 줄어들었다는 평가가 많았습니다.',
+                        '자극받은 피부가 빠르게 회복되었다는 후기가 72%였습니다.',
+                        '예민해진 피부에 순하게 작용한다는 의견이 다수 확인되었습니다.',
+                        '피부가 전체적으로 차분하고 건강해졌다는 반응이 많았습니다.',
+                        '환절기에도 피부 컨디션이 안정적이라는 후기가 반복적으로 관측되었습니다.',
+                        '피부 장벽이 강화된 느낌이라는 평가가 많았습니다.',
                     ],
                 };
 

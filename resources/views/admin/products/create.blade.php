@@ -85,13 +85,13 @@
                             <span class="text-sm font-medium text-gray-700">모공 케어</span>
                         </div>
                     </label>
-                    <!-- 주름 개선 -->
-                    <label class="relative cursor-pointer" @click="selected = 'wrinkle'">
-                        <input type="radio" name="efficacy_type" value="wrinkle" class="sr-only" :checked="selected === 'wrinkle'">
+                    <!-- 피부 진정 -->
+                    <label class="relative cursor-pointer" @click="selected = 'soothing'">
+                        <input type="radio" name="efficacy_type" value="soothing" class="sr-only" :checked="selected === 'soothing'">
                         <div class="p-4 text-center border-2 rounded-xl transition-all border-gray-200 hover:border-gray-300"
-                             :class="selected === 'wrinkle' ? 'border-pink-500 bg-pink-50' : ''">
-                            <span class="text-2xl block mb-1">〰️</span>
-                            <span class="text-sm font-medium text-gray-700">주름 개선</span>
+                             :class="selected === 'soothing' ? 'border-pink-500 bg-pink-50' : ''">
+                            <span class="text-2xl block mb-1">🌿</span>
+                            <span class="text-sm font-medium text-gray-700">피부 진정</span>
                         </div>
                     </label>
                 </div>
@@ -173,7 +173,7 @@
                     'elasticity' => ['label' => '✨ 탄력', 'desc' => '콜라겐 밀도 증가 (최대 +0.9 mg/cm²)', 'color' => 'green'],
                     'tone' => ['label' => '🎨 피부톤', 'desc' => '멜라닌 지수 감소 (최대 -80 M.I)', 'color' => 'yellow'],
                     'pore' => ['label' => '⭕ 모공', 'desc' => '모공 면적 감소 (최대 -0.5 mm²)', 'color' => 'purple'],
-                    'wrinkle' => ['label' => '〰️ 주름', 'desc' => '주름 깊이 감소 (최대 -35 μm)', 'color' => 'pink'],
+                    'soothing' => ['label' => '🌿 진정', 'desc' => '피부 자극 완화 (최대 35% 개선)', 'color' => 'pink'],
                 ];
                 $defaultValues = [10, 25, 40, 60, 80];
             @endphp
@@ -245,7 +245,7 @@
                         elasticity: [10, 25, 40, 60, 80],
                         tone: [10, 25, 40, 60, 80],
                         pore: [10, 25, 40, 60, 80],
-                        wrinkle: [10, 25, 40, 60, 80],
+                        soothing: [10, 25, 40, 60, 80],
                     },
                     applyPreset(type) {
                         const presets = {
@@ -254,28 +254,28 @@
                                 elasticity: [8, 20, 38, 58, 75],
                                 tone: [10, 25, 42, 62, 80],
                                 pore: [5, 15, 30, 50, 65],
-                                wrinkle: [5, 15, 30, 48, 65],
+                                soothing: [8, 22, 40, 60, 78],
                             },
                             fast: {
                                 moisture: [25, 50, 70, 85, 95],
                                 elasticity: [20, 40, 60, 78, 90],
                                 tone: [20, 42, 62, 80, 92],
                                 pore: [15, 35, 55, 72, 85],
-                                wrinkle: [12, 30, 50, 68, 82],
+                                soothing: [15, 35, 55, 75, 90],
                             },
                             moisture: {
                                 moisture: [20, 45, 65, 82, 95],
                                 elasticity: [8, 18, 32, 48, 62],
                                 tone: [8, 20, 35, 52, 68],
                                 pore: [5, 12, 25, 40, 55],
-                                wrinkle: [5, 12, 22, 38, 52],
+                                soothing: [8, 20, 35, 52, 68],
                             },
                             antiaging: {
                                 moisture: [12, 28, 45, 62, 78],
                                 elasticity: [15, 35, 55, 75, 90],
                                 tone: [12, 30, 50, 70, 85],
                                 pore: [8, 20, 38, 55, 72],
-                                wrinkle: [15, 32, 52, 72, 88],
+                                soothing: [12, 28, 48, 68, 85],
                             },
                         };
                         if (presets[type]) {
