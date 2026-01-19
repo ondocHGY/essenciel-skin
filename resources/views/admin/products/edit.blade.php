@@ -97,7 +97,7 @@
             </div>
 
             <!-- 효능 타입 선택 -->
-            <div class="mt-6 pt-6 border-t border-gray-100" x-data="{ selected: '{{ old('efficacy_type', $product->efficacy_type ?? 'moisture') }}' }" x-init="$watch('selected', value => $dispatch('efficacy-type-changed', { type: value }))">
+            <div class="mt-6 pt-6 border-t border-gray-100" x-data="{ selected: '{{ old('efficacy_type', $product->efficacy_type ?? 'moisture') }}' }" x-init="window.currentEfficacyType = selected; $watch('selected', value => { window.currentEfficacyType = value; $dispatch('efficacy-type-changed', { type: value }); })">
                 <label class="block text-sm font-medium text-gray-700 mb-2">집중 효능 타입</label>
                 <p class="text-xs text-gray-500 mb-3">이 제품이 집중적으로 타겟하는 효능을 선택하세요. 결과 페이지에서 해당 효능을 중심으로 분석됩니다.</p>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -588,15 +588,20 @@
                     </template>
                 </div>
 
-                <div class="mt-4 flex gap-2">
-                    <button type="button" @click="applyMetricsPreset()"
-                            class="px-3 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors">
-                        효능타입 기본값 적용
-                    </button>
-                    <button type="button" @click="clearMetrics()"
-                            class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors">
-                        초기화
-                    </button>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-sm text-gray-600 mb-3">효능 타입별 기본값 적용:</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(\App\Models\Product::$efficacyTypes as $type => $label)
+                        <button type="button" @click="applyMetricsPreset('{{ $type }}')"
+                                class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            {{ $label }}
+                        </button>
+                        @endforeach
+                        <button type="button" @click="clearMetrics()"
+                                class="px-3 py-1.5 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors">
+                            초기화
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -638,7 +643,7 @@
                     </template>
                 </div>
 
-                <div class="mt-4 flex flex-wrap gap-2">
+                <div class="mt-4 flex flex-wrap gap-2 mb-4">
                     <button type="button" @click="addSummary()"
                             class="px-3 py-1.5 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors flex items-center gap-1">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -646,14 +651,21 @@
                         </svg>
                         문구 추가
                     </button>
-                    <button type="button" @click="applySummaryPreset()"
-                            class="px-3 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors">
-                        효능타입 기본값 적용 (10개)
-                    </button>
                     <button type="button" @click="clearSummary()"
                             class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors">
                         전체 초기화
                     </button>
+                </div>
+                <div class="pt-4 border-t border-blue-200">
+                    <p class="text-sm text-gray-600 mb-3">효능 타입별 기본값 적용 (10개):</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(\App\Models\Product::$efficacyTypes as $type => $label)
+                        <button type="button" @click="applySummaryPreset('{{ $type }}')"
+                                class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            {{ $label }}
+                        </button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
