@@ -102,8 +102,8 @@
                 <p class="text-xs text-gray-500 mb-3">이 제품이 집중적으로 타겟하는 효능을 선택하세요. 결과 페이지에서 해당 효능을 중심으로 분석됩니다.</p>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                     <!-- 수분 공급 -->
-                    <label class="relative cursor-pointer" @click="selected = 'moisture'">
-                        <input type="radio" name="efficacy_type" value="moisture" class="sr-only" :checked="selected === 'moisture'">
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="efficacy_type" value="moisture" class="sr-only" x-model="selected">
                         <div class="p-4 text-center border-2 rounded-xl transition-all border-gray-200 hover:border-gray-300"
                              :class="selected === 'moisture' ? 'border-blue-500 bg-blue-50' : ''">
                             <span class="text-2xl block mb-1">💧</span>
@@ -111,8 +111,8 @@
                         </div>
                     </label>
                     <!-- 탄력 개선 -->
-                    <label class="relative cursor-pointer" @click="selected = 'elasticity'">
-                        <input type="radio" name="efficacy_type" value="elasticity" class="sr-only" :checked="selected === 'elasticity'">
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="efficacy_type" value="elasticity" class="sr-only" x-model="selected">
                         <div class="p-4 text-center border-2 rounded-xl transition-all border-gray-200 hover:border-gray-300"
                              :class="selected === 'elasticity' ? 'border-purple-500 bg-purple-50' : ''">
                             <span class="text-2xl block mb-1">✨</span>
@@ -120,8 +120,8 @@
                         </div>
                     </label>
                     <!-- 피부톤 개선 -->
-                    <label class="relative cursor-pointer" @click="selected = 'tone'">
-                        <input type="radio" name="efficacy_type" value="tone" class="sr-only" :checked="selected === 'tone'">
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="efficacy_type" value="tone" class="sr-only" x-model="selected">
                         <div class="p-4 text-center border-2 rounded-xl transition-all border-gray-200 hover:border-gray-300"
                              :class="selected === 'tone' ? 'border-orange-500 bg-orange-50' : ''">
                             <span class="text-2xl block mb-1">🎨</span>
@@ -129,8 +129,8 @@
                         </div>
                     </label>
                     <!-- 모공 케어 -->
-                    <label class="relative cursor-pointer" @click="selected = 'pore'">
-                        <input type="radio" name="efficacy_type" value="pore" class="sr-only" :checked="selected === 'pore'">
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="efficacy_type" value="pore" class="sr-only" x-model="selected">
                         <div class="p-4 text-center border-2 rounded-xl transition-all border-gray-200 hover:border-gray-300"
                              :class="selected === 'pore' ? 'border-green-500 bg-green-50' : ''">
                             <span class="text-2xl block mb-1">⭕</span>
@@ -138,8 +138,8 @@
                         </div>
                     </label>
                     <!-- 피부 진정 -->
-                    <label class="relative cursor-pointer" @click="selected = 'soothing'">
-                        <input type="radio" name="efficacy_type" value="soothing" class="sr-only" :checked="selected === 'soothing'">
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="efficacy_type" value="soothing" class="sr-only" x-model="selected">
                         <div class="p-4 text-center border-2 rounded-xl transition-all border-gray-200 hover:border-gray-300"
                              :class="selected === 'soothing' ? 'border-pink-500 bg-pink-50' : ''">
                             <span class="text-2xl block mb-1">🌿</span>
