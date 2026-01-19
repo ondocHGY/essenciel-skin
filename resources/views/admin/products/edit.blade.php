@@ -97,7 +97,7 @@
             </div>
 
             <!-- 효능 타입 선택 -->
-            <div class="mt-6 pt-6 border-t border-gray-100" x-data="{ selected: '{{ old('efficacy_type', $product->efficacy_type ?? 'moisture') }}' }">
+            <div class="mt-6 pt-6 border-t border-gray-100" x-data="{ selected: '{{ old('efficacy_type', $product->efficacy_type ?? 'moisture') }}' }" x-init="$watch('selected', value => $dispatch('efficacy-type-changed', { type: value }))">
                 <label class="block text-sm font-medium text-gray-700 mb-2">집중 효능 타입</label>
                 <p class="text-xs text-gray-500 mb-3">이 제품이 집중적으로 타겟하는 효능을 선택하세요. 결과 페이지에서 해당 효능을 중심으로 분석됩니다.</p>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -211,7 +211,7 @@
         </script>
 
         <!-- 효능 설정 (결과 페이지용) -->
-        <div class="bg-white rounded-xl shadow-sm p-6" x-data="efficacySettings()">
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="efficacySettings()" @efficacy-type-changed.window="applyPreset($event.detail.type)">
             <div class="flex items-start justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">효능 발현 예측 설정</h2>
@@ -321,68 +321,73 @@
 
         <script>
             function efficacySettings() {
-                return {
-                    milestones: [
-                        "{{ $product->efficacy_milestones[0] ?? '' }}",
-                        "{{ $product->efficacy_milestones[1] ?? '' }}"
-                    ],
-                    centerTexts: [
-                        "{{ $product->milestone_center_texts[0] ?? '' }}",
-                        "{{ $product->milestone_center_texts[1] ?? '' }}"
-                    ],
-                    phases: {
-                        phase1: `{{ $product->efficacy_phases['phase1'] ?? '' }}`,
-                        phase2: `{{ $product->efficacy_phases['phase2'] ?? '' }}`,
-                        phase3: `{{ $product->efficacy_phases['phase3'] ?? '' }}`
+                const currentType = '{{ $product->efficacy_type ?? 'moisture' }}';
+                const presets = {
+                    moisture: {
+                        milestones: ['초기 보습 체감', '수분 밸런스 안정화'],
+                        centerTexts: ['피부 수분\n흡수 시작', '수분 밸런스\n안정화'],
+                        phases: {
+                            phase1: '유효 성분이 피부에 전달되며, 수분 흡수 준비 단계에 들어갑니다.',
+                            phase2: '피부 수분도 변화가 느껴지기 시작하며, 건조함이 점차 완화됩니다.',
+                            phase3: '수분 밸런스 효과가 안정화되며, 촉촉한 피부가 유지되는 단계입니다.'
+                        }
                     },
+                    elasticity: {
+                        milestones: ['초기 탄력 체감', '탄력 효과 안정화'],
+                        centerTexts: ['콜라겐 생성\n촉진 시작', '탄력 효과\n안정화'],
+                        phases: {
+                            phase1: '유효 성분이 피부에 전달되며, 콜라겐 합성 촉진 준비 단계에 들어갑니다.',
+                            phase2: '피부 탄력 변화가 느껴지기 시작하며, 처짐이 점차 개선됩니다.',
+                            phase3: '탄력 개선 효과가 안정화되며, 탱탱한 피부가 유지되는 단계입니다.'
+                        }
+                    },
+                    tone: {
+                        milestones: ['초기 톤 개선 체감', '색소 완화 안정화'],
+                        centerTexts: ['멜라닌 생성\n억제 시작', '피부톤 균일화\n안정화'],
+                        phases: {
+                            phase1: '유효 성분이 피부에 전달되며, 멜라닌 생성 신호를 완화할 준비 단계에 들어갑니다.',
+                            phase2: '피부 톤 변화가 눈으로 느껴지기 시작하며, 칙칙함이 점차 완화됩니다.',
+                            phase3: '색소 완화 효과가 안정화되며, 균일한 톤이 유지되는 단계입니다.'
+                        }
+                    },
+                    pore: {
+                        milestones: ['초기 모공 케어 체감', '모공 개선 안정화'],
+                        centerTexts: ['피지 분비\n조절 시작', '모공 케어\n안정화'],
+                        phases: {
+                            phase1: '유효 성분이 피부에 전달되며, 모공 정화 준비 단계에 들어갑니다.',
+                            phase2: '모공 축소 변화가 눈으로 느껴지기 시작하며, 피지 분비가 조절됩니다.',
+                            phase3: '모공 케어 효과가 안정화되며, 매끈한 피부결이 유지되는 단계입니다.'
+                        }
+                    },
+                    soothing: {
+                        milestones: ['초기 진정 효과 체감', '피부 진정 안정화'],
+                        centerTexts: ['진정 성분\n흡수 시작', '피부 진정\n안정화'],
+                        phases: {
+                            phase1: '유효 성분이 피부에 전달되며, 진정 작용 준비 단계에 들어갑니다.',
+                            phase2: '피부 자극이 완화되기 시작하며, 붉은기가 점차 진정됩니다.',
+                            phase3: '진정 효과가 안정화되며, 편안한 피부 상태가 유지되는 단계입니다.'
+                        }
+                    }
+                };
+
+                // 저장된 값 또는 현재 타입의 기본값
+                const savedMilestones = ["{{ $product->efficacy_milestones[0] ?? '' }}", "{{ $product->efficacy_milestones[1] ?? '' }}"];
+                const savedCenterTexts = ["{{ $product->milestone_center_texts[0] ?? '' }}", "{{ $product->milestone_center_texts[1] ?? '' }}"];
+                const savedPhases = {
+                    phase1: `{{ $product->efficacy_phases['phase1'] ?? '' }}`,
+                    phase2: `{{ $product->efficacy_phases['phase2'] ?? '' }}`,
+                    phase3: `{{ $product->efficacy_phases['phase3'] ?? '' }}`
+                };
+
+                // 비어있으면 기본값 적용
+                const defaultPreset = presets[currentType] || presets.moisture;
+                const isEmpty = !savedMilestones[0] && !savedMilestones[1] && !savedPhases.phase1;
+
+                return {
+                    milestones: isEmpty ? [...defaultPreset.milestones] : savedMilestones,
+                    centerTexts: isEmpty ? [...defaultPreset.centerTexts] : savedCenterTexts,
+                    phases: isEmpty ? {...defaultPreset.phases} : savedPhases,
                     applyPreset(type) {
-                        const presets = {
-                            moisture: {
-                                milestones: ['초기 보습 체감', '수분 밸런스 안정화'],
-                                centerTexts: ['피부 수분\n흡수 시작', '수분 밸런스\n안정화'],
-                                phases: {
-                                    phase1: '유효 성분이 피부에 전달되며, 수분 흡수 준비 단계에 들어갑니다.',
-                                    phase2: '피부 수분도 변화가 느껴지기 시작하며, 건조함이 점차 완화됩니다.',
-                                    phase3: '수분 밸런스 효과가 안정화되며, 촉촉한 피부가 유지되는 단계입니다.'
-                                }
-                            },
-                            elasticity: {
-                                milestones: ['초기 탄력 체감', '탄력 효과 안정화'],
-                                centerTexts: ['콜라겐 생성\n촉진 시작', '탄력 효과\n안정화'],
-                                phases: {
-                                    phase1: '유효 성분이 피부에 전달되며, 콜라겐 합성 촉진 준비 단계에 들어갑니다.',
-                                    phase2: '피부 탄력 변화가 느껴지기 시작하며, 처짐이 점차 개선됩니다.',
-                                    phase3: '탄력 개선 효과가 안정화되며, 탱탱한 피부가 유지되는 단계입니다.'
-                                }
-                            },
-                            tone: {
-                                milestones: ['초기 톤 개선 체감', '색소 완화 안정화'],
-                                centerTexts: ['멜라닌 생성\n억제 시작', '피부톤 균일화\n안정화'],
-                                phases: {
-                                    phase1: '유효 성분이 피부에 전달되며, 멜라닌 생성 신호를 완화할 준비 단계에 들어갑니다.',
-                                    phase2: '피부 톤 변화가 눈으로 느껴지기 시작하며, 칙칙함이 점차 완화됩니다.',
-                                    phase3: '색소 완화 효과가 안정화되며, 균일한 톤이 유지되는 단계입니다.'
-                                }
-                            },
-                            pore: {
-                                milestones: ['초기 모공 케어 체감', '모공 개선 안정화'],
-                                centerTexts: ['피지 분비\n조절 시작', '모공 케어\n안정화'],
-                                phases: {
-                                    phase1: '유효 성분이 피부에 전달되며, 모공 정화 준비 단계에 들어갑니다.',
-                                    phase2: '모공 축소 변화가 눈으로 느껴지기 시작하며, 피지 분비가 조절됩니다.',
-                                    phase3: '모공 케어 효과가 안정화되며, 매끈한 피부결이 유지되는 단계입니다.'
-                                }
-                            },
-                            soothing: {
-                                milestones: ['초기 진정 효과 체감', '피부 진정 안정화'],
-                                centerTexts: ['진정 성분\n흡수 시작', '피부 진정\n안정화'],
-                                phases: {
-                                    phase1: '유효 성분이 피부에 전달되며, 진정 작용 준비 단계에 들어갑니다.',
-                                    phase2: '피부 자극이 완화되기 시작하며, 붉은기가 점차 진정됩니다.',
-                                    phase3: '진정 효과가 안정화되며, 편안한 피부 상태가 유지되는 단계입니다.'
-                                }
-                            }
-                        };
                         if (presets[type]) {
                             this.milestones = [...presets[type].milestones];
                             this.centerTexts = [...presets[type].centerTexts];
@@ -394,7 +399,7 @@
         </script>
 
         <!-- 효능 측정 기준값 설정 -->
-        <div class="bg-white rounded-xl shadow-sm p-6" x-data="efficacyMetricsSettings()">
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="efficacyMetricsSettings()" @efficacy-type-changed.window="applyMetricsPreset($event.detail.type)">
             <div class="flex items-start justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">효능 측정 기준값</h2>
@@ -476,23 +481,31 @@
 
         <script>
             function efficacyMetricsSettings() {
+                const currentType = '{{ $product->efficacy_type ?? 'moisture' }}';
+                const presets = {
+                    moisture: { name: '피부 수분도', unit: '%', baseline_min: 32, baseline_max: 48, target_improvement: 18, description: '각질층 수분 함유량 측정' },
+                    elasticity: { name: '피부 탄력도', unit: 'R', baseline_min: 0.65, baseline_max: 0.85, target_improvement: 0.15, description: '피부 탄성 회복력 지수' },
+                    tone: { name: '피부 밝기', unit: 'L*', baseline_min: 58, baseline_max: 68, target_improvement: 5, description: '멜라닌 지수 기반 밝기' },
+                    pore: { name: '모공 축소율', unit: '%', baseline_min: 0, baseline_max: 0, target_improvement: 25, description: '모공 면적 감소 비율' },
+                    soothing: { name: '피부 진정도', unit: '%', baseline_min: 0, baseline_max: 0, target_improvement: 35, description: '피부 자극 완화 비율' }
+                };
+
+                const savedMetrics = {
+                    name: '{{ $product->efficacy_metrics['name'] ?? '' }}',
+                    unit: '{{ $product->efficacy_metrics['unit'] ?? '' }}',
+                    baseline_min: '{{ $product->efficacy_metrics['baseline_min'] ?? '' }}',
+                    baseline_max: '{{ $product->efficacy_metrics['baseline_max'] ?? '' }}',
+                    target_improvement: '{{ $product->efficacy_metrics['target_improvement'] ?? '' }}',
+                    description: '{{ $product->efficacy_metrics['description'] ?? '' }}'
+                };
+
+                // 비어있으면 기본값 적용
+                const defaultPreset = presets[currentType] || presets.moisture;
+                const isEmpty = !savedMetrics.name && !savedMetrics.unit;
+
                 return {
-                    metrics: {
-                        name: '{{ $product->efficacy_metrics['name'] ?? '' }}',
-                        unit: '{{ $product->efficacy_metrics['unit'] ?? '' }}',
-                        baseline_min: '{{ $product->efficacy_metrics['baseline_min'] ?? '' }}',
-                        baseline_max: '{{ $product->efficacy_metrics['baseline_max'] ?? '' }}',
-                        target_improvement: '{{ $product->efficacy_metrics['target_improvement'] ?? '' }}',
-                        description: '{{ $product->efficacy_metrics['description'] ?? '' }}'
-                    },
+                    metrics: isEmpty ? {...defaultPreset} : savedMetrics,
                     applyMetricsPreset(type) {
-                        const presets = {
-                            moisture: { name: '피부 수분도', unit: '%', baseline_min: 32, baseline_max: 48, target_improvement: 18, description: '각질층 수분 함유량 측정' },
-                            elasticity: { name: '피부 탄력도', unit: 'R', baseline_min: 0.65, baseline_max: 0.85, target_improvement: 0.15, description: '피부 탄성 회복력 지수' },
-                            tone: { name: '피부 밝기', unit: 'L*', baseline_min: 58, baseline_max: 68, target_improvement: 5, description: '멜라닌 지수 기반 밝기' },
-                            pore: { name: '모공 축소율', unit: '%', baseline_min: 0, baseline_max: 0, target_improvement: 25, description: '모공 면적 감소 비율' },
-                            soothing: { name: '피부 진정도', unit: '%', baseline_min: 0, baseline_max: 0, target_improvement: 35, description: '피부 자극 완화 비율' }
-                        };
                         if (presets[type]) {
                             this.metrics = {...presets[type]};
                         }
@@ -505,7 +518,7 @@
         </script>
 
         <!-- 제품 소개 페이지 설정 -->
-        <div class="bg-white rounded-xl shadow-sm p-6" x-data="introPageSettings()">
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="introPageSettings()" @efficacy-type-changed.window="applyAllPresets($event.detail.type)">
             <div class="flex items-start justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">제품 소개 페이지 설정</h2>
@@ -752,27 +765,21 @@
                 let savedMetrics = {!! json_encode($product->intro_metrics ?? []) !!};
                 let savedSummary = {!! json_encode($product->intro_summary ?? []) !!};
 
-                // 빈 배열이면 5개의 빈 객체로 초기화
-                if (!savedMetrics || savedMetrics.length === 0) {
-                    savedMetrics = [
-                        { name: '', value: 5, color: 'bg-blue-500' },
-                        { name: '', value: 4, color: 'bg-indigo-500' },
-                        { name: '', value: 4, color: 'bg-cyan-500' },
-                        { name: '', value: 4, color: 'bg-emerald-500' },
-                        { name: '', value: 1, color: 'bg-rose-500' },
-                    ];
-                }
+                // 지표가 비어있는지 확인 (이름이 없는 경우)
+                const isMetricsEmpty = !savedMetrics || savedMetrics.length === 0 || !savedMetrics[0]?.name;
+                const isSummaryEmpty = !savedSummary || savedSummary.length === 0 || !savedSummary[0];
 
-                if (!savedSummary || savedSummary.length === 0) {
-                    savedSummary = [''];
-                }
+                // 기본값 적용
+                const defaultMetrics = metricsPresets[efficacyType] || metricsPresets.moisture;
+                const defaultSummary = summaryPresets[efficacyType] || summaryPresets.moisture;
 
                 return {
                     reviewCount: '{{ $product->intro_review_count ?? '' }}',
-                    metrics: savedMetrics,
-                    summary: savedSummary,
-                    applyMetricsPreset() {
-                        this.metrics = JSON.parse(JSON.stringify(metricsPresets[efficacyType] || metricsPresets.moisture));
+                    metrics: isMetricsEmpty ? JSON.parse(JSON.stringify(defaultMetrics)) : savedMetrics,
+                    summary: isSummaryEmpty ? [...defaultSummary] : savedSummary,
+                    applyMetricsPreset(type) {
+                        const preset = metricsPresets[type] || metricsPresets.moisture;
+                        this.metrics = JSON.parse(JSON.stringify(preset));
                     },
                     clearMetrics() {
                         this.metrics = [
@@ -793,11 +800,16 @@
                             this.summary[0] = '';
                         }
                     },
-                    applySummaryPreset() {
-                        this.summary = [...(summaryPresets[efficacyType] || summaryPresets.moisture)];
+                    applySummaryPreset(type) {
+                        const preset = summaryPresets[type] || summaryPresets.moisture;
+                        this.summary = [...preset];
                     },
                     clearSummary() {
                         this.summary = [''];
+                    },
+                    applyAllPresets(type) {
+                        this.applyMetricsPreset(type);
+                        this.applySummaryPreset(type);
                     }
                 };
             }
