@@ -169,7 +169,7 @@ class AnalysisService
         $metrics = $this->calculateEfficacyMetrics($timeline, $efficacyType, $profile, $product);
 
         // 사용 가이드 생성
-        $usageGuide = $this->generateUsageGuide($efficacyType, $profile);
+        $usageGuide = $this->generateUsageGuide($efficacyType, $profile, $product);
 
         // 피부 반응 프로파일 요약 생성
         $skinProfile = $this->generateSkinProfile($profile);
@@ -553,10 +553,17 @@ class AnalysisService
             $dailyValues[$day] = round($initialValue + $dayImprovement, 2);
         }
 
-        // 퍼센트 계산: 초기값이 0이거나 매우 작으면 (모공, 진정 등) 개선량 자체가 % 단위
-        $changePercent = $initialValue >= 1
-            ? round(($improvement / $initialValue) * 100, 1)
-            : round($improvement, 1);
+        // 퍼센트 계산:
+        // - 단위가 %인 경우: 개선량 자체가 % 단위 (2% -> 23% = 21% 개선)
+        // - 단위가 %가 아닌 경우 (L*, R 등): 상대적 변화율 계산
+        // - 초기값이 0에 가까운 경우: 개선량 자체를 사용
+        if ($config['unit'] === '%') {
+            $changePercent = round($improvement, 1);
+        } elseif ($initialValue >= 1) {
+            $changePercent = round(($improvement / $initialValue) * 100, 1);
+        } else {
+            $changePercent = round($improvement, 1);
+        }
 
         return [
             'efficacy_type' => $efficacyType,
@@ -575,7 +582,7 @@ class AnalysisService
     /**
      * 사용 가이드 생성 (개인화된 수치 기반)
      */
-    private function generateUsageGuide(string $efficacyType, UserProfile $profile): array
+    private function generateUsageGuide(string $efficacyType, UserProfile $profile, ?Product $product = null): array
     {
         // 현재 modifier 계산
         $currentModifier = $this->calculateTotalModifier($profile);
@@ -584,7 +591,7 @@ class AnalysisService
         $recommendations = $this->generateQuantifiedRecommendations($profile, $currentModifier, $efficacyType);
 
         // 사용자 맞춤 최적 사용법 계산
-        $optimalUsage = $this->calculateOptimalUsage($efficacyType, $profile, $currentModifier);
+        $optimalUsage = $this->calculateOptimalUsage($efficacyType, $profile, $currentModifier, $product);
 
         return [
             'optimal_usage' => $optimalUsage,
@@ -596,7 +603,7 @@ class AnalysisService
     /**
      * 최적 사용법 계산 (수치 기반)
      */
-    private function calculateOptimalUsage(string $efficacyType, UserProfile $profile, float $modifier): array
+    private function calculateOptimalUsage(string $efficacyType, UserProfile $profile, float $modifier, ?Product $product = null): array
     {
         $lifestyle = $profile->lifestyle ?? [];
 
@@ -617,45 +624,61 @@ class AnalysisService
             $nightBonus += 8;
         }
 
-        // 효능별 최적 시간대 (최소 100% 기준, 더 좋은 시간대는 100% 초과)
-        $timingConfig = match($efficacyType) {
+        // 제품별 최적 사용 시간 설정이 있으면 사용, 없으면 효능별 기본값
+        $productTiming = $product?->getOptimalTiming() ?? [];
+
+        // 효능별 기본 시간대 설정
+        $defaultTimingConfig = match($efficacyType) {
             'tone' => [
-                'best_time' => '저녁',
                 'reason' => '자외선 없는 밤 동안 멜라닌 억제 작용 극대화',
                 'morning_effect' => 100,
                 'evening_effect' => 123,
             ],
             'soothing' => [
-                'best_time' => '저녁',
                 'reason' => '밤 동안 피부 재생과 진정 작용 극대화',
                 'morning_effect' => 100,
                 'evening_effect' => 125,
             ],
             'elasticity' => [
-                'best_time' => '저녁',
                 'reason' => '수면 중 콜라겐 합성 촉진 (성장호르몬 분비 시간대)',
                 'morning_effect' => 100,
                 'evening_effect' => 131,
             ],
             'moisture' => [
-                'best_time' => '아침 & 저녁',
                 'reason' => '지속적 수분 공급으로 하루 종일 보습 유지',
                 'morning_effect' => 100,
                 'evening_effect' => 100,
             ],
             'pore' => [
-                'best_time' => '저녁',
                 'reason' => '낮 동안 쌓인 피지와 노폐물 제거 후 흡수율 최대',
                 'morning_effect' => 100,
                 'evening_effect' => 122,
             ],
             default => [
-                'best_time' => '저녁',
                 'reason' => '피부 재생이 활발한 시간대',
                 'morning_effect' => 100,
                 'evening_effect' => 118,
             ],
         };
+
+        // 제품 설정과 기본값 병합
+        $timingValues = [
+            'reason' => $productTiming['reason'] ?? $defaultTimingConfig['reason'],
+            'morning_effect' => (int)($productTiming['morning_effect'] ?? $defaultTimingConfig['morning_effect']),
+            'evening_effect' => (int)($productTiming['evening_effect'] ?? $defaultTimingConfig['evening_effect']),
+        ];
+
+        // best_time 결정 (아침/저녁 효과 비교)
+        $bestTime = $timingValues['morning_effect'] === $timingValues['evening_effect']
+            ? '아침 & 저녁'
+            : ($timingValues['evening_effect'] > $timingValues['morning_effect'] ? '저녁' : '아침');
+
+        $timingConfig = [
+            'best_time' => $bestTime,
+            'reason' => $timingValues['reason'],
+            'morning_effect' => $timingValues['morning_effect'],
+            'evening_effect' => $timingValues['evening_effect'],
+        ];
 
         // 사용 빈도별 효과
         $frequencyEffect = [

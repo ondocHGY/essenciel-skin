@@ -517,6 +517,108 @@
             }
         </script>
 
+        <!-- 최적 사용 시간 설정 -->
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="optimalTimingSettings()" @efficacy-type-changed.window="applyTimingPreset($event.detail.type)">
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">최적 사용 시간 설정</h2>
+                    <p class="text-sm text-gray-500 mt-1">결과 페이지의 "AI 분석 사용 가이드"에 표시되는 최적 사용 시간 정보를 설정합니다</p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <!-- 설명 문구 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">설명 문구</label>
+                    <input type="text" name="optimal_timing[reason]" x-model="timing.reason"
+                           placeholder="예: 자외선 없는 밤 동안 멜라닌 억제 작용 극대화"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">최적 사용 시간 섹션 상단에 표시되는 설명입니다</p>
+                </div>
+
+                <!-- 아침/저녁 효과 -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">🌤️</span>
+                            <span class="font-medium text-gray-900">아침 효과</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="number" name="optimal_timing[morning_effect]" x-model="timing.morning_effect"
+                                   min="50" max="150" step="1"
+                                   class="w-24 px-3 py-2 border border-amber-300 rounded-lg text-center text-lg font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                            <span class="text-lg font-bold text-gray-700">%</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">100% 기준, 100 초과 시 "Good" 표시</p>
+                    </div>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">🌙</span>
+                            <span class="font-medium text-gray-900">저녁 효과</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="number" name="optimal_timing[evening_effect]" x-model="timing.evening_effect"
+                                   min="50" max="150" step="1"
+                                   class="w-24 px-3 py-2 border border-indigo-300 rounded-lg text-center text-lg font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <span class="text-lg font-bold text-gray-700">%</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">100% 기준, 100 초과 시 "Good" 표시</p>
+                    </div>
+                </div>
+
+                <!-- 프리셋 버튼 -->
+                <div class="pt-4 border-t border-gray-200">
+                    <p class="text-sm text-gray-600 mb-3">효능 타입별 기본값 적용:</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(\App\Models\Product::$efficacyTypes as $type => $label)
+                        <button type="button" @click="applyTimingPreset('{{ $type }}')"
+                                class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            {{ $label }}
+                        </button>
+                        @endforeach
+                        <button type="button" @click="clearTiming()"
+                                class="px-3 py-1.5 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors">
+                            초기화
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function optimalTimingSettings() {
+                const currentType = '{{ $product->efficacy_type ?? 'moisture' }}';
+                const presets = {
+                    moisture: { reason: '지속적 수분 공급으로 하루 종일 보습 유지', morning_effect: 100, evening_effect: 100 },
+                    elasticity: { reason: '수면 중 콜라겐 합성 촉진 (성장호르몬 분비 시간대)', morning_effect: 100, evening_effect: 131 },
+                    tone: { reason: '자외선 없는 밤 동안 멜라닌 억제 작용 극대화', morning_effect: 100, evening_effect: 123 },
+                    pore: { reason: '낮 동안 쌓인 피지와 노폐물 제거 후 흡수율 최대', morning_effect: 100, evening_effect: 122 },
+                    soothing: { reason: '밤 동안 피부 재생과 진정 작용 극대화', morning_effect: 100, evening_effect: 125 }
+                };
+
+                const savedTiming = {
+                    reason: '{{ $product->optimal_timing['reason'] ?? '' }}',
+                    morning_effect: '{{ $product->optimal_timing['morning_effect'] ?? '' }}',
+                    evening_effect: '{{ $product->optimal_timing['evening_effect'] ?? '' }}'
+                };
+
+                const defaultPreset = presets[currentType] || presets.moisture;
+                const isEmpty = !savedTiming.reason && !savedTiming.morning_effect;
+
+                return {
+                    timing: isEmpty ? {...defaultPreset} : savedTiming,
+                    applyTimingPreset(type) {
+                        if (presets[type]) {
+                            this.timing = {...presets[type]};
+                        }
+                    },
+                    clearTiming() {
+                        this.timing = { reason: '', morning_effect: 100, evening_effect: 100 };
+                    }
+                }
+            }
+        </script>
+
         <!-- 제품 소개 페이지 설정 -->
         <div class="bg-white rounded-xl shadow-sm p-6" x-data="introPageSettings()" @efficacy-type-changed.window="applyAllPresets($event.detail.type)">
             <div class="flex items-start justify-between mb-6">

@@ -18,6 +18,7 @@ class Product extends Model
         'efficacy_milestones',
         'milestone_center_texts',
         'efficacy_metrics',
+        'optimal_timing',
         'intro_metrics',
         'intro_summary',
         'intro_review_count',
@@ -41,6 +42,7 @@ class Product extends Model
         'efficacy_milestones' => 'array',
         'milestone_center_texts' => 'array',
         'efficacy_metrics' => 'array',
+        'optimal_timing' => 'array',
         'intro_metrics' => 'array',
         'intro_summary' => 'array',
         'base_curve' => 'array',
@@ -123,6 +125,47 @@ class Product extends Model
             'tone' => ["멜라닌 생성\n억제 시작", "피부톤 균일화\n안정화"],
             'pore' => ["피지 분비\n조절 시작", "모공 케어\n안정화"],
             'soothing' => ["진정 성분\n흡수 시작", "피부 진정\n안정화"],
+        ];
+
+        return $defaults[$this->efficacy_type] ?? $defaults['moisture'];
+    }
+
+    /**
+     * 최적 사용 시간 설정 반환
+     */
+    public function getOptimalTiming(): array
+    {
+        if ($this->optimal_timing) {
+            return $this->optimal_timing;
+        }
+
+        // 기본값 (효능 타입별)
+        $defaults = [
+            'moisture' => [
+                'reason' => '지속적 수분 공급으로 하루 종일 보습 유지',
+                'morning_effect' => 100,
+                'evening_effect' => 100,
+            ],
+            'elasticity' => [
+                'reason' => '수면 중 콜라겐 합성 촉진 (성장호르몬 분비 시간대)',
+                'morning_effect' => 100,
+                'evening_effect' => 131,
+            ],
+            'tone' => [
+                'reason' => '자외선 없는 밤 동안 멜라닌 억제 작용 극대화',
+                'morning_effect' => 100,
+                'evening_effect' => 123,
+            ],
+            'pore' => [
+                'reason' => '낮 동안 쌓인 피지와 노폐물 제거 후 흡수율 최대',
+                'morning_effect' => 100,
+                'evening_effect' => 122,
+            ],
+            'soothing' => [
+                'reason' => '밤 동안 피부 재생과 진정 작용 극대화',
+                'morning_effect' => 100,
+                'evening_effect' => 125,
+            ],
         ];
 
         return $defaults[$this->efficacy_type] ?? $defaults['moisture'];

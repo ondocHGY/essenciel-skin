@@ -96,6 +96,10 @@ class ProductController extends Controller
             'intro_summary' => 'nullable|array',
             'intro_summary.*' => 'nullable|string|max:500',
             'intro_review_count' => 'nullable|integer|min:0',
+            'optimal_timing' => 'nullable|array',
+            'optimal_timing.reason' => 'nullable|string|max:500',
+            'optimal_timing.morning_effect' => 'nullable|integer|min:0|max:200',
+            'optimal_timing.evening_effect' => 'nullable|integer|min:0|max:200',
         ]);
 
         // 기본 효능 타입 설정
@@ -152,6 +156,21 @@ class ProductController extends Controller
         // 리뷰 수 처리
         if (empty($validated['intro_review_count'])) {
             $validated['intro_review_count'] = null;
+        }
+
+        // 최적 사용 시간 처리
+        if (isset($validated['optimal_timing'])) {
+            $timing = $validated['optimal_timing'];
+            // 숫자값 정수 변환
+            if (isset($timing['morning_effect'])) {
+                $timing['morning_effect'] = (int) $timing['morning_effect'];
+            }
+            if (isset($timing['evening_effect'])) {
+                $timing['evening_effect'] = (int) $timing['evening_effect'];
+            }
+            // 빈 값 필터링
+            $timing = array_filter($timing, fn($v) => $v !== '' && $v !== null);
+            $validated['optimal_timing'] = empty($timing) ? null : $timing;
         }
 
         // 이미지 업로드 처리

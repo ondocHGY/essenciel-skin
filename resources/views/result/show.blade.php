@@ -42,30 +42,30 @@
     $lightTintColor = "rgb($lightTintR, $lightTintG, $lightTintB)";
 
     // 포인트컬러 기반 진한 색상 계산 (주 색상 강조, 채도 높임)
-    // #acdda5 → #6BC287 기준: max채널 0.88, min채널 0.82, mid채널 0.62
+    // 게이지 그라데이션용 약간 어두운 색상 (끝부분이 너무 어둡지 않게)
     $darkenColor = function($rgb) {
         $maxVal = max($rgb[0], $rgb[1], $rgb[2]);
         $minVal = min($rgb[0], $rgb[1], $rgb[2]);
 
         return array_map(function($val) use ($maxVal, $minVal) {
             if ($val == $maxVal) {
-                return max(0, round($val * 0.88));  // 주 색상 유지
+                return max(0, round($val * 0.92));  // 주 색상 유지 (0.88 -> 0.92)
             } elseif ($val == $minVal) {
-                return max(0, round($val * 0.82));  // 보조 색상
+                return max(0, round($val * 0.88));  // 보조 색상 (0.82 -> 0.88)
             } else {
-                return max(0, round($val * 0.62));  // 중간값 가장 많이 줄임
+                return max(0, round($val * 0.78));  // 중간값 (0.62 -> 0.78)
             }
         }, $rgb);
     };
     $darkerRgb = $darkenColor($rgb);
     $darkerPointColor = sprintf('#%02x%02x%02x', $darkerRgb[0], $darkerRgb[1], $darkerRgb[2]);
 
-    // 텍스트용 매우 진한 색상 (#acdda5 → #369755 기준)
-    // 녹색 계열: R*0.31, G*0.68, B*0.52
+    // 텍스트용 진한 색상 - 포인트 컬러의 색상비를 유지하면서 어둡게
+    // 각 채널을 동일 비율(0.6)로 줄여서 원래 색조 유지
     $textDarkerRgb = [
-        max(0, round($rgb[0] * 0.314)),  // R
-        max(0, round($rgb[1] * 0.683)),  // G
-        max(0, round($rgb[2] * 0.515)),  // B
+        max(0, round($rgb[0] * 0.55)),  // R
+        max(0, round($rgb[1] * 0.55)),  // G
+        max(0, round($rgb[2] * 0.55)),  // B
     ];
     $textPointColor = sprintf('#%02x%02x%02x', $textDarkerRgb[0], $textDarkerRgb[1], $textDarkerRgb[2]);
 
