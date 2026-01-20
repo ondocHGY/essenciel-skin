@@ -306,11 +306,15 @@
                 {{-- 범례 --}}
                 <div class="flex items-center justify-end gap-8 mb-4">
                     <div class="flex items-center gap-1.5">
-                        <img src="{{ asset('product/graph_green.svg') }}" alt="" class="w-4 h-4">
+                        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6" fill="{{ $pointColor }}" stroke="white" stroke-width="2"/>
+                        </svg>
                         <span class="text-xs text-gray-600">나노리포좀</span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <img src="{{ asset('product/graph_black.svg') }}" alt="" class="w-4 h-4">
+                        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6" fill="#1f2937" stroke="white" stroke-width="2"/>
+                        </svg>
                         <span class="text-xs text-gray-600">일반성분</span>
                     </div>
                 </div>
@@ -660,11 +664,18 @@ function productPage() {
         },
 
         initSciCharts() {
-            // 포인트 이미지 로드
-            const greenPointImg = new Image(16, 16);
-            greenPointImg.src = '{{ asset("product/graph_green.svg") }}';
-            const blackPointImg = new Image(16, 16);
-            blackPointImg.src = '{{ asset("product/graph_black.svg") }}';
+            // 포인트 이미지를 동적으로 생성 (포인트 컬러 적용)
+            const createPointImage = (color) => {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="6" fill="${color}" stroke="white" stroke-width="2"/>
+                </svg>`;
+                const img = new Image(16, 16);
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                return img;
+            };
+
+            const pointColorImg = createPointImage(pointColor);
+            const blackPointImg = createPointImage('#1f2937');
 
             // 차트 공통 옵션
             const chartOptions = {
@@ -742,7 +753,7 @@ function productPage() {
                     data: {
                         labels: ['0', '1', '2', '3', '4'],
                         datasets: [
-                            { data: [0, 0, 0, 0, 0], borderColor: pointColor, backgroundColor: 'transparent', fill: false, tension: 0, pointStyle: greenPointImg, pointRadius: 8, borderWidth: 1 },
+                            { data: [0, 0, 0, 0, 0], borderColor: pointColor, backgroundColor: 'transparent', fill: false, tension: 0, pointStyle: pointColorImg, pointRadius: 8, borderWidth: 1 },
                             { data: [0, 0, 0, 0, 0], borderColor: '#1f2937', backgroundColor: 'transparent', fill: false, tension: 0, pointStyle: blackPointImg, pointRadius: 8, borderWidth: 1 }
                         ]
                     },
