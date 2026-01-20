@@ -110,3 +110,127 @@ CACHE_STORE=database
 - 세션 기반 사용자 추적 (회원가입 불필요)
 - JSON 컬럼 사용 (ingredients, base_curve, timeline, metrics 등)
 - 설문 옵션 변경 시 캐시 클리어 필요 (`php artisan cache:clear`)
+
+---
+
+## 변경 이력
+
+### 2026-01-08
+
+#### 관리자 기능
+- **커스텀 QR 코드 생성** 메뉴 추가 (`/admin/custom-qr`)
+  - URL 입력 → QR 이미지 생성 (DB 저장 없음)
+  - `CustomQrCodeController`, `QrGeneratorService::generateFromUrl()` 추가
+
+#### 결과 페이지 (result/show.blade.php)
+
+**마일스톤 카드 슬라이드**
+- 1.5개 노출 + 무한 자동 슬라이드 구현
+- 왼쪽 오버레이로 이전 슬라이드 완전 가림
+- `milestoneCarousel()` Alpine.js 함수 추가
+
+**피부 반응 프로파일 요약**
+- 게이지-텍스트 불일치 수정: level 값 기반으로 description 동적 생성
+- 게이지 라벨 항목별 차별화:
+  - 피부재생속도: 느림/보통/빠름
+  - 피부 수분유지력: 적음/보통/많음
+  - 피부 색소 반응성: 낮음/보통/높음
+
+**효능 발현 예측**
+- 텍스트 포인트 컬러 변환 공식 수정 (#acdda5 → #369755 기준)
+  - R×0.314, G×0.683, B×0.515 비율 적용
+
+**추가 효과 향상 방법**
+- actionShort 텍스트에 흰색 그라데이션 배경 추가
+  - `linear-gradient(to right, rgba(255,255,255,0.8), rgba(255,255,255,0.2))`
+- 이미지 z-index 조정 (`z-0`)으로 텍스트가 이미지 위에 표시
+
+**분석 완료 버튼**
+- 채워지는 애니메이션 추가
+  - 흰색 배경에서 검은색이 왼쪽→오른쪽으로 채워짐
+  - 완료 시 "분석 완료" 텍스트 표시
+  - `analysisCompleteBtn()` Alpine.js 함수 추가
+
+### 2026-01-19
+
+#### 관리자 제품 편집 페이지 (admin/products/edit.blade.php)
+
+**집중 효능 타입 라디오 버튼 수정**
+- `:checked` 바인딩에서 `x-model="selected"`로 변경하여 선택값 저장 문제 해결
+- `window.currentEfficacyType` 전역 변수로 현재 선택된 효능 타입 추적
+
+**효능 타입별 기본값 적용 기능 강화**
+- 모든 설정 섹션에 효능 타입별 개별 버튼 추가 (수분 공급, 탄력 개선, 피부톤 개선, 모공 케어, 피부 진정)
+- `@efficacy-type-changed.window` 이벤트로 효능 타입 변경 시 자동 프리셋 적용
+- 적용 대상 섹션:
+  - 효능 발현 예측 설정 (`efficacySettings()`)
+  - 효능 측정 기준값 (`efficacyMetricsSettings()`)
+  - 제품 소개 페이지 설정 (`introPageSettings()`)
+
+**최적 사용 시간 설정 추가**
+- 새로운 UI 섹션 추가: 사용 이유, 아침 효과(%), 저녁 효과(%) 입력
+- `optimalTimingSettings()` Alpine.js 함수 추가
+- 효능 타입별 기본값 적용 버튼 포함
+
+#### Product 모델 (app/Models/Product.php)
+- `optimal_timing` 필드 추가 (`$fillable`, `$casts`)
+- `getOptimalTiming()` 메서드 추가: 효능 타입별 기본값 반환
+  - moisture: 아침/저녁 동일 (100%)
+  - elasticity: 저녁 131%
+  - tone: 저녁 123%
+  - pore: 저녁 122%
+  - soothing: 저녁 125%
+
+#### 마이그레이션
+- `2026_01_19_000000_add_optimal_timing_to_products_table.php` 생성
+- `optimal_timing` JSON 컬럼 추가
+
+#### ProductController (app/Http/Controllers/Admin/ProductController.php)
+- `optimal_timing` 유효성 검사 규칙 추가
+- 저장 로직 추가 (정수 변환, 빈 값 필터링)
+
+#### AnalysisService (app/Services/AnalysisService.php)
+
+**효능 측정 지표 퍼센트 계산 수정**
+- 단위가 `%`인 경우: 절대 개선량 사용 (2% → 23% = 21% 개선)
+- 단위가 `%`가 아닌 경우 (L*, R 등): 상대적 변화율 계산
+- 기존 1096% 오류 → 21% 정상 표시
+
+**최적 사용 시간 제품 설정 연동**
+- `generateUsageGuide()`, `calculateOptimalUsage()`에 `$product` 파라미터 추가
+- 제품에 설정된 `optimal_timing` 값 우선 사용, 없으면 효능 타입별 기본값
+- `best_time` 자동 결정: 아침/저녁 효과 비교하여 "아침", "저녁", "아침 & 저녁" 중 선택
+
+#### 결과 페이지 (result/show.blade.php)
+
+**그래프 게이지 그라데이션 색상 수정**
+- 끝부분 밝기 증가: R×0.92, G×0.88, B×0.78 비율 적용
+
+**효능 발현 예측 텍스트 색상 수정**
+- 녹색 톤 과다 문제 해결
+- 균일한 0.55 비율 적용으로 원본 색조 유지
+
+### 2026-01-20
+
+#### 제품별 강조 컬러 추가
+
+**Product 모델 (app/Models/Product.php)**
+- `accent_color` 필드 추가 (`$fillable`)
+
+**마이그레이션**
+- `2026_01_20_000000_add_accent_color_to_products_table.php` 생성
+- `accent_color` 문자열 컬럼 추가 (nullable)
+
+**관리자 제품 편집 페이지 (admin/products/edit.blade.php)**
+- 포인트 컬러 & 강조 컬러를 2열 그리드로 배치
+- 강조 컬러 입력 UI 추가 (컬러 피커, 텍스트 입력, 프리셋 버튼)
+- "포인트 컬러에서 자동 생성" 버튼 추가 (55% 어둡게 계산)
+- 미리보기 영역에 그라데이션 프리뷰 추가
+- `colorSettings()` Alpine.js 함수 추가
+
+**ProductController (app/Http/Controllers/Admin/ProductController.php)**
+- `accent_color` 유효성 검사 규칙 추가
+
+**결과 페이지 (result/show.blade.php)**
+- 제품에 `accent_color`가 설정되어 있으면 해당 값을 `$darkerPointColor`, `$textPointColor`로 사용
+- 설정되지 않은 경우 기존 변환 함수(자동 계산)를 fallback으로 사용

@@ -24,6 +24,7 @@
     $efficacyName = $efficacyNames[$efficacyType] ?? '수분 공급';
 
     $pointColor = $product->point_color ?? '#10B981';
+    $accentColor = $product->accent_color; // 제품에 설정된 강조 컬러
     $hexToRgb = function($hex) {
         $hex = ltrim($hex, '#');
         return [
@@ -41,33 +42,39 @@
     $lightTintB = round(255 * 0.85 + $rgb[2] * 0.15);
     $lightTintColor = "rgb($lightTintR, $lightTintG, $lightTintB)";
 
-    // 포인트컬러 기반 진한 색상 계산 (주 색상 강조, 채도 높임)
-    // 게이지 그라데이션용 약간 어두운 색상 (끝부분이 너무 어둡지 않게)
-    $darkenColor = function($rgb) {
-        $maxVal = max($rgb[0], $rgb[1], $rgb[2]);
-        $minVal = min($rgb[0], $rgb[1], $rgb[2]);
+    // 강조 컬러 사용 (제품에 설정된 값이 있으면 사용, 없으면 자동 계산)
+    if ($accentColor) {
+        $darkerPointColor = $accentColor;
+        $textPointColor = $accentColor;
+    } else {
+        // 포인트컬러 기반 진한 색상 계산 (주 색상 강조, 채도 높임)
+        // 게이지 그라데이션용 약간 어두운 색상 (끝부분이 너무 어둡지 않게)
+        $darkenColor = function($rgb) {
+            $maxVal = max($rgb[0], $rgb[1], $rgb[2]);
+            $minVal = min($rgb[0], $rgb[1], $rgb[2]);
 
-        return array_map(function($val) use ($maxVal, $minVal) {
-            if ($val == $maxVal) {
-                return max(0, round($val * 0.92));  // 주 색상 유지 (0.88 -> 0.92)
-            } elseif ($val == $minVal) {
-                return max(0, round($val * 0.88));  // 보조 색상 (0.82 -> 0.88)
-            } else {
-                return max(0, round($val * 0.78));  // 중간값 (0.62 -> 0.78)
-            }
-        }, $rgb);
-    };
-    $darkerRgb = $darkenColor($rgb);
-    $darkerPointColor = sprintf('#%02x%02x%02x', $darkerRgb[0], $darkerRgb[1], $darkerRgb[2]);
+            return array_map(function($val) use ($maxVal, $minVal) {
+                if ($val == $maxVal) {
+                    return max(0, round($val * 0.92));  // 주 색상 유지 (0.88 -> 0.92)
+                } elseif ($val == $minVal) {
+                    return max(0, round($val * 0.88));  // 보조 색상 (0.82 -> 0.88)
+                } else {
+                    return max(0, round($val * 0.78));  // 중간값 (0.62 -> 0.78)
+                }
+            }, $rgb);
+        };
+        $darkerRgb = $darkenColor($rgb);
+        $darkerPointColor = sprintf('#%02x%02x%02x', $darkerRgb[0], $darkerRgb[1], $darkerRgb[2]);
 
-    // 텍스트용 진한 색상 - 포인트 컬러의 색상비를 유지하면서 어둡게
-    // 각 채널을 동일 비율(0.6)로 줄여서 원래 색조 유지
-    $textDarkerRgb = [
-        max(0, round($rgb[0] * 0.55)),  // R
-        max(0, round($rgb[1] * 0.55)),  // G
-        max(0, round($rgb[2] * 0.55)),  // B
-    ];
-    $textPointColor = sprintf('#%02x%02x%02x', $textDarkerRgb[0], $textDarkerRgb[1], $textDarkerRgb[2]);
+        // 텍스트용 진한 색상 - 포인트 컬러의 색상비를 유지하면서 어둡게
+        // 각 채널을 동일 비율(0.6)로 줄여서 원래 색조 유지
+        $textDarkerRgb = [
+            max(0, round($rgb[0] * 0.55)),  // R
+            max(0, round($rgb[1] * 0.55)),  // G
+            max(0, round($rgb[2] * 0.55)),  // B
+        ];
+        $textPointColor = sprintf('#%02x%02x%02x', $textDarkerRgb[0], $textDarkerRgb[1], $textDarkerRgb[2]);
+    }
 
     $improvementPercent = round($result->metrics['change_percent'] ?? 0);
     $milestoneLabels = $product->getEfficacyMilestoneLabels();

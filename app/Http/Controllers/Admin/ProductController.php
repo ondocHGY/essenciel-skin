@@ -73,6 +73,7 @@ class ProductController extends Controller
             'category' => 'required|string|max:255',
             'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,soothing',
             'point_color' => 'nullable|string|max:7',
+            'accent_color' => 'nullable|string|max:7',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'efficacy_phases' => 'nullable|array',
             'efficacy_phases.phase1' => 'nullable|string',

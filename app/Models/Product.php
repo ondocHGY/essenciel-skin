@@ -30,6 +30,7 @@ class Product extends Model
         'base_curve',
         'qr_path',
         'point_color',
+        'accent_color',
     ];
 
     protected $casts = [

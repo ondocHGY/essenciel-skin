@@ -66,35 +66,106 @@
                 </div>
             </div>
 
-            <!-- 포인트 컬러 -->
-            <div class="mt-6 pt-6 border-t border-gray-100" x-data="{ color: '{{ old('point_color', $product->point_color ?? '#10B981') }}' }">
-                <label class="block text-sm font-medium text-gray-700 mb-2">포인트 컬러</label>
-                <p class="text-xs text-gray-500 mb-3">제품 소개 페이지의 강조 색상입니다. (성분 태그, 레이더 차트, AI 분석 요약 등에 적용)</p>
-                <div class="flex items-center gap-4">
-                    <input type="color" name="point_color" x-model="color"
-                           class="w-16 h-16 rounded-lg border border-gray-300 cursor-pointer p-1">
-                    <div class="flex-1">
-                        <input type="text" x-model="color" @input="color = $event.target.value"
-                               class="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                               placeholder="#10B981">
-                        <div class="flex gap-2 mt-3">
-                            <button type="button" @click="color = '#10B981'" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="에메랄드"></button>
-                            <button type="button" @click="color = '#3B82F6'" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="블루"></button>
-                            <button type="button" @click="color = '#8B5CF6'" class="w-8 h-8 rounded-full bg-violet-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="바이올렛"></button>
-                            <button type="button" @click="color = '#EC4899'" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="핑크"></button>
-                            <button type="button" @click="color = '#F59E0B'" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="앰버"></button>
-                            <button type="button" @click="color = '#EF4444'" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="레드"></button>
-                            <button type="button" @click="color = '#06B6D4'" class="w-8 h-8 rounded-full bg-cyan-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="시안"></button>
-                            <button type="button" @click="color = '#84CC16'" class="w-8 h-8 rounded-full bg-lime-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="라임"></button>
+            <!-- 포인트 컬러 & 강조 컬러 -->
+            <div class="mt-6 pt-6 border-t border-gray-100" x-data="colorSettings()">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 포인트 컬러 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">포인트 컬러</label>
+                        <p class="text-xs text-gray-500 mb-3">제품 소개 페이지의 강조 색상입니다. (성분 태그, 레이더 차트, AI 분석 요약 등에 적용)</p>
+                        <div class="flex items-start gap-4">
+                            <input type="color" name="point_color" x-model="pointColor"
+                                   class="w-14 h-14 rounded-lg border border-gray-300 cursor-pointer p-1">
+                            <div class="flex-1">
+                                <input type="text" x-model="pointColor" @input="pointColor = $event.target.value"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                                       placeholder="#10B981">
+                                <div class="flex flex-wrap gap-1.5 mt-2">
+                                    <button type="button" @click="pointColor = '#10B981'" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="에메랄드"></button>
+                                    <button type="button" @click="pointColor = '#3B82F6'" class="w-6 h-6 rounded-full bg-blue-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="블루"></button>
+                                    <button type="button" @click="pointColor = '#8B5CF6'" class="w-6 h-6 rounded-full bg-violet-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="바이올렛"></button>
+                                    <button type="button" @click="pointColor = '#EC4899'" class="w-6 h-6 rounded-full bg-pink-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="핑크"></button>
+                                    <button type="button" @click="pointColor = '#F59E0B'" class="w-6 h-6 rounded-full bg-amber-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="앰버"></button>
+                                    <button type="button" @click="pointColor = '#EF4444'" class="w-6 h-6 rounded-full bg-red-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="레드"></button>
+                                    <button type="button" @click="pointColor = '#06B6D4'" class="w-6 h-6 rounded-full bg-cyan-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="시안"></button>
+                                    <button type="button" @click="pointColor = '#84CC16'" class="w-6 h-6 rounded-full bg-lime-500 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="라임"></button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <!-- 미리보기 -->
-                    <div class="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-lg">
-                        <span class="text-xs text-gray-500">미리보기</span>
-                        <span class="px-3 py-1 text-white text-xs font-medium rounded-full" :style="'background-color: ' + color">태그 예시</span>
+
+                    <!-- 강조 컬러 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">강조 컬러</label>
+                        <p class="text-xs text-gray-500 mb-3">결과 페이지의 그래프 그라데이션, 효능발현예측 강조 텍스트에 적용됩니다.</p>
+                        <div class="flex items-start gap-4">
+                            <input type="color" name="accent_color" x-model="accentColor"
+                                   class="w-14 h-14 rounded-lg border border-gray-300 cursor-pointer p-1">
+                            <div class="flex-1">
+                                <input type="text" x-model="accentColor" @input="accentColor = $event.target.value"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                                       placeholder="#047857">
+                                <div class="flex flex-wrap gap-1.5 mt-2">
+                                    <button type="button" @click="accentColor = '#047857'" class="w-6 h-6 rounded-full bg-emerald-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="에메랄드 다크"></button>
+                                    <button type="button" @click="accentColor = '#1D4ED8'" class="w-6 h-6 rounded-full bg-blue-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="블루 다크"></button>
+                                    <button type="button" @click="accentColor = '#6D28D9'" class="w-6 h-6 rounded-full bg-violet-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="바이올렛 다크"></button>
+                                    <button type="button" @click="accentColor = '#BE185D'" class="w-6 h-6 rounded-full bg-pink-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="핑크 다크"></button>
+                                    <button type="button" @click="accentColor = '#B45309'" class="w-6 h-6 rounded-full bg-amber-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="앰버 다크"></button>
+                                    <button type="button" @click="accentColor = '#B91C1C'" class="w-6 h-6 rounded-full bg-red-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="레드 다크"></button>
+                                    <button type="button" @click="accentColor = '#0E7490'" class="w-6 h-6 rounded-full bg-cyan-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="시안 다크"></button>
+                                    <button type="button" @click="accentColor = '#4D7C0F'" class="w-6 h-6 rounded-full bg-lime-700 border-2 border-white shadow-sm hover:scale-110 transition-transform" title="라임 다크"></button>
+                                </div>
+                                <button type="button" @click="generateAccentFromPoint()"
+                                        class="mt-2 px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                                    포인트 컬러에서 자동 생성
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 미리보기 -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <span class="text-xs text-gray-500 block mb-3">미리보기</span>
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">포인트:</span>
+                            <span class="px-3 py-1 text-white text-xs font-medium rounded-full" :style="'background-color: ' + pointColor">태그 예시</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">강조:</span>
+                            <span class="px-3 py-1 text-white text-xs font-medium rounded-full" :style="'background-color: ' + accentColor">강조 텍스트</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">그라데이션:</span>
+                            <div class="w-24 h-6 rounded" :style="'background: linear-gradient(to right, ' + pointColor + ', ' + accentColor + ')'"></div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <script>
+                function colorSettings() {
+                    return {
+                        pointColor: '{{ old('point_color', $product->point_color ?? '#10B981') }}',
+                        accentColor: '{{ old('accent_color', $product->accent_color ?? '#047857') }}',
+                        generateAccentFromPoint() {
+                            // 포인트 컬러에서 진한 색상 자동 생성
+                            const hex = this.pointColor.replace('#', '');
+                            const r = parseInt(hex.substr(0, 2), 16);
+                            const g = parseInt(hex.substr(2, 2), 16);
+                            const b = parseInt(hex.substr(4, 2), 16);
+
+                            // 55% 어둡게
+                            const dr = Math.max(0, Math.round(r * 0.55));
+                            const dg = Math.max(0, Math.round(g * 0.55));
+                            const db = Math.max(0, Math.round(b * 0.55));
+
+                            this.accentColor = '#' + [dr, dg, db].map(v => v.toString(16).padStart(2, '0')).join('');
+                        }
+                    }
+                }
+            </script>
 
             <!-- 효능 타입 선택 -->
             <div class="mt-6 pt-6 border-t border-gray-100" x-data="{ selected: '{{ old('efficacy_type', $product->efficacy_type ?? 'moisture') }}' }" x-init="window.currentEfficacyType = selected; $watch('selected', value => { window.currentEfficacyType = value; $dispatch('efficacy-type-changed', { type: value }); })">
