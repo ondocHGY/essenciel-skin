@@ -1,6 +1,7 @@
 @props([
     'ingredient',
     'pointColor' => '#10B981',
+    'accentColor' => null,
 ])
 
 <div class="w-full flex-shrink-0 flex px-5 pb-5">
@@ -28,7 +29,7 @@
             @if($ingredient->tags && count($ingredient->tags) > 0)
             <div class="flex flex-wrap gap-1.5">
                 @foreach($ingredient->tags as $tag)
-                <span class="px-2 py-1 text-sm font-medium rounded text-white" style="background-color: {{ $pointColor }}">{{ $tag }}</span>
+                <span class="px-2 py-1 text-sm font-medium rounded text-white" style="background-color: {{ $accentColor ?? $pointColor }}">{{ $tag }}</span>
                 @endforeach
             </div>
             @endif

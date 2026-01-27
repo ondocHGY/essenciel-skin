@@ -17,6 +17,17 @@
     };
     $rgb = $hexToRgb($pointColor);
     $rgbString = implode(', ', $rgb);
+
+    // 강조 컬러 (accent_color가 없으면 포인트 컬러의 55% 어둡게)
+    if (!empty($product->accent_color)) {
+        $accentColor = $product->accent_color;
+    } else {
+        $accentColor = sprintf('#%02x%02x%02x',
+            round($rgb[0] * 0.55),
+            round($rgb[1] * 0.55),
+            round($rgb[2] * 0.55)
+        );
+    }
 @endphp
 
 @section('content')
@@ -72,11 +83,11 @@
                          :class="isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''"
                          :style="'transform: translateX(-' + (currentSlide * 100) + '%)'">
                         @foreach($ingredients as $index => $ingredient)
-                        <x-ingredient-slide-item :ingredient="$ingredient" :pointColor="$pointColor" />
+                        <x-ingredient-slide-item :ingredient="$ingredient" :pointColor="$pointColor" :accentColor="$accentColor" />
                         @endforeach
                         {{-- 무한 슬라이드를 위한 첫번째 슬라이드 복제 --}}
                         @if($ingredients->count() > 1)
-                        <x-ingredient-slide-item :ingredient="$ingredients->first()" :pointColor="$pointColor" />
+                        <x-ingredient-slide-item :ingredient="$ingredients->first()" :pointColor="$pointColor" :accentColor="$accentColor" />
                         @endif
                     </div>
                 </div>
