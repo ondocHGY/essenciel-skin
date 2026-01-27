@@ -190,7 +190,7 @@
                             <x-loading-spinner />
                         </template>
                         <template x-if="collectionComplete">
-                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <div class="w-2 h-2 rounded-full" style="background-color: {{ $pointColor }}"></div>
                         </template>
                         <span class="text-base font-medium" :style="collectionComplete ? 'color: white' : 'color: white'" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
                     </div>
@@ -234,7 +234,7 @@
                     </div>
                     {{-- 세로 구분선 + 텍스트 영역 (우측) --}}
                     <div class="p-4 flex flex-col justify-between bg-white" style="border-left: 1px solid #D9D9D9;">
-                        <span class="text-lg font-medium" style="color: {{ $pointColor }}">Nano-Liposome</span>
+                        <span class="text-lg font-medium text-gray-900">Nano-Liposome</span>
                         <p class="text-base leading-snug">유효 성분을 리포좀 캡슐화하여 피부 속 깊숙히 안정적으로 전달해주는 기술</p>
                     </div>
                 </div>
