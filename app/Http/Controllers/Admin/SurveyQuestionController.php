@@ -45,7 +45,7 @@ class SurveyQuestionController extends Controller
             'subtitle' => $validated['subtitle'],
             'category' => $validated['category'],
             'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => $validated['is_active'] ?? true,
+            'is_active' => $request->has('is_active'),
         ]);
 
         foreach ($validated['options'] as $index => $optionData) {
@@ -93,7 +93,7 @@ class SurveyQuestionController extends Controller
             'subtitle' => $validated['subtitle'],
             'category' => $validated['category'],
             'sort_order' => $validated['sort_order'] ?? 0,
-            'is_active' => $validated['is_active'] ?? true,
+            'is_active' => $request->has('is_active'),
         ]);
 
         // 기존 옵션 ID 목록
@@ -111,7 +111,7 @@ class SurveyQuestionController extends Controller
                         'description' => $optionData['description'] ?? null,
                         'modifier' => $optionData['modifier'],
                         'sort_order' => $index,
-                        'is_active' => $optionData['is_active'] ?? true,
+                        'is_active' => isset($optionData['is_active']),
                     ]);
                     $updatedIds[] = $option->id;
                 }
@@ -123,7 +123,7 @@ class SurveyQuestionController extends Controller
                     'description' => $optionData['description'] ?? null,
                     'modifier' => $optionData['modifier'],
                     'sort_order' => $index,
-                    'is_active' => $optionData['is_active'] ?? true,
+                    'is_active' => isset($optionData['is_active']),
                 ]);
                 $updatedIds[] = $newOption->id;
             }

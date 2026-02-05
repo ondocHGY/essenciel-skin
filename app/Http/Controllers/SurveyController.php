@@ -99,16 +99,6 @@ class SurveyController extends Controller
                 ],
             ],
             [
-                'name' => 'stress_level',
-                'title' => '평소 스트레스 수준은 어떠신가요?',
-                'subtitle' => '피부 염증 반응을 예측해요',
-                'options' => [
-                    ['value' => 'low', 'label' => '낮음', 'desc' => null],
-                    ['value' => 'medium', 'label' => '보통', 'desc' => null],
-                    ['value' => 'high', 'label' => '높음', 'desc' => null],
-                ],
-            ],
-            [
                 'name' => 'water_intake',
                 'title' => '하루 수분 섭취량은 어떻게 되시나요?',
                 'subtitle' => '수분 유지 메커니즘을 분석해요',
@@ -116,35 +106,6 @@ class SurveyController extends Controller
                     ['value' => 'under1L', 'label' => '1L 미만', 'desc' => null],
                     ['value' => '1to2L', 'label' => '1~2L', 'desc' => null],
                     ['value' => 'over2L', 'label' => '2L 이상', 'desc' => null],
-                ],
-            ],
-            [
-                'name' => 'alcohol',
-                'title' => '음주 빈도는 어떻게 되시나요?',
-                'subtitle' => '피부 장벽 손상 빈도를 파악해요',
-                'options' => [
-                    ['value' => 'none', 'label' => '안함', 'desc' => null],
-                    ['value' => 'sometimes', 'label' => '가끔', 'desc' => null],
-                    ['value' => 'often', 'label' => '자주', 'desc' => null],
-                ],
-            ],
-            [
-                'name' => 'smoking',
-                'title' => '흡연 여부를 알려주세요',
-                'subtitle' => '산화 스트레스를 분석해요',
-                'options' => [
-                    ['value' => 'none', 'label' => '안함', 'desc' => null],
-                    ['value' => 'sometimes', 'label' => '가끔', 'desc' => null],
-                    ['value' => 'often', 'label' => '자주', 'desc' => null],
-                ],
-            ],
-            [
-                'name' => 'care_steps',
-                'title' => '현재 스킨케어 단계 수는 어떻게 되시나요?',
-                'subtitle' => '기존 관리 습관을 파악해 효과를 예측해요',
-                'options' => [
-                    ['value' => 'basic', 'label' => '3단계 이하', 'desc' => null],
-                    ['value' => 'advanced', 'label' => '4단계 이상', 'desc' => null],
                 ],
             ],
         ];
@@ -160,11 +121,11 @@ class SurveyController extends Controller
             'gender' => 'required|string',
             'sleep_hours' => 'required|string',
             'uv_exposure' => 'required|string',
-            'stress_level' => 'required|string',
+            'stress_level' => 'nullable|string', // 현재 설문에서 제외
             'water_intake' => 'required|string',
-            'alcohol' => 'required|string',
-            'smoking' => 'required|string',
-            'care_steps' => 'required|string',
+            'alcohol' => 'nullable|string', // 현재 설문에서 제외
+            'smoking' => 'nullable|string', // 현재 설문에서 제외
+            'care_steps' => 'nullable|string', // 현재 설문에서 제외
         ]);
 
         $sessionId = $request->session()->get('skincare_session_id', Str::uuid()->toString());
@@ -179,15 +140,15 @@ class SurveyController extends Controller
             'lifestyle' => [
                 'sleep_hours' => $validated['sleep_hours'],
                 'uv_exposure' => $validated['uv_exposure'],
-                'stress_level' => $validated['stress_level'],
+                'stress_level' => $validated['stress_level'] ?? 'medium', // 기본값
                 'water_intake' => $validated['water_intake'],
             ],
             'skincare_habit' => [
-                'care_steps' => $validated['care_steps'],
+                'care_steps' => $validated['care_steps'] ?? 'basic', // 기본값
             ],
             'satisfaction' => 5, // 기본값
-            'alcohol' => $validated['alcohol'],
-            'smoking' => $validated['smoking'],
+            'alcohol' => $validated['alcohol'] ?? 'none', // 기본값
+            'smoking' => $validated['smoking'] ?? 'none', // 기본값
         ]);
 
         // 분석 실행 (제품의 단일 효능에 집중)
