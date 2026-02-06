@@ -11,7 +11,10 @@
       "Bash(del \"C:\\ondoc\\essenciel_qrcode\\database\\seeders\\SurveyOptionSeeder.php\")",
       "Bash(docker-compose:*)",
       "Bash(git add:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(docker ps:*)",
+      "Bash(powershell:*)",
+      "Bash(del \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_excel.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_dates.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_reviews.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\test_naver_docker.py\")"
     ]
   }
 }

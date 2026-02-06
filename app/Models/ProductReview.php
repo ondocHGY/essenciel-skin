@@ -11,6 +11,7 @@ class ProductReview extends Model
         'product_id',
         'review_source_id',
         'platform',
+        'platform_product_code',
         'external_id',
         'rating',
         'title',
@@ -63,6 +64,31 @@ class ProductReview extends Model
     public function scopePlatform($query, string $platform)
     {
         return $query->where('platform', $platform);
+    }
+
+    /**
+     * 상품 미매칭 리뷰 (product_id가 NULL)
+     */
+    public function scopeUnmatched($query)
+    {
+        return $query->whereNull('product_id');
+    }
+
+    /**
+     * 상품 매칭 완료 리뷰
+     */
+    public function scopeMatched($query)
+    {
+        return $query->whereNotNull('product_id');
+    }
+
+    /**
+     * 플랫폼 상품코드로 조회
+     */
+    public function scopeByPlatformCode($query, string $platform, string $code)
+    {
+        return $query->where('platform', $platform)
+                     ->where('platform_product_code', $code);
     }
 
     /**

@@ -7,8 +7,10 @@ venv/
 .venv/
 
 # Sensitive files
+data/
 *.cookies.json
 qsm_cookies.json
+naver_cookies.json
 .env
 
 # Debug files
