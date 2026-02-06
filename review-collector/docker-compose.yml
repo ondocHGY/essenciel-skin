@@ -4,7 +4,7 @@ services:
     container_name: review-collector
     restart: unless-stopped
     ports:
-      - "8001:8000"
+      - "8002:8000"
     environment:
       # QSM (Qoo10) 설정
       - QSM_ID=${QSM_ID}

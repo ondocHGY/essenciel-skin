@@ -51,18 +51,22 @@ class Qoo10Scraper(BaseScraper):
     def _get_chrome_options(self) -> uc.ChromeOptions:
         """Chrome 옵션 설정"""
         options = uc.ChromeOptions()
+
+        # 필수 Docker 옵션
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
+        options.add_argument("--disable-software-rasterizer")
+
+        # 창 설정
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--lang=ja-JP")
 
-        # Docker 안정성 옵션
+        # 추가 안정성 옵션
         options.add_argument("--disable-extensions")
-        options.add_argument("--disable-software-rasterizer")
-        options.add_argument("--disable-setuid-sandbox")
-        options.add_argument("--disable-background-networking")
-        options.add_argument("--disable-default-apps")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--disable-browser-side-navigation")
+        options.add_argument("--disable-features=VizDisplayCompositor")
 
         prefs = {
             "download.default_directory": self.download_path,
