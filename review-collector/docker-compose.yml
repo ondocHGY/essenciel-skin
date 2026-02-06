@@ -35,7 +35,7 @@ services:
 
     volumes:
       # 데이터 영속성 (쿠키, 다운로드 파일)
-      - review-data:/app/data
+      - ./data:/app/data
       - ./downloads:/tmp/review_downloads
 
     shm_size: '2gb'  # Chrome 공유 메모리
@@ -48,9 +48,6 @@ services:
 
     networks:
       - review-network
-
-volumes:
-  review-data:
 
 networks:
   review-network:

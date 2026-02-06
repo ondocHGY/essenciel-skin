@@ -48,4 +48,13 @@ jobs:
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
+            # Review Collector Docker 배포
+            cd /var/www/essenciel-skin/review-collector
+            if [ -f "docker-compose.yml" ]; then
+              echo "Deploying review-collector..."
+              docker-compose down || true
+              docker-compose up -d --build
+              echo "Review collector deployed!"
+            fi
+
             echo "Deployment completed successfully!"
