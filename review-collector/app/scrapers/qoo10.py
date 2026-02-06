@@ -57,6 +57,13 @@ class Qoo10Scraper(BaseScraper):
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--lang=ja-JP")
 
+        # Docker 안정성 옵션
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("--disable-background-networking")
+        options.add_argument("--disable-default-apps")
+
         prefs = {
             "download.default_directory": self.download_path,
             "download.prompt_for_download": False,

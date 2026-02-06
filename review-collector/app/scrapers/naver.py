@@ -50,9 +50,16 @@ class NaverScraper(BaseScraper):
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
-        options.add_argument("--remote-debugging-port=9222")
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--lang=ko-KR")
+
+        # Docker 안정성 옵션
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--single-process")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("--disable-background-networking")
+        options.add_argument("--disable-default-apps")
 
         # Docker/Linux headless 모드
         if settings.CHROME_HEADLESS:
