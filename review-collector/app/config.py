@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     QSM_ID: str = ""
     QSM_PASSWORD: str = ""
 
+    # 네이버 스마트스토어 설정
+    NAVER_ID: str = ""
+    NAVER_PASSWORD: str = ""
+    NAVER_COOKIE_PATH: str = "/app/data/naver_cookies.json"
+
     # 데이터베이스 설정 (Laravel과 동일한 DB)
     DB_HOST: str = "localhost"
     DB_PORT: int = 3306

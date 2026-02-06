@@ -311,17 +311,31 @@ class Qoo10Scraper(BaseScraper):
 
             df.columns = df.columns.str.strip()
 
+            # 디버깅: 실제 컬럼명 로깅
+            logger.info(f"파일 컬럼: {list(df.columns)}")
+
             column_mapping = {
+                # 한국어
                 '댓글': 'content',
                 '상품평번호_h': 'external_id',
                 '작성자ID': 'author',
                 '작성일': 'reviewed_at',
                 '만족도': 'rating',
                 '상품코드': 'product_code',
+                '상품명': 'product_name',
+                # 일본어
                 'レビュー内容': 'content',
                 '評価': 'rating',
                 '登録日': 'reviewed_at',
                 '購入者': 'author',
+                '商品コード': 'product_code',
+                '商品番号': 'product_code',
+                '商品名': 'product_name',
+                'GdNo': 'product_code',
+                # 영어
+                'Product Code': 'product_code',
+                'Item Code': 'product_code',
+                'Product Name': 'product_name',
             }
 
             for _, row in df.iterrows():
@@ -332,6 +346,7 @@ class Qoo10Scraper(BaseScraper):
                     "reviewed_at": None,
                     "author": None,
                     "product_code": None,
+                    "product_name": None,
                 }
 
                 for file_col, field in column_mapping.items():
