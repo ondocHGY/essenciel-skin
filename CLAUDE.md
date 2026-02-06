@@ -99,6 +99,13 @@ npm run build            # 프로덕션 빌드
 - SimpleSoftwareIO 라이브러리 사용
 - 300x300 PNG 생성, storage/app/public/qrcodes 저장
 
+## 개발 환경
+- **Docker**: Laradock (C:\ondoc\laradock)
+- **프로젝트 경로**: /var/www/essenciel_qrcode
+- **PHP 실행**: `docker-compose -f C:\ondoc\laradock\docker-compose.yml exec workspace php`
+- **Artisan 실행**: `docker-compose -f C:\ondoc\laradock\docker-compose.yml exec workspace php artisan`
+- **NPM 실행**: `docker-compose -f C:\ondoc\laradock\docker-compose.yml exec workspace npm`
+
 ## 환경 설정
 ```env
 DB_CONNECTION=sqlite
@@ -234,3 +241,41 @@ CACHE_STORE=database
 **결과 페이지 (result/show.blade.php)**
 - 제품에 `accent_color`가 설정되어 있으면 해당 값을 `$darkerPointColor`, `$textPointColor`로 사용
 - 설정되지 않은 경우 기존 변환 함수(자동 계산)를 fallback으로 사용
+
+### 2026-02-06
+
+#### 리뷰 수집 기능 추가
+
+**새로운 모델**
+- `ProductReviewSource`: 리뷰 소스 (플랫폼별 연동 정보)
+  - 지원 플랫폼: Shopee, 네이버, Qoo10, 쿠팡, 무신사, 화해, W컨셉, 아마존
+- `ProductReview`: 개별 리뷰 데이터
+
+**마이그레이션**
+- `2026_02_05_000000_create_product_review_sources_table.php`
+- `2026_02_05_000001_create_product_reviews_table.php`
+
+**리뷰 어댑터 서비스** (`app/Services/Review/`)
+- `ReviewAdapterInterface`: 리뷰 어댑터 인터페이스
+- `ShopeeReviewAdapter`: Shopee 리뷰 연동
+- `NaverReviewAdapter`: 네이버 스마트스토어 리뷰 연동
+- `Qoo10ReviewAdapter`: Qoo10 리뷰 연동
+- `ReviewSyncService`: 리뷰 동기화 서비스 (전체/개별 소스 동기화)
+
+**관리자 기능**
+- `ReviewController`: 리뷰 관리 컨트롤러
+- `resources/views/admin/reviews/`: 리뷰 관리 뷰
+- 제품 편집 페이지에 리뷰 소스 관리 UI 추가
+
+**Artisan 명령어**
+- `php artisan reviews:sync`: 리뷰 동기화 명령어
+
+**라우트 추가**
+```
+# 관리자 (/admin)
+     /reviews            # 리뷰 관리
+```
+
+**데이터베이스 테이블 추가**
+- **product_review_sources**: product_id, platform, platform_name, external_url, review_count, average_rating, api_config(encrypted), synced_at
+- **product_reviews**: product_id, review_source_id, platform, rating, title, content, author, images(JSON), reviewed_at

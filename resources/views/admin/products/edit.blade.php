@@ -1000,6 +1000,153 @@
             }
         </script>
 
+        <!-- 리뷰 소스 관리 -->
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="reviewSourcesManager()">
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">입점 플랫폼 리뷰</h2>
+                    <p class="text-sm text-gray-500 mt-1">각 플랫폼에서 리뷰를 가져와 설문 페이지에 표시합니다. 3시간마다 자동 동기화됩니다.</p>
+                </div>
+                <button type="button" @click="addSource()"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    플랫폼 추가
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(source, index) in sources" :key="index">
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="flex items-start gap-4">
+                            <input type="hidden" :name="'review_sources[' + index + '][id]'" x-model="source.id">
+                            <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">플랫폼</label>
+                                    <select :name="'review_sources[' + index + '][platform]'" x-model="source.platform"
+                                            @change="source.platform_name = platformLabels[source.platform]"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                                        <option value="shopee">Shopee</option>
+                                        <option value="naver">네이버 스마트스토어</option>
+                                    </select>
+                                    <input type="hidden" :name="'review_sources[' + index + '][platform_name]'" x-model="source.platform_name">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">상품 페이지 URL</label>
+                                    <input type="url" :name="'review_sources[' + index + '][external_url]'" x-model="source.external_url"
+                                           placeholder="https://..."
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">리뷰 수 (수동)</label>
+                                    <input type="number" :name="'review_sources[' + index + '][review_count]'" x-model="source.review_count"
+                                           min="0" placeholder="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">평균 별점</label>
+                                    <input type="number" :name="'review_sources[' + index + '][average_rating]'" x-model="source.average_rating"
+                                           min="0" max="5" step="0.1" placeholder="4.5"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2 mt-5">
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" :name="'review_sources[' + index + '][is_active]'" value="1"
+                                           :checked="source.is_active" @change="source.is_active = $event.target.checked"
+                                           class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    <span class="text-xs text-gray-600">활성</span>
+                                </label>
+                                <button type="button" @click="removeSource(index)"
+                                        class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- 동기화 정보 -->
+                        <div class="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
+                            <span x-show="source.synced_at">
+                                마지막 동기화: <span x-text="source.synced_at"></span>
+                            </span>
+                            <span x-show="!source.synced_at">아직 동기화되지 않음</span>
+                            <div class="flex items-center gap-2" x-show="source.review_count > 0">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    <span x-text="source.average_rating"></span>
+                                </span>
+                                <span>리뷰 <span x-text="Number(source.review_count).toLocaleString()"></span>개</span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="sources.length === 0" class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <p>등록된 플랫폼이 없습니다</p>
+                    <button type="button" @click="addSource()" class="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        + 플랫폼 추가하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 전체 리뷰 합계 -->
+            <div class="mt-4 pt-4 border-t border-gray-200" x-show="sources.length > 0">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600">전체 리뷰 합계</span>
+                    <span class="font-semibold text-gray-900" x-text="totalReviews.toLocaleString() + '개'"></span>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function reviewSourcesManager() {
+                const existingSources = @json($product->reviewSources ?? []);
+                const platformLabels = {
+                    'shopee': 'Shopee',
+                    'naver': '네이버 스마트스토어'
+                };
+
+                return {
+                    platformLabels,
+                    sources: existingSources.map(s => ({
+                        id: s.id,
+                        platform: s.platform,
+                        platform_name: s.platform_name,
+                        external_url: s.external_url,
+                        review_count: s.review_count || 0,
+                        average_rating: s.average_rating || 0,
+                        is_active: s.is_active,
+                        synced_at: s.synced_at ? new Date(s.synced_at).toLocaleString('ko-KR') : null
+                    })),
+                    get totalReviews() {
+                        return this.sources.reduce((sum, s) => sum + (parseInt(s.review_count) || 0), 0);
+                    },
+                    addSource() {
+                        this.sources.push({
+                            id: null,
+                            platform: 'shopee',
+                            platform_name: 'Shopee',
+                            external_url: '',
+                            review_count: 0,
+                            average_rating: 0,
+                            is_active: true,
+                            synced_at: null
+                        });
+                    },
+                    removeSource(index) {
+                        this.sources.splice(index, 1);
+                    }
+                };
+            }
+        </script>
+
         @if($product->qr_path)
         <div class="bg-white rounded-xl shadow-sm p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">QR 코드</h2>

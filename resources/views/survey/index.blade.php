@@ -173,7 +173,7 @@ function surveyForm() {
         analyzeSteps: [
             '피부 프로필 분석 중',
             '생활 패턴 데이터 처리 중',
-            '{{ number_format($product->intro_review_count ?? 12847) }}개 피부 데이터와 비교 중',
+            '{{ number_format(($reviewData['total_count'] ?? 0) > 0 ? $reviewData['total_count'] : ($product->intro_review_count ?? 12847)) }}개 피부 데이터와 비교 중',
             'AI 예측 모델 적용 중',
             '맞춤 결과 생성 중'
         ],

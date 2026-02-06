@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  review-collector:
+    build: .
+    container_name: review-collector
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      # QSM (Qoo10) 설정
+      - QSM_ID=${QSM_ID}
+      - QSM_PASSWORD=${QSM_PASSWORD}
+
+      # 데이터베이스 설정 (Laravel DB)
+      - DB_HOST=${DB_HOST:-host.docker.internal}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_NAME=${DB_NAME:-qrcode}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # Chrome 설정
+      - CHROME_HEADLESS=true
+      - CHROME_VERSION=${CHROME_VERSION:-144}
+      - DOWNLOAD_PATH=/tmp/review_downloads
+      - COOKIE_PATH=/app/data/qsm_cookies.json
+
+      # 스케줄러 설정
+      - SYNC_ENABLED=${SYNC_ENABLED:-true}
+      - SYNC_HOUR=${SYNC_HOUR:-3}
+      - SYNC_MINUTE=${SYNC_MINUTE:-0}
+
+      # 로깅
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+    volumes:
+      # 데이터 영속성 (쿠키, 다운로드 파일)
+      - review-data:/app/data
+      - ./downloads:/tmp/review_downloads
+
+    shm_size: '2gb'  # Chrome 공유 메모리
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    networks:
+      - review-network
+
+volumes:
+  review-data:
+
+networks:
+  review-network:
+    driver: bridge

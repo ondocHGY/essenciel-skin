@@ -538,7 +538,7 @@ function productPage() {
             { name: 'W컨셉', count: 0, collected: false },
             { name: '아마존 US', count: 0, collected: false },
             { name: 'Qoo10', count: 0, collected: false },
-            { name: '올리브영', count: 0, collected: false },
+            { name: 'Shopee', count: 0, collected: false },
         ],
 
         init() {

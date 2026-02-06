@@ -18,7 +18,9 @@ class SurveyController extends Controller
 
     public function index(Request $request, string $code)
     {
-        $product = Product::where('code', $code)->firstOrFail();
+        $product = Product::where('code', $code)
+            ->with(['activeReviewSources'])
+            ->firstOrFail();
 
         // 세션 ID 확인
         if (!$request->session()->has('skincare_session_id')) {
@@ -28,7 +30,18 @@ class SurveyController extends Controller
         // 설문 질문 로드 (DB에서 또는 기본값)
         $questions = $this->loadSurveyQuestions();
 
-        return view('survey.index', compact('product', 'questions'));
+        // 리뷰 데이터 집계
+        $reviewData = [
+            'total_count' => $product->activeReviewSources->sum('review_count'),
+            'sources' => $product->activeReviewSources->map(fn($s) => [
+                'platform' => $s->platform,
+                'platform_name' => $s->platform_name,
+                'review_count' => $s->review_count,
+                'average_rating' => $s->average_rating,
+            ])->toArray(),
+        ];
+
+        return view('survey.index', compact('product', 'questions', 'reviewData'));
     }
 
     /**

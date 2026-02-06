@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductReviewSource;
 use App\Services\QrGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -61,6 +62,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        $product->load('reviewSources');
         return view('admin.products.edit', compact('product'));
     }
 
@@ -101,6 +103,15 @@ class ProductController extends Controller
             'optimal_timing.reason' => 'nullable|string|max:500',
             'optimal_timing.morning_effect' => 'nullable|integer|min:0|max:200',
             'optimal_timing.evening_effect' => 'nullable|integer|min:0|max:200',
+            // 리뷰 소스
+            'review_sources' => 'nullable|array',
+            'review_sources.*.id' => 'nullable|integer',
+            'review_sources.*.platform' => 'required_with:review_sources|string|in:shopee,naver',
+            'review_sources.*.platform_name' => 'nullable|string|max:255',
+            'review_sources.*.external_url' => 'nullable|url|max:500',
+            'review_sources.*.review_count' => 'nullable|integer|min:0',
+            'review_sources.*.average_rating' => 'nullable|numeric|min:0|max:5',
+            'review_sources.*.is_active' => 'nullable',
         ]);
 
         // 기본 효능 타입 설정
@@ -191,8 +202,54 @@ class ProductController extends Controller
 
         $product->update($validated);
 
+        // 리뷰 소스 처리
+        $this->syncReviewSources($product, $request->input('review_sources', []));
+
         return redirect()->route('admin.products.index')
             ->with('success', '제품이 수정되었습니다.');
+    }
+
+    /**
+     * 리뷰 소스 동기화
+     */
+    private function syncReviewSources(Product $product, array $sources): void
+    {
+        $existingIds = $product->reviewSources->pluck('id')->toArray();
+        $updatedIds = [];
+
+        foreach ($sources as $sourceData) {
+            if (empty($sourceData['platform'])) {
+                continue;
+            }
+
+            $data = [
+                'platform' => $sourceData['platform'],
+                'platform_name' => $sourceData['platform_name'] ?? ProductReviewSource::$platforms[$sourceData['platform']] ?? $sourceData['platform'],
+                'external_url' => $sourceData['external_url'] ?? null,
+                'review_count' => (int) ($sourceData['review_count'] ?? 0),
+                'average_rating' => (float) ($sourceData['average_rating'] ?? 0),
+                'is_active' => isset($sourceData['is_active']),
+            ];
+
+            if (!empty($sourceData['id'])) {
+                // 기존 소스 업데이트
+                $source = ProductReviewSource::find($sourceData['id']);
+                if ($source && $source->product_id === $product->id) {
+                    $source->update($data);
+                    $updatedIds[] = $source->id;
+                }
+            } else {
+                // 새 소스 생성
+                $newSource = $product->reviewSources()->create($data);
+                $updatedIds[] = $newSource->id;
+            }
+        }
+
+        // 삭제된 소스 제거
+        $toDelete = array_diff($existingIds, $updatedIds);
+        if (!empty($toDelete)) {
+            ProductReviewSource::whereIn('id', $toDelete)->delete();
+        }
     }
 
     public function destroy(Product $product)

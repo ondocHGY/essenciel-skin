@@ -1,0 +1,94 @@
+from sqlalchemy import Column, Integer, String, Text, Float, Boolean, DateTime, JSON, ForeignKey
+from sqlalchemy.sql import func
+from app.database import Base
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime
+
+
+# SQLAlchemy Models (Laravel 테이블과 매핑)
+# ForeignKey 제거 - Laravel에서 관리하는 테이블이므로 단순 Integer로 처리
+class ProductReviewSource(Base):
+    __tablename__ = "product_review_sources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer)  # Laravel products.id 참조
+    platform = Column(String(50))
+    platform_name = Column(String(100))
+    external_url = Column(String(500))
+    external_id = Column(String(100))
+    review_count = Column(Integer, default=0)
+    average_rating = Column(Float, default=0)
+    recent_reviews = Column(JSON)
+    api_config = Column(Text)  # encrypted in Laravel
+    is_active = Column(Boolean, default=True)
+    synced_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class ProductReview(Base):
+    __tablename__ = "product_reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer)  # Laravel products.id 참조
+    review_source_id = Column(Integer, nullable=True)  # product_review_sources.id 참조
+    platform = Column(String(50))
+    external_id = Column(String(100))
+    rating = Column(Float, default=5.0)
+    title = Column(String(255))
+    content = Column(Text)
+    author = Column(String(100))
+    purchased_option = Column(String(255))
+    images = Column(JSON)
+    is_featured = Column(Boolean, default=False)
+    is_visible = Column(Boolean, default=True)
+    reviewed_at = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+# Pydantic Schemas
+class ReviewBase(BaseModel):
+    rating: float = 5.0
+    title: Optional[str] = None
+    content: str
+    author: Optional[str] = None
+    purchased_option: Optional[str] = None
+    images: Optional[List[str]] = None
+    reviewed_at: Optional[datetime] = None
+
+
+class ReviewCreate(ReviewBase):
+    product_id: int
+    platform: str
+    external_id: Optional[str] = None
+
+
+class ReviewResponse(ReviewBase):
+    id: int
+    product_id: int
+    platform: str
+    is_featured: bool
+    is_visible: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SyncResult(BaseModel):
+    success: bool
+    platform: str
+    reviews_added: int
+    reviews_updated: int
+    total_reviews: int
+    average_rating: float
+    message: str
+    synced_at: datetime
+
+
+class SyncRequest(BaseModel):
+    source_id: Optional[int] = None
+    product_id: Optional[int] = None
+    platform: Optional[str] = None

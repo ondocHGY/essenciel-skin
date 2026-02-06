@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\SurveyController as AdminSurveyController;
 use App\Http\Controllers\Admin\SurveyQuestionController as AdminSurveyQuestionController;
 use App\Http\Controllers\Admin\ProductIngredientController as AdminProductIngredientController;
 use App\Http\Controllers\Admin\CustomQrCodeController as AdminCustomQrCodeController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -73,5 +74,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // 커스텀 QR 코드 생성
         Route::get('/custom-qr', [AdminCustomQrCodeController::class, 'index'])->name('custom-qr.index');
         Route::post('/custom-qr/generate', [AdminCustomQrCodeController::class, 'generate'])->name('custom-qr.generate');
+
+        // 리뷰 관리
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/upload', [AdminReviewController::class, 'uploadForm'])->name('reviews.upload');
+        Route::post('/reviews/upload', [AdminReviewController::class, 'upload'])->name('reviews.upload.submit');
+        Route::get('/reviews/download-sample', [AdminReviewController::class, 'downloadSample'])->name('reviews.download-sample');
+        Route::get('/reviews/{review}/edit', [AdminReviewController::class, 'edit'])->name('reviews.edit');
+        Route::put('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
+        Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+        Route::post('/reviews/{review}/toggle-visibility', [AdminReviewController::class, 'toggleVisibility'])->name('reviews.toggle-visibility');
     });
 });

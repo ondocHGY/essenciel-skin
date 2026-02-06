@@ -187,6 +187,70 @@ class Product extends Model
     }
 
     /**
+     * 모든 리뷰
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * 표시 가능한 리뷰
+     */
+    public function visibleReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class)->visible()->latest();
+    }
+
+    /**
+     * 대표 리뷰 (페이지에 표시할 리뷰)
+     */
+    public function featuredReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class)->featured()->visible()->highRated();
+    }
+
+    /**
+     * 리뷰 소스 (입점 플랫폼별)
+     */
+    public function reviewSources(): HasMany
+    {
+        return $this->hasMany(ProductReviewSource::class);
+    }
+
+    /**
+     * 활성화된 리뷰 소스
+     */
+    public function activeReviewSources(): HasMany
+    {
+        return $this->hasMany(ProductReviewSource::class)->where('is_active', true);
+    }
+
+    /**
+     * 전체 리뷰 수 합계
+     */
+    public function getTotalReviewCountAttribute(): int
+    {
+        return $this->activeReviewSources()->sum('review_count');
+    }
+
+    /**
+     * 평균 평점 (가중 평균)
+     */
+    public function getAverageRatingAttribute(): float
+    {
+        $sources = $this->activeReviewSources()->get();
+        if ($sources->isEmpty()) {
+            return 0;
+        }
+
+        $totalWeightedRating = $sources->sum(fn($s) => $s->average_rating * $s->review_count);
+        $totalCount = $sources->sum('review_count');
+
+        return $totalCount > 0 ? round($totalWeightedRating / $totalCount, 1) : 0;
+    }
+
+    /**
      * 제품 성분 (Active Ingredients)
      */
     public function productIngredients(): HasMany
