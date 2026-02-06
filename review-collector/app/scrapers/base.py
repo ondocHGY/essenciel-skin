@@ -74,6 +74,8 @@ class BaseScraper(ABC):
             "content": review_data.get("content", ""),
             "author": review_data.get("author"),
             "purchased_option": review_data.get("purchased_option"),
+            "product_code": review_data.get("product_code"),
+            "product_name": review_data.get("product_name"),
             "images": review_data.get("images", []),
             "reviewed_at": self.parse_date(review_data.get("reviewed_at")),
             "platform": self.platform,

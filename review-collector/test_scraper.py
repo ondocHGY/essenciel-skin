@@ -1,84 +1,52 @@
 #!/usr/bin/env python3
-"""QSM 스크래퍼 테스트"""
+"""Qoo10 스크래퍼 테스트"""
 
 import os
 import sys
 
-# 환경변수 설정
-os.environ['QSM_ID'] = 'medibiogen'
-os.environ['QSM_PASSWORD'] = '78yuhjbn!!'
-os.environ['CHROME_HEADLESS'] = 'true'
-os.environ['DOWNLOAD_PATH'] = '/tmp/qoo10_downloads'
+# 프로젝트 루트를 path에 추가
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app.scraper import Qoo10Scraper, parse_excel
+# 환경변수 설정 (테스트용)
+os.environ.setdefault('QSM_ID', 'your_qsm_id')
+os.environ.setdefault('QSM_PASSWORD', 'your_password')
+os.environ.setdefault('CHROME_HEADLESS', 'true')
+os.environ.setdefault('CHROME_VERSION', '131')
+os.environ.setdefault('DOWNLOAD_PATH', '/tmp/qoo10_downloads')
+os.environ.setdefault('COOKIE_PATH', './data/qsm_cookies.json')
+
+from app.scrapers import get_scraper
 
 def main():
-    print("=== Qoo10 QSM 스크래퍼 테스트 ===\n")
+    print("=== Qoo10 스크래퍼 테스트 ===\n")
 
-    scraper = Qoo10Scraper()
+    scraper = get_scraper('qoo10')
 
-    print("1. 브라우저 시작...")
-    scraper.start()
+    print("리뷰 수집 시작...")
+    result = scraper.fetch_reviews()
 
-    try:
-        print("2. QSM 로그인...")
-        if not scraper.login():
-            print("   ✗ 로그인 실패")
-            return
-        print("   ✓ 로그인 성공\n")
+    print(f"\n=== 결과 ===")
+    print(f"성공: {result['success']}")
+    print(f"메시지: {result['message']}")
+    print(f"총 리뷰 수: {result['total_count']}")
+    print(f"평균 평점: {result['average_rating']}")
 
-        print("3. 리뷰 관리 페이지 이동...")
-        if not scraper.navigate_to_reviews():
-            print("   ✗ 페이지 이동 실패")
-            return
-        print("   ✓ 페이지 이동 성공\n")
+    if result.get('file_path'):
+        print(f"다운로드 파일: {result['file_path']}")
 
-        print("4. 검색 실행...")
-        if not scraper.search_reviews():
-            print("   ✗ 검색 실패")
-            return
-        print("   ✓ 검색 성공\n")
+    reviews = result.get('reviews', [])
+    if reviews:
+        print(f"\n=== 리뷰 샘플 (최대 5개) ===")
+        for i, r in enumerate(reviews[:5]):
+            print(f"\n[{i+1}]")
+            print(f"  평점: {r.get('rating', 'N/A')}")
+            print(f"  상품코드: {r.get('product_code', 'N/A')}")
+            print(f"  작성자: {r.get('author', 'N/A')}")
+            print(f"  작성일: {r.get('reviewed_at', 'N/A')}")
+            content = r.get('content', '')[:100]
+            print(f"  내용: {content}...")
 
-        print("5. Excel 다운로드 시도...")
-        excel_path = scraper.download_excel()
-
-        if excel_path:
-            print(f"   ✓ Excel 다운로드 완료: {excel_path}\n")
-
-            print("6. Excel 파싱...")
-            reviews = parse_excel(excel_path)
-            print(f"   ✓ {len(reviews)}개 리뷰 파싱 완료\n")
-
-            if reviews:
-                print("=== 리뷰 샘플 (최대 3개) ===")
-                for i, r in enumerate(reviews[:3]):
-                    print(f"\n[{i+1}] 평점: {r.get('rating', 'N/A')}")
-                    print(f"    내용: {r.get('content', '')[:80]}...")
-                    if r.get('author'):
-                        print(f"    작성자: {r['author']}")
-        else:
-            print("   ✗ Excel 다운로드 실패\n")
-
-            print("5-1. 페이지에서 직접 추출 시도...")
-            reviews = scraper.scrape_from_page()
-            print(f"   ✓ {len(reviews)}개 리뷰 추출\n")
-
-            if reviews:
-                print("=== 리뷰 샘플 (최대 3개) ===")
-                for i, r in enumerate(reviews[:3]):
-                    print(f"\n[{i+1}] 평점: {r.get('rating', 'N/A')}")
-                    print(f"    내용: {r.get('content', '')[:80]}...")
-
-        print("\n=== 테스트 완료 ===")
-
-    except Exception as e:
-        print(f"\n오류: {e}")
-        import traceback
-        traceback.print_exc()
-
-    finally:
-        print("\n브라우저 종료...")
-        scraper.stop()
+    print("\n=== 테스트 완료 ===")
 
 
 if __name__ == "__main__":

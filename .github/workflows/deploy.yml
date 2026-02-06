@@ -48,6 +48,24 @@ jobs:
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
+            # Review Collector 재배포 (Docker)
+            cd review-collector
+            if [ -f .env ]; then
+              docker build -t review-collector .
+              docker stop review-collector 2>/dev/null || true
+              docker rm review-collector 2>/dev/null || true
+              docker run -d --name review-collector \
+                -p 8000:8000 \
+                -v $(pwd)/data:/app/data \
+                --env-file .env \
+                --restart unless-stopped \
+                review-collector
+              echo "Review Collector deployed successfully!"
+            else
+              echo "Review Collector .env not found, skipping..."
+            fi
+            cd ..
+
             # Review Collector Docker 배포
             cd /var/www/essenciel-skin/review-collector
             if [ -f "docker-compose.yml" ]; then
