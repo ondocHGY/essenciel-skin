@@ -33,7 +33,11 @@ async def lifespan(app: FastAPI):
     """앱 시작/종료 시 실행"""
     logger.info(f"{settings.APP_NAME} v{settings.APP_VERSION} 시작")
     # sync_logs 테이블 자동 생성
-    Base.metadata.create_all(bind=engine, tables=[SyncLog.__table__], checkfirst=True)
+    try:
+        Base.metadata.create_all(bind=engine, tables=[SyncLog.__table__], checkfirst=True)
+        logger.info("sync_logs 테이블 확인 완료")
+    except Exception as e:
+        logger.warning(f"sync_logs 테이블 생성 실패 (DB 연결 문제일 수 있음): {e}")
     start_scheduler()
     yield
     stop_scheduler()

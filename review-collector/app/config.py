@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     # 데이터베이스 설정 (Laravel과 동일한 DB)
     DB_HOST: str = "localhost"
     DB_PORT: int = 3306
-    DB_NAME: str = "qrcode"
-    DB_USER: str = "root"
+    DB_DATABASE: str = "qrcode"
+    DB_USERNAME: str = "root"
     DB_PASSWORD: str = ""
 
     # Chrome/Selenium 설정
@@ -57,7 +57,7 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f"mysql+pymysql://{self.DB_USERNAME}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
 
     class Config:
         env_file = ".env"
