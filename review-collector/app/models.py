@@ -94,3 +94,52 @@ class SyncRequest(BaseModel):
     source_id: Optional[int] = None
     product_id: Optional[int] = None
     platform: Optional[str] = None
+
+
+# ============== Sync Log ==============
+
+class SyncLog(Base):
+    __tablename__ = 'sync_logs'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    review_source_id = Column(Integer, nullable=True)
+    platform = Column(String(50))
+    trigger_type = Column(String(20))   # 'scheduled' | 'manual'
+    status = Column(String(20))         # 'running' | 'success' | 'failed'
+    started_at = Column(DateTime)
+    completed_at = Column(DateTime, nullable=True)
+    duration_seconds = Column(Integer, nullable=True)
+    reviews_added = Column(Integer, default=0)
+    reviews_updated = Column(Integer, default=0)
+    total_reviews = Column(Integer, default=0)
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class SyncLogResponse(BaseModel):
+    id: int
+    review_source_id: Optional[int] = None
+    platform: str
+    trigger_type: str
+    status: str
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    duration_seconds: Optional[int] = None
+    reviews_added: int = 0
+    reviews_updated: int = 0
+    total_reviews: int = 0
+    error_message: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CookieStatus(BaseModel):
+    platform: str
+    platform_label: str
+    exists: bool
+    file_size: Optional[int] = None
+    modified_at: Optional[str] = None
+    file_path: str

@@ -7,7 +7,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from app.config import settings
 from app.database import SessionLocal
-from app.models import ProductReviewSource, ProductReview
+from app.models import ProductReviewSource, ProductReview, SyncLog
 from app.scrapers import get_scraper, get_supported_platforms
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def sync_all_sources():
 
         for source in sources:
             try:
-                sync_source(source, db)
+                sync_source(source, db, trigger_type='scheduled')
             except Exception as e:
                 logger.error(f"[{source.platform}] 동기화 실패: {e}")
 
@@ -39,7 +39,7 @@ def sync_all_sources():
     logger.info("=== 스케줄된 동기화 완료 ===")
 
 
-def sync_source(source: ProductReviewSource, db):
+def sync_source(source: ProductReviewSource, db, trigger_type='manual'):
     """단일 소스 동기화"""
     platform = source.platform
     logger.info(f"[{platform}] 동기화 시작 (source_id={source.id})")
@@ -48,12 +48,25 @@ def sync_source(source: ProductReviewSource, db):
         logger.warning(f"[{platform}] 지원하지 않는 플랫폼")
         return
 
+    # SyncLog 생성
+    sync_log = SyncLog(
+        review_source_id=source.id,
+        platform=platform,
+        trigger_type=trigger_type,
+        status='running',
+        started_at=datetime.now(),
+    )
+    db.add(sync_log)
+    db.commit()
+    db.refresh(sync_log)
+
     try:
         scraper = get_scraper(platform)
         result = scraper.fetch_reviews()
 
         if not result["success"]:
             logger.error(f"[{platform}] 수집 실패: {result['message']}")
+            _complete_sync_log(db, sync_log, 'failed', error_message=result['message'])
             return
 
         reviews = result.get("reviews", [])
@@ -66,11 +79,36 @@ def sync_source(source: ProductReviewSource, db):
         source.synced_at = datetime.now()
         db.commit()
 
+        _complete_sync_log(db, sync_log, 'success',
+                           reviews_added=added, reviews_updated=updated,
+                           total_reviews=len(reviews))
+
         logger.info(f"[{platform}] 동기화 완료: {added}개 추가, {updated}개 업데이트")
 
     except Exception as e:
         logger.error(f"[{platform}] 동기화 오류: {e}")
         db.rollback()
+        # rollback 후 새 세션에서 로그 업데이트
+        try:
+            db.refresh(sync_log)
+            _complete_sync_log(db, sync_log, 'failed', error_message=str(e))
+        except Exception:
+            logger.error(f"[{platform}] SyncLog 업데이트 실패")
+
+
+def _complete_sync_log(db, sync_log: SyncLog, status: str,
+                       reviews_added: int = 0, reviews_updated: int = 0,
+                       total_reviews: int = 0, error_message: str = None):
+    """SyncLog 완료 처리"""
+    now = datetime.now()
+    sync_log.status = status
+    sync_log.completed_at = now
+    sync_log.duration_seconds = int((now - sync_log.started_at).total_seconds())
+    sync_log.reviews_added = reviews_added
+    sync_log.reviews_updated = reviews_updated
+    sync_log.total_reviews = total_reviews
+    sync_log.error_message = error_message
+    db.commit()
 
 
 def save_reviews(source: ProductReviewSource, reviews: list, db) -> tuple:

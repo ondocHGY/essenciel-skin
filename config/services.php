@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'review_collector' => [
+        'url' => env('REVIEW_COLLECTOR_URL', 'http://localhost:8002'),
+    ],
+
 ];

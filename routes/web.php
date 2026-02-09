@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SurveyQuestionController as AdminSurveyQuestionCo
 use App\Http\Controllers\Admin\ProductIngredientController as AdminProductIngredientController;
 use App\Http\Controllers\Admin\CustomQrCodeController as AdminCustomQrCodeController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\ScraperController as AdminScraperController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -84,5 +85,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
         Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
         Route::post('/reviews/{review}/toggle-visibility', [AdminReviewController::class, 'toggleVisibility'])->name('reviews.toggle-visibility');
+
+        // 스크래퍼 관리
+        Route::get('/scraper', [AdminScraperController::class, 'index'])->name('scraper.index');
+        Route::post('/scraper/sync', [AdminScraperController::class, 'sync'])->name('scraper.sync');
+        Route::post('/scraper/cookies/{platform}', [AdminScraperController::class, 'uploadCookie'])->name('scraper.upload-cookie');
+        Route::delete('/scraper/cookies/{platform}', [AdminScraperController::class, 'deleteCookie'])->name('scraper.delete-cookie');
     });
 });

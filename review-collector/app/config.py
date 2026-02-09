@@ -43,6 +43,18 @@ class Settings(BaseSettings):
     # 로깅
     LOG_LEVEL: str = "INFO"
 
+    # 쿠키 경로 매핑
+    COOKIE_PATHS: dict = {
+        'qoo10': '/app/data/qsm_cookies.json',
+        'naver': '/app/data/naver_cookies.json',
+    }
+
+    # 쿠키 플랫폼 라벨
+    COOKIE_LABELS: dict = {
+        'qoo10': 'Qoo10 (QSM)',
+        'naver': '네이버 스마트스토어',
+    }
+
     @property
     def DATABASE_URL(self) -> str:
         return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
