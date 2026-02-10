@@ -81,12 +81,23 @@
     <div class="bg-white rounded-xl shadow-sm p-5 lg:p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-gray-900">리뷰 소스</h2>
-            <x-button variant="primary" size="sm" x-on:click="showAddSource = !showAddSource">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                소스 추가
-            </x-button>
+            <div class="flex items-center gap-2">
+                <form method="POST" action="{{ route('admin.scraper.match-reviews') }}" class="inline">
+                    @csrf
+                    <x-button type="submit" variant="secondary" size="sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                        일괄 매칭
+                    </x-button>
+                </form>
+                <x-button variant="primary" size="sm" x-on:click="showAddSource = !showAddSource">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    소스 추가
+                </x-button>
+            </div>
         </div>
 
         {{-- 소스 추가 폼 --}}

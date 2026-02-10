@@ -94,5 +94,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/scraper/sources', [AdminScraperController::class, 'storeSource'])->name('scraper.store-source');
         Route::post('/scraper/sources/{source}/toggle', [AdminScraperController::class, 'toggleSource'])->name('scraper.toggle-source');
         Route::delete('/scraper/sources/{source}', [AdminScraperController::class, 'destroySource'])->name('scraper.destroy-source');
+        Route::post('/scraper/match-reviews', [AdminScraperController::class, 'matchReviews'])->name('scraper.match-reviews');
     });
 });

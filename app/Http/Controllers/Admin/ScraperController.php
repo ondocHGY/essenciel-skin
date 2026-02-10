@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductReview;
 use App\Models\SyncLog;
 use App\Models\ProductReviewSource;
 use Illuminate\Http\Request;
@@ -193,6 +194,58 @@ class ScraperController extends Controller
     {
         $source->delete();
         return back()->with('success', '리뷰 소스가 삭제되었습니다.');
+    }
+
+    /**
+     * 미매칭 리뷰 일괄 매칭
+     */
+    public function matchReviews()
+    {
+        // 리뷰 소스 캐시: platform + external_id → product_id
+        $sourceMap = ProductReviewSource::whereNotNull('external_id')
+            ->whereNotNull('product_id')
+            ->where('is_active', true)
+            ->get()
+            ->groupBy('platform')
+            ->map(fn ($sources) => $sources->pluck('product_id', 'external_id'))
+            ->toArray();
+
+        // products 테이블 code → id 캐시
+        $productMap = Product::whereNotNull('code')
+            ->pluck('id', 'code')
+            ->toArray();
+
+        // 미매칭 리뷰 (product_id가 NULL이고 platform_product_code가 있는 것)
+        $unmatched = ProductReview::whereNull('product_id')
+            ->whereNotNull('platform_product_code')
+            ->get();
+
+        $matched = 0;
+
+        foreach ($unmatched as $review) {
+            $productId = null;
+            $code = $review->platform_product_code;
+
+            // 1단계: 리뷰 소스에서 매칭
+            if (isset($sourceMap[$review->platform][$code])) {
+                $productId = $sourceMap[$review->platform][$code];
+            }
+
+            // 2단계: products 테이블에서 code 매칭
+            if (!$productId && isset($productMap[$code])) {
+                $productId = $productMap[$code];
+            }
+
+            if ($productId) {
+                $review->update(['product_id' => $productId]);
+                $matched++;
+            }
+        }
+
+        $total = $unmatched->count();
+        $remaining = $total - $matched;
+
+        return back()->with('success', "일괄 매칭 완료: {$total}개 중 {$matched}개 매칭 ({$remaining}개 미매칭)");
     }
 
     /**
