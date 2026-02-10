@@ -53,7 +53,7 @@
                 <div class="flex-1">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">플랫폼 (선택)</label>
                     <select name="platform" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">전체 (모든 활성 소스)</option>
+                        <option value="">전체 (모든 플랫폼)</option>
                         @foreach($platforms as $key => $label)
                             <option value="{{ $key }}">{{ $label }}</option>
                         @endforeach

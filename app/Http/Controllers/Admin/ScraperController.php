@@ -166,7 +166,7 @@ class ScraperController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $validated['platform_name'] = $validated['platform_name']
+        $validated['platform_name'] = ($validated['platform_name'] ?? null)
             ?: (ProductReviewSource::$platforms[$validated['platform']] ?? $validated['platform']);
         $validated['is_active'] = $request->boolean('is_active', true);
 
