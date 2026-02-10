@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\SyncLog;
 use App\Models\ProductReviewSource;
 use Illuminate\Http\Request;
@@ -53,8 +54,14 @@ class ScraperController extends Controller
         // 서비스 상태
         $serviceStatus = $this->checkServiceHealth();
 
+        // 리뷰 소스 목록
+        $sources = ProductReviewSource::with('product')->orderByDesc('created_at')->get();
+
+        // 제품 목록 (소스 등록용)
+        $products = Product::orderBy('name')->get();
+
         return view('admin.scraper.index', compact(
-            'syncLogs', 'stats', 'cookies', 'platforms', 'serviceStatus'
+            'syncLogs', 'stats', 'cookies', 'platforms', 'serviceStatus', 'sources', 'products'
         ));
     }
 
@@ -147,6 +154,49 @@ class ScraperController extends Controller
             Log::error("쿠키 삭제 실패 ({$platform}): " . $e->getMessage());
             return back()->with('error', '쿠키 삭제 실패: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * 리뷰 소스 등록
+     */
+    public function storeSource(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'nullable|exists:products,id',
+            'platform' => 'required|string|max:50',
+            'platform_name' => 'nullable|string|max:100',
+            'external_url' => 'nullable|url|max:500',
+            'external_id' => 'nullable|string|max:100',
+            'is_active' => 'boolean',
+        ]);
+
+        $validated['platform_name'] = $validated['platform_name']
+            ?: (ProductReviewSource::$platforms[$validated['platform']] ?? $validated['platform']);
+        $validated['is_active'] = $request->boolean('is_active', true);
+
+        ProductReviewSource::create($validated);
+
+        return back()->with('success', '리뷰 소스가 등록되었습니다.');
+    }
+
+    /**
+     * 리뷰 소스 활성/비활성 토글
+     */
+    public function toggleSource(ProductReviewSource $source)
+    {
+        $source->update(['is_active' => !$source->is_active]);
+
+        $status = $source->is_active ? '활성화' : '비활성화';
+        return back()->with('success', "{$source->platform_label} 소스가 {$status}되었습니다.");
+    }
+
+    /**
+     * 리뷰 소스 삭제
+     */
+    public function destroySource(ProductReviewSource $source)
+    {
+        $source->delete();
+        return back()->with('success', '리뷰 소스가 삭제되었습니다.');
     }
 
     /**

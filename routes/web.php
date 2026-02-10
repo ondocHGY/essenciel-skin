@@ -91,5 +91,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/scraper/sync', [AdminScraperController::class, 'sync'])->name('scraper.sync');
         Route::post('/scraper/cookies/{platform}', [AdminScraperController::class, 'uploadCookie'])->name('scraper.upload-cookie');
         Route::delete('/scraper/cookies/{platform}', [AdminScraperController::class, 'deleteCookie'])->name('scraper.delete-cookie');
+        Route::post('/scraper/sources', [AdminScraperController::class, 'storeSource'])->name('scraper.store-source');
+        Route::post('/scraper/sources/{source}/toggle', [AdminScraperController::class, 'toggleSource'])->name('scraper.toggle-source');
+        Route::delete('/scraper/sources/{source}', [AdminScraperController::class, 'destroySource'])->name('scraper.destroy-source');
     });
 });

@@ -77,7 +77,148 @@
         </form>
     </div>
 
-    {{-- 섹션 2: 쿠키 관리 --}}
+    {{-- 섹션 2: 리뷰 소스 관리 --}}
+    <div class="bg-white rounded-xl shadow-sm p-5 lg:p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">리뷰 소스</h2>
+            <x-button variant="primary" size="sm" x-on:click="showAddSource = !showAddSource">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                소스 추가
+            </x-button>
+        </div>
+
+        {{-- 소스 추가 폼 --}}
+        <div x-show="showAddSource" x-cloak class="border border-blue-200 bg-blue-50 rounded-lg p-4 mb-4">
+            <form method="POST" action="{{ route('admin.scraper.store-source') }}">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">플랫폼 *</label>
+                        <select name="platform" required class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">선택</option>
+                            @foreach($platforms as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">연결 제품</label>
+                        <select name="product_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">미지정 (전체 수집)</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}">{{ $product->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">외부 URL</label>
+                        <input type="url" name="external_url" placeholder="https://..."
+                               class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">외부 ID</label>
+                        <input type="text" name="external_id" placeholder="플랫폼 상품코드"
+                               class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <x-button type="submit" variant="primary" size="sm">등록</x-button>
+                    <x-button variant="secondary" size="sm" x-on:click.prevent="showAddSource = false">취소</x-button>
+                </div>
+            </form>
+        </div>
+
+        {{-- 소스 목록 --}}
+        @if($sources->isEmpty())
+            <div class="text-center py-8 text-gray-400">
+                <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                <p>등록된 리뷰 소스가 없습니다</p>
+                <p class="text-sm mt-1">소스를 추가하면 동기화가 가능합니다</p>
+            </div>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">플랫폼</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">제품</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">상태</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">리뷰수</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">평점</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">최종 동기화</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @foreach($sources as $source)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ $source->platform_label }}
+                                </span>
+                                @if($source->external_id)
+                                    <span class="text-xs text-gray-400 ml-1">{{ $source->external_id }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">
+                                {{ $source->product?->name ?? '-' }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($source->is_active)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">활성</span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">비활성</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-600 hidden md:table-cell">
+                                {{ number_format($source->review_count ?? 0) }}
+                            </td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-600 hidden lg:table-cell">
+                                {{ $source->average_rating ? number_format($source->average_rating, 1) : '-' }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
+                                {{ $source->synced_at?->format('Y-m-d H:i') ?? '없음' }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-end gap-1">
+                                    <form action="{{ route('admin.scraper.toggle-source', $source) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="{{ $source->is_active ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-600' }}" title="{{ $source->is_active ? '비활성화' : '활성화' }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($source->is_active)
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                @else
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                                                @endif
+                                            </svg>
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('admin.scraper.destroy-source', $source) }}" method="POST"
+                                          onsubmit="return confirm('정말 삭제하시겠습니까?')" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-500 hover:text-red-700" title="삭제">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
+
+    {{-- 섹션 3: 쿠키 관리 --}}
     <div class="bg-white rounded-xl shadow-sm p-5 lg:p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">쿠키 관리</h2>
         <p class="text-sm text-gray-500 mb-4">플랫폼별 로그인 쿠키 파일을 관리합니다. 쿠키가 없으면 해당 플랫폼의 리뷰 수집이 불가능합니다.</p>
@@ -283,6 +424,7 @@
 function scraperPage() {
     return {
         syncing: false,
+        showAddSource: false,
     }
 }
 </script>
