@@ -27,7 +27,7 @@ class ScraperController extends Controller
     public function index(Request $request)
     {
         // 실행 기록 조회
-        $query = SyncLog::with('reviewSource')->latest();
+        $query = SyncLog::with('reviewSource')->orderByDesc('started_at');
 
         if ($request->filled('platform')) {
             $query->platform($request->platform);
