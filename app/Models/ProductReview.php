@@ -12,6 +12,7 @@ class ProductReview extends Model
         'review_source_id',
         'platform',
         'platform_product_code',
+        'product_name',
         'external_id',
         'rating',
         'title',
