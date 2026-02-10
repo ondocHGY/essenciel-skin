@@ -144,7 +144,7 @@ class ReviewController extends Controller
 
             // 첫 번째 행은 헤더
             $headers = array_map('trim', array_map('strval', $rows[0] ?? []));
-            $headerMap = $this->mapHeaders($headers);
+            $headerMap = $this->mapHeaders($headers, $platform);
 
             if (!isset($headerMap['content'])) {
                 return back()->withErrors(['file' => '리뷰 내용 컬럼을 찾을 수 없습니다. (댓글, 내용, content, review 등)']);
@@ -292,28 +292,127 @@ class ReviewController extends Controller
     }
 
     /**
+     * 플랫폼별 컬럼 매핑 프리셋
+     */
+    private function getPlatformColumnPresets(): array
+    {
+        return [
+            // 네이버 스마트스토어
+            'naver' => [
+                'content' => '리뷰상세내용',
+                'rating' => '구매자평점',
+                'author' => '등록자',
+                'reviewed_at' => '리뷰등록일',
+                'external_id' => '리뷰글번호',
+                'product_code' => '상품번호',
+                'product_name' => '상품명',
+            ],
+            // Qoo10 QSM
+            'qoo10' => [
+                'content' => '댓글',
+                'rating' => '만족도',
+                'author' => '작성자ID',
+                'reviewed_at' => '작성일',
+                'external_id' => '상품평번호_h',
+                'product_code' => '상품코드',
+                'product_name' => '상품명',
+            ],
+            // 쿠팡
+            'coupang' => [
+                'content' => '상품평내용',
+                'rating' => '별점',
+                'author' => '작성자',
+                'reviewed_at' => '작성일',
+                'external_id' => '상품평번호',
+                'product_code' => '상품번호',
+                'product_name' => '상품명',
+            ],
+            // Shopee
+            'shopee' => [
+                'content' => 'Review Comment',
+                'rating' => 'Rating Star',
+                'author' => 'Username',
+                'reviewed_at' => 'Review Time',
+                'external_id' => 'Review ID',
+                'product_code' => 'Product ID',
+                'product_name' => 'Product Name',
+            ],
+            // 아마존
+            'amazon' => [
+                'content' => 'Body',
+                'rating' => 'Star Rating',
+                'author' => 'Author',
+                'reviewed_at' => 'Date',
+                'external_id' => 'Review ID',
+                'product_code' => 'ASIN',
+                'product_name' => 'Product Title',
+            ],
+        ];
+    }
+
+    /**
      * 헤더 매핑
      */
-    private function mapHeaders(array $headers): array
+    private function mapHeaders(array $headers, string $platform): array
     {
         $map = [];
+        $headersLower = array_map(fn ($h) => mb_strtolower(trim((string) $h)), $headers);
 
-        $mappings = [
-            'content' => ['댓글', '내용', 'content', 'review', '리뷰', 'レビュー内容', '리뷰내용', '리뷰상세내용'],
+        // 1차: 플랫폼별 프리셋으로 exact match
+        $presets = $this->getPlatformColumnPresets();
+        if (isset($presets[$platform])) {
+            foreach ($presets[$platform] as $field => $columnName) {
+                $idx = array_search(mb_strtolower($columnName), $headersLower);
+                if ($idx !== false) {
+                    $map[$field] = $idx;
+                }
+            }
+        }
+
+        // 2차: 프리셋으로 못 찾은 필드는 범용 exact match
+        $genericExact = [
+            'content' => ['댓글', '내용', 'content', 'review', 'レビュー内容', '리뷰내용', '리뷰상세내용', '상품평내용'],
             'rating' => ['평점', '만족도', 'rating', 'score', '점수', '評価', '별점', '구매자평점'],
-            'author' => ['작성자', '작성자ID', 'author', 'user', 'name', '購入者', '닉네임', '등록자'],
+            'author' => ['작성자', '작성자ID', 'author', '購入者', '닉네임', '등록자', 'username'],
             'reviewed_at' => ['작성일', '등록일', 'date', '날짜', '日付', '登録日', '리뷰등록일'],
-            'external_id' => ['리뷰ID', '상품평번호', 'id', 'review_id', '번호', '상품평번호_h', '리뷰글번호'],
-            'product_code' => ['상품코드', '상품번호', '商品コード', '商品番号', 'GdNo', 'Product Code', 'Item Code'],
-            'product_name' => ['상품명', '商品名', 'Product Name'],
+            'external_id' => ['리뷰ID', '상품평번호', 'review_id', '상품평번호_h', '리뷰글번호', '상품평번호'],
+            'product_code' => ['상품코드', '상품번호', '商品コード', '商品番号', 'GdNo', 'Product Code', 'Item Code', 'ASIN'],
+            'product_name' => ['상품명', '商品名', 'Product Name', 'Product Title'],
         ];
 
-        foreach ($headers as $index => $header) {
-            $headerLower = mb_strtolower(trim($header));
+        foreach ($headersLower as $index => $headerLower) {
+            if (in_array($index, $map)) continue;
 
-            foreach ($mappings as $field => $keywords) {
+            foreach ($genericExact as $field => $keywords) {
+                if (isset($map[$field])) continue;
+
                 foreach ($keywords as $keyword) {
-                    if (mb_strtolower($keyword) === $headerLower || str_contains($headerLower, mb_strtolower($keyword))) {
+                    if (mb_strtolower($keyword) === $headerLower) {
+                        $map[$field] = $index;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        // 3차: 아직 못 찾은 필드는 substring match
+        $substringKeywords = [
+            'content' => ['내용', 'content', 'review', 'body'],
+            'rating' => ['평점', 'rating', 'star'],
+            'author' => ['작성자', 'author'],
+            'reviewed_at' => ['작성일', 'date'],
+            'product_code' => ['상품코드', 'product code'],
+            'product_name' => ['상품명', 'product name'],
+        ];
+
+        foreach ($headersLower as $index => $headerLower) {
+            if (in_array($index, $map)) continue;
+
+            foreach ($substringKeywords as $field => $keywords) {
+                if (isset($map[$field])) continue;
+
+                foreach ($keywords as $keyword) {
+                    if (str_contains($headerLower, mb_strtolower($keyword))) {
                         $map[$field] = $index;
                         break 2;
                     }
