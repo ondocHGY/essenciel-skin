@@ -14,11 +14,11 @@ from sqlalchemy import func, desc
 from app.config import settings
 from app.database import get_db, engine, Base
 from app.models import (
-    ProductReviewSource, ProductReview, SyncLog,
+    ProductReview, SyncLog,
     ReviewResponse, SyncResult, SyncRequest, SyncLogResponse, CookieStatus
 )
 from app.scrapers import get_scraper, get_supported_platforms
-from app.scheduler import start_scheduler, stop_scheduler, sync_source, save_reviews
+from app.scheduler import start_scheduler, stop_scheduler, save_reviews
 
 # 로깅 설정
 logging.basicConfig(
@@ -138,27 +138,23 @@ def sync_reviews(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    """리뷰 동기화 실행"""
-    query = db.query(ProductReviewSource).filter(ProductReviewSource.is_active == True)
+    """리뷰 동기화 실행 (플랫폼 기반)"""
+    if request.platform:
+        # 특정 플랫폼 동기화
+        platforms = [request.platform]
+    else:
+        # 전체 플랫폼 동기화
+        platforms = get_supported_platforms()
 
-    if request.source_id:
-        query = query.filter(ProductReviewSource.id == request.source_id)
-    elif request.product_id:
-        query = query.filter(ProductReviewSource.product_id == request.product_id)
-    elif request.platform:
-        query = query.filter(ProductReviewSource.platform == request.platform)
+    if not platforms:
+        raise HTTPException(status_code=400, detail="동기화할 플랫폼이 없습니다")
 
-    sources = query.all()
+    # 첫 번째 플랫폼 동기화
+    result = _sync_platform(platforms[0], db, trigger_type='manual')
 
-    if not sources:
-        raise HTTPException(status_code=404, detail="활성화된 리뷰 소스를 찾을 수 없습니다")
-
-    # 첫 번째 소스 동기화 (나머지는 백그라운드)
-    source = sources[0]
-    result = _sync_single_source(source, db, trigger_type='manual')
-
-    for s in sources[1:]:
-        background_tasks.add_task(_sync_single_source, s, db, trigger_type='manual')
+    # 나머지 플랫폼은 백그라운드
+    for p in platforms[1:]:
+        background_tasks.add_task(_sync_platform, p, db, trigger_type='manual')
 
     return result
 
@@ -166,7 +162,6 @@ def sync_reviews(
 @app.post("/api/reviews/sync/{platform}")
 def sync_platform_reviews(
     platform: str,
-    product_id: int,
     db: Session = Depends(get_db)
 ):
     """특정 플랫폼 리뷰 수동 동기화"""
@@ -174,73 +169,7 @@ def sync_platform_reviews(
         raise HTTPException(status_code=400, detail=f"지원하지 않는 플랫폼: {platform}")
 
     try:
-        scraper = get_scraper(platform)
-        result = scraper.fetch_reviews()
-
-        if not result["success"]:
-            raise HTTPException(status_code=500, detail=result["message"])
-
-        reviews = result.get("reviews", [])
-
-        # DB 저장
-        added = 0
-        updated = 0
-        import hashlib
-
-        for review_data in reviews:
-            external_id = review_data.get("external_id")
-            if not external_id:
-                content_hash = hashlib.md5(review_data.get("content", "").encode()).hexdigest()[:16]
-                external_id = f"{platform}_{content_hash}"
-
-            existing = db.query(ProductReview).filter(
-                ProductReview.platform == platform,
-                ProductReview.external_id == external_id
-            ).first()
-
-            if existing:
-                existing.rating = review_data.get("rating", 5.0)
-                existing.content = review_data.get("content", "")
-                existing.updated_at = datetime.now()
-                updated += 1
-            else:
-                review = ProductReview(
-                    product_id=product_id,
-                    platform=platform,
-                    external_id=external_id,
-                    rating=review_data.get("rating", 5.0),
-                    content=review_data.get("content", ""),
-                    author=review_data.get("author"),
-                    reviewed_at=review_data.get("reviewed_at"),
-                    is_visible=True
-                )
-                db.add(review)
-                added += 1
-
-        db.commit()
-
-        # 통계 계산
-        total = db.query(ProductReview).filter(
-            ProductReview.product_id == product_id,
-            ProductReview.platform == platform
-        ).count()
-
-        avg_rating = db.query(func.avg(ProductReview.rating)).filter(
-            ProductReview.product_id == product_id,
-            ProductReview.platform == platform
-        ).scalar() or 0
-
-        return SyncResult(
-            success=True,
-            platform=platform,
-            reviews_added=added,
-            reviews_updated=updated,
-            total_reviews=total,
-            average_rating=round(float(avg_rating), 2),
-            message=f"동기화 완료: {added}개 추가, {updated}개 업데이트",
-            synced_at=datetime.now()
-        )
-
+        return _sync_platform(platform, db, trigger_type='manual')
     except HTTPException:
         raise
     except Exception as e:
@@ -388,10 +317,8 @@ def delete_cookie(platform: str):
 
 # ============== 내부 함수 ==============
 
-def _sync_single_source(source: ProductReviewSource, db: Session, trigger_type='manual') -> SyncResult:
-    """단일 소스 동기화"""
-    platform = source.platform
-
+def _sync_platform(platform: str, db: Session, trigger_type='manual') -> SyncResult:
+    """플랫폼 동기화 (소스 불필요)"""
     if platform not in get_supported_platforms():
         return SyncResult(
             success=False,
@@ -406,7 +333,7 @@ def _sync_single_source(source: ProductReviewSource, db: Session, trigger_type='
 
     # SyncLog 생성
     sync_log = SyncLog(
-        review_source_id=source.id,
+        review_source_id=None,
         platform=platform,
         trigger_type=trigger_type,
         status='running',
@@ -434,25 +361,27 @@ def _sync_single_source(source: ProductReviewSource, db: Session, trigger_type='
             )
 
         reviews = result.get("reviews", [])
-        added, updated = save_reviews(source, reviews, db)
+        added, updated = save_reviews(platform, reviews, db)
 
-        source.review_count = len(reviews)
-        if reviews:
-            source.average_rating = sum(r.get("rating", 5) for r in reviews) / len(reviews)
-        source.synced_at = datetime.now()
-        db.commit()
+        total = db.query(ProductReview).filter(
+            ProductReview.platform == platform
+        ).count()
+
+        avg_rating = db.query(func.avg(ProductReview.rating)).filter(
+            ProductReview.platform == platform
+        ).scalar() or 0
 
         _complete_sync_log(db, sync_log, 'success',
                            reviews_added=added, reviews_updated=updated,
-                           total_reviews=source.review_count)
+                           total_reviews=len(reviews))
 
         return SyncResult(
             success=True,
             platform=platform,
             reviews_added=added,
             reviews_updated=updated,
-            total_reviews=source.review_count,
-            average_rating=round(source.average_rating, 2),
+            total_reviews=total,
+            average_rating=round(float(avg_rating), 2),
             message="동기화 완료",
             synced_at=datetime.now()
         )

@@ -72,16 +72,12 @@ class ScraperController extends Controller
     {
         $request->validate([
             'platform' => 'nullable|string|max:50',
-            'source_id' => 'nullable|integer',
         ]);
 
         try {
             $body = [];
             if ($request->filled('platform')) {
                 $body['platform'] = $request->platform;
-            }
-            if ($request->filled('source_id')) {
-                $body['source_id'] = (int) $request->source_id;
             }
 
             $response = Http::timeout(120)

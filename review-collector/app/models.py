@@ -69,7 +69,7 @@ class ReviewCreate(ReviewBase):
 
 class ReviewResponse(ReviewBase):
     id: int
-    product_id: int
+    product_id: Optional[int] = None
     platform: str
     is_featured: bool
     is_visible: bool

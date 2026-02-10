@@ -137,7 +137,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                 </svg>
                 <p>등록된 리뷰 소스가 없습니다</p>
-                <p class="text-sm mt-1">소스를 추가하면 동기화가 가능합니다</p>
+                <p class="text-sm mt-1">소스를 등록하면 수집된 리뷰가 자동으로 제품에 매칭됩니다 (선택사항)</p>
             </div>
         @else
             <div class="overflow-x-auto">

@@ -15,23 +15,20 @@ logger = logging.getLogger(__name__)
 scheduler: BackgroundScheduler = None
 
 
-def sync_all_sources():
-    """모든 활성 소스 동기화"""
+def sync_all_platforms():
+    """모든 지원 플랫폼 동기화"""
     logger.info("=== 스케줄된 동기화 시작 ===")
+
+    platforms = get_supported_platforms()
+    logger.info(f"지원 플랫폼: {platforms}")
 
     db = SessionLocal()
     try:
-        sources = db.query(ProductReviewSource).filter(
-            ProductReviewSource.is_active == True
-        ).all()
-
-        logger.info(f"활성 소스 수: {len(sources)}")
-
-        for source in sources:
+        for platform in platforms:
             try:
-                sync_source(source, db, trigger_type='scheduled')
+                sync_platform(platform, db, trigger_type='scheduled')
             except Exception as e:
-                logger.error(f"[{source.platform}] 동기화 실패: {e}")
+                logger.error(f"[{platform}] 동기화 실패: {e}")
 
     finally:
         db.close()
@@ -39,10 +36,9 @@ def sync_all_sources():
     logger.info("=== 스케줄된 동기화 완료 ===")
 
 
-def sync_source(source: ProductReviewSource, db, trigger_type='manual'):
-    """단일 소스 동기화"""
-    platform = source.platform
-    logger.info(f"[{platform}] 동기화 시작 (source_id={source.id})")
+def sync_platform(platform: str, db, trigger_type='manual'):
+    """플랫폼 동기화 (소스 불필요)"""
+    logger.info(f"[{platform}] 동기화 시작")
 
     if platform not in get_supported_platforms():
         logger.warning(f"[{platform}] 지원하지 않는 플랫폼")
@@ -50,7 +46,7 @@ def sync_source(source: ProductReviewSource, db, trigger_type='manual'):
 
     # SyncLog 생성
     sync_log = SyncLog(
-        review_source_id=source.id,
+        review_source_id=None,
         platform=platform,
         trigger_type=trigger_type,
         status='running',
@@ -70,14 +66,7 @@ def sync_source(source: ProductReviewSource, db, trigger_type='manual'):
             return
 
         reviews = result.get("reviews", [])
-        added, updated = save_reviews(source, reviews, db)
-
-        # 소스 통계 업데이트
-        source.review_count = len(reviews)
-        if reviews:
-            source.average_rating = sum(r.get("rating", 5) for r in reviews) / len(reviews)
-        source.synced_at = datetime.now()
-        db.commit()
+        added, updated = save_reviews(platform, reviews, db)
 
         _complete_sync_log(db, sync_log, 'success',
                            reviews_added=added, reviews_updated=updated,
@@ -111,11 +100,13 @@ def _complete_sync_log(db, sync_log: SyncLog, status: str,
     db.commit()
 
 
-def save_reviews(source: ProductReviewSource, reviews: list, db) -> tuple:
+def save_reviews(platform: str, reviews: list, db) -> tuple:
     """리뷰 저장
 
     - platform_product_code: 플랫폼별 상품코드 저장 (Qoo10, 네이버 등 각각의 코드)
-    - product_id: 매칭되면 저장, 안되면 NULL (나중에 관리자에서 매칭)
+    - product_id: 2단계 매칭 시도, 실패하면 NULL (나중에 관리자에서 매칭)
+      1단계: product_review_sources에서 platform + external_id로 product_id 획득
+      2단계: products 테이블에서 code 매칭
     """
     import hashlib
     from sqlalchemy import text
@@ -126,39 +117,53 @@ def save_reviews(source: ProductReviewSource, reviews: list, db) -> tuple:
     # product_code -> product_id 캐시 (DB 조회 최소화)
     product_cache = {}
 
+    # 리뷰 소스 캐시: platform + external_id -> product_id
+    source_cache = {}
+    sources = db.query(ProductReviewSource).filter(
+        ProductReviewSource.platform == platform,
+        ProductReviewSource.is_active == True
+    ).all()
+    for src in sources:
+        if src.external_id and src.product_id:
+            source_cache[src.external_id] = src.product_id
+
     for review_data in reviews:
         # external_id 생성
         external_id = review_data.get("external_id")
         if not external_id:
             content_hash = hashlib.md5(review_data.get("content", "").encode()).hexdigest()[:16]
-            external_id = f"{source.platform}_{content_hash}"
+            external_id = f"{platform}_{content_hash}"
 
         # 플랫폼별 상품코드 및 상품명
         platform_product_code = review_data.get("product_code")
         product_name = review_data.get("product_name")
 
-        # product_id 결정 (매칭 시도, 실패해도 저장)
-        product_id = source.product_id  # 기본값: 소스의 product_id
+        # product_id 결정: 2단계 매칭
+        product_id = None
 
         if platform_product_code:
-            # product_code로 product_id 조회 시도
-            if platform_product_code not in product_cache:
-                result = db.execute(
-                    text("SELECT id FROM products WHERE code = :code LIMIT 1"),
-                    {"code": platform_product_code}
-                ).fetchone()
-                product_cache[platform_product_code] = result[0] if result else None
+            # 1단계: product_review_sources에서 external_id 매칭
+            if platform_product_code in source_cache:
+                product_id = source_cache[platform_product_code]
 
-            if product_cache[platform_product_code]:
-                product_id = product_cache[platform_product_code]
-            else:
-                # 매칭 실패 시 product_id는 NULL (나중에 관리자에서 매칭)
-                product_id = None
+            # 2단계: products 테이블에서 code 매칭
+            if not product_id:
+                if platform_product_code not in product_cache:
+                    result = db.execute(
+                        text("SELECT id FROM products WHERE code = :code LIMIT 1"),
+                        {"code": platform_product_code}
+                    ).fetchone()
+                    product_cache[platform_product_code] = result[0] if result else None
+
+                if product_cache[platform_product_code]:
+                    product_id = product_cache[platform_product_code]
+
+            if not product_id:
                 logger.debug(f"상품코드 '{platform_product_code}' 매칭 대기")
 
         # 기존 리뷰 확인
         existing = db.query(ProductReview).filter(
-            ProductReview.platform == source.platform,
+            ProductReview.platform == platform,
             ProductReview.external_id == external_id
         ).first()
 
@@ -174,8 +179,8 @@ def save_reviews(source: ProductReviewSource, reviews: list, db) -> tuple:
         else:
             review = ProductReview(
                 product_id=product_id,
-                review_source_id=source.id,
-                platform=source.platform,
+                review_source_id=None,
+                platform=platform,
                 platform_product_code=platform_product_code,
                 product_name=product_name,
                 external_id=external_id,
@@ -212,7 +217,7 @@ def start_scheduler():
 
     # 매일 지정 시간에 동기화
     scheduler.add_job(
-        sync_all_sources,
+        sync_all_platforms,
         CronTrigger(hour=settings.SYNC_HOUR, minute=settings.SYNC_MINUTE),
         id="daily_review_sync",
         replace_existing=True

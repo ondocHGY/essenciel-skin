@@ -14,7 +14,8 @@
       "Bash(git reset:*)",
       "Bash(docker ps:*)",
       "Bash(powershell:*)",
-      "Bash(del \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_excel.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_dates.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_reviews.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\test_naver_docker.py\")"
+      "Bash(del \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_excel.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_dates.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\check_reviews.py\" \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\test_naver_docker.py\")",
+      "Bash(git -C \"C:\\\\ondoc\\\\essenciel_qrcode\" add app/Http/Controllers/Admin/ScraperController.php routes/web.php resources/views/admin/scraper/index.blade.php review-collector/app/config.py review-collector/app/main.py review-collector/requirements.txt)"
     ]
   }
 }
