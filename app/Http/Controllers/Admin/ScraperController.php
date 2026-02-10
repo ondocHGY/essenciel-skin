@@ -197,18 +197,19 @@ class ScraperController extends Controller
     }
 
     /**
-     * 미매칭 리뷰 일괄 매칭
+     * 미매칭 리뷰 일괄 매칭 (다대다: 1개 리뷰 → 여러 상품 복제)
      */
     public function matchReviews()
     {
-        // 리뷰 소스 캐시: platform + external_id → product_id
-        $sourceMap = ProductReviewSource::whereNotNull('external_id')
+        // 리뷰 소스 캐시: platform → external_id → [product_id, ...] (다대다)
+        $sourceMap = [];
+        $sources = ProductReviewSource::whereNotNull('external_id')
             ->whereNotNull('product_id')
             ->where('is_active', true)
-            ->get()
-            ->groupBy('platform')
-            ->map(fn ($sources) => $sources->pluck('product_id', 'external_id'))
-            ->toArray();
+            ->get();
+        foreach ($sources as $src) {
+            $sourceMap[$src->platform][$src->external_id][] = $src->product_id;
+        }
 
         // products 테이블 code → id 캐시
         $productMap = Product::whereNotNull('code')
@@ -223,29 +224,46 @@ class ScraperController extends Controller
         $matched = 0;
 
         foreach ($unmatched as $review) {
-            $productId = null;
+            $productIds = [];
             $code = $review->platform_product_code;
 
-            // 1단계: 리뷰 소스에서 매칭
+            // 1단계: 리뷰 소스에서 매칭 (여러 product_id 가능)
             if (isset($sourceMap[$review->platform][$code])) {
-                $productId = $sourceMap[$review->platform][$code];
+                $productIds = $sourceMap[$review->platform][$code];
             }
 
             // 2단계: products 테이블에서 code 매칭
-            if (!$productId && isset($productMap[$code])) {
-                $productId = $productMap[$code];
+            if (empty($productIds) && isset($productMap[$code])) {
+                $productIds = [$productMap[$code]];
             }
 
-            if ($productId) {
-                $review->update(['product_id' => $productId]);
+            if (!empty($productIds)) {
+                // 첫 번째 product_id는 기존 리뷰에 할당
+                $review->update(['product_id' => $productIds[0]]);
                 $matched++;
+
+                // 나머지 product_id는 리뷰 복제
+                for ($i = 1; $i < count($productIds); $i++) {
+                    // 이미 같은 조합이 있는지 확인
+                    $exists = ProductReview::where('platform', $review->platform)
+                        ->where('external_id', $review->external_id)
+                        ->where('product_id', $productIds[$i])
+                        ->exists();
+
+                    if (!$exists) {
+                        $clone = $review->replicate();
+                        $clone->product_id = $productIds[$i];
+                        $clone->save();
+                        $matched++;
+                    }
+                }
             }
         }
 
         $total = $unmatched->count();
         $remaining = $total - $matched;
 
-        return back()->with('success', "일괄 매칭 완료: {$total}개 중 {$matched}개 매칭 ({$remaining}개 미매칭)");
+        return back()->with('success', "일괄 매칭 완료: 미매칭 {$total}개 → {$matched}건 매칭 ({$remaining}개 미매칭)");
     }
 
     /**

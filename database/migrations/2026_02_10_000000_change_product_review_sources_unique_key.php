@@ -18,15 +18,19 @@ return new class extends Migration
         });
 
         Schema::table('product_review_sources', function (Blueprint $table) {
-            // 4. 새 유니크 키 (platform + external_id)
-            $table->unique(['platform', 'external_id']);
+            // 4. 다대다: 같은 external_id가 여러 product에 매칭 가능
+            //    같은 조합의 중복만 방지
+            $table->unique(['product_id', 'platform', 'external_id']);
+            // 5. external_id로 검색 성능 확보
+            $table->index(['platform', 'external_id']);
         });
     }
 
     public function down(): void
     {
         Schema::table('product_review_sources', function (Blueprint $table) {
-            $table->dropUnique(['platform', 'external_id']);
+            $table->dropUnique(['product_id', 'platform', 'external_id']);
+            $table->dropIndex(['platform', 'external_id']);
         });
 
         Schema::table('product_review_sources', function (Blueprint $table) {

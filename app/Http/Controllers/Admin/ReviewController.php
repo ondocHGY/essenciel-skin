@@ -157,7 +157,7 @@ class ReviewController extends Controller
             // 상품코드 → product_id 캐시
             $productCache = [];
 
-            // 리뷰 소스 캐시: external_id → product_id
+            // 리뷰 소스 캐시: external_id → [product_id, ...] (다대다)
             $sourceCache = [];
             $sources = ProductReviewSource::where('platform', $platform)
                 ->where('is_active', true)
@@ -165,7 +165,7 @@ class ReviewController extends Controller
                 ->whereNotNull('product_id')
                 ->get();
             foreach ($sources as $src) {
-                $sourceCache[$src->external_id] = $src->product_id;
+                $sourceCache[$src->external_id][] = $src->product_id;
             }
 
             DB::beginTransaction();
@@ -186,28 +186,32 @@ class ReviewController extends Controller
                     continue;
                 }
 
-                // 상품코드로 product_id 자동 매칭
+                // 상품코드로 product_id 자동 매칭 (다대다)
                 $productCode = $this->extractValue($row, $headerMap, 'product_code');
-                $productId = $defaultProductId; // 폼에서 선택한 값 (없으면 null)
+                $productIds = [];
 
                 if ($productCode) {
-                    // 1단계: 리뷰 소스에서 매칭
+                    // 1단계: 리뷰 소스에서 매칭 (여러 product_id 가능)
                     if (isset($sourceCache[$productCode])) {
-                        $productId = $sourceCache[$productCode];
+                        $productIds = $sourceCache[$productCode];
                     } else {
                         // 2단계: products 테이블에서 code 매칭
                         if (!isset($productCache[$productCode])) {
                             $productCache[$productCode] = Product::where('code', $productCode)->value('id');
                         }
                         if ($productCache[$productCode]) {
-                            $productId = $productCache[$productCode];
+                            $productIds = [$productCache[$productCode]];
                         }
                     }
                 }
 
-                // 데이터 추출
-                $reviewData = [
-                    'product_id' => $productId,
+                // 폼에서 선택한 기본값 (매칭 결과가 없을 때)
+                if (empty($productIds)) {
+                    $productIds = [$defaultProductId]; // null일 수 있음
+                }
+
+                // 공통 리뷰 데이터
+                $baseReviewData = [
                     'platform' => $platform,
                     'platform_product_code' => $productCode,
                     'product_name' => $this->extractValue($row, $headerMap, 'product_name'),
@@ -223,19 +227,31 @@ class ReviewController extends Controller
                     ? "{$platform}_{$row[$headerMap['external_id']]}"
                     : "{$platform}_" . md5($content);
 
-                $reviewData['external_id'] = $externalId;
+                $baseReviewData['external_id'] = $externalId;
 
-                // 기존 리뷰 확인
-                $existing = ProductReview::where('platform', $platform)
-                    ->where('external_id', $externalId)
-                    ->first();
+                // 각 product_id별로 리뷰 저장/업데이트
+                foreach ($productIds as $productId) {
+                    $reviewData = array_merge($baseReviewData, ['product_id' => $productId]);
 
-                if ($existing) {
-                    $existing->update($reviewData);
-                    $updated++;
-                } else {
-                    ProductReview::create($reviewData);
-                    $added++;
+                    // 기존 리뷰 확인 (platform + external_id + product_id 조합)
+                    $query = ProductReview::where('platform', $platform)
+                        ->where('external_id', $externalId);
+
+                    if ($productId !== null) {
+                        $query->where('product_id', $productId);
+                    } else {
+                        $query->whereNull('product_id');
+                    }
+
+                    $existing = $query->first();
+
+                    if ($existing) {
+                        $existing->update($reviewData);
+                        $updated++;
+                    } else {
+                        ProductReview::create($reviewData);
+                        $added++;
+                    }
                 }
             }
 

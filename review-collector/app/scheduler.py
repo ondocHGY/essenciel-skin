@@ -117,7 +117,7 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
     # product_code -> product_id 캐시 (DB 조회 최소화)
     product_cache = {}
 
-    # 리뷰 소스 캐시: platform + external_id -> product_id
+    # 리뷰 소스 캐시: platform + external_id -> [product_id, ...] (다대다)
     source_cache = {}
     sources = db.query(ProductReviewSource).filter(
         ProductReviewSource.platform == platform,
@@ -125,7 +125,7 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
     ).all()
     for src in sources:
         if src.external_id and src.product_id:
-            source_cache[src.external_id] = src.product_id
+            source_cache.setdefault(src.external_id, []).append(src.product_id)
 
     for review_data in reviews:
         # external_id 생성
@@ -138,16 +138,16 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
         platform_product_code = review_data.get("product_code")
         product_name = review_data.get("product_name")
 
-        # product_id 결정: 2단계 매칭
-        product_id = None
+        # product_ids 결정: 2단계 매칭 (다대다)
+        product_ids = []
 
         if platform_product_code:
-            # 1단계: product_review_sources에서 external_id 매칭
+            # 1단계: product_review_sources에서 external_id 매칭 (여러 product_id 가능)
             if platform_product_code in source_cache:
-                product_id = source_cache[platform_product_code]
+                product_ids = source_cache[platform_product_code]
 
             # 2단계: products 테이블에서 code 매칭
-            if not product_id:
+            if not product_ids:
                 if platform_product_code not in product_cache:
                     result = db.execute(
                         text("SELECT id FROM products WHERE code = :code LIMIT 1"),
@@ -156,49 +156,58 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
                     product_cache[platform_product_code] = result[0] if result else None
 
                 if product_cache[platform_product_code]:
-                    product_id = product_cache[platform_product_code]
+                    product_ids = [product_cache[platform_product_code]]
 
-            if not product_id:
+            if not product_ids:
                 logger.debug(f"상품코드 '{platform_product_code}' 매칭 대기")
 
-        # 기존 리뷰 확인
-        existing = db.query(ProductReview).filter(
-            ProductReview.platform == platform,
-            ProductReview.external_id == external_id
-        ).first()
+        # product_ids가 비어있으면 product_id=None으로 1건 저장
+        if not product_ids:
+            product_ids = [None]
 
-        if existing:
-            existing.rating = review_data.get("rating", 5.0)
-            existing.content = review_data.get("content", "")
-            existing.platform_product_code = platform_product_code
-            existing.product_name = product_name
-            if product_id:  # 매칭된 경우에만 업데이트
-                existing.product_id = product_id
-            existing.updated_at = datetime.now()
-            updated += 1
-        else:
-            review = ProductReview(
-                product_id=product_id,
-                review_source_id=None,
-                platform=platform,
-                platform_product_code=platform_product_code,
-                product_name=product_name,
-                external_id=external_id,
-                rating=review_data.get("rating", 5.0),
-                content=review_data.get("content", ""),
-                author=review_data.get("author"),
-                purchased_option=review_data.get("purchased_option"),
-                reviewed_at=review_data.get("reviewed_at"),
-                is_visible=True,
-                created_at=datetime.now(),
-                updated_at=datetime.now()
+        for product_id in product_ids:
+            # 기존 리뷰 확인 (platform + external_id + product_id 조합)
+            query = db.query(ProductReview).filter(
+                ProductReview.platform == platform,
+                ProductReview.external_id == external_id
             )
-            db.add(review)
-            added += 1
+            if product_id is not None:
+                query = query.filter(ProductReview.product_id == product_id)
+            else:
+                query = query.filter(ProductReview.product_id.is_(None))
+
+            existing = query.first()
+
+            if existing:
+                existing.rating = review_data.get("rating", 5.0)
+                existing.content = review_data.get("content", "")
+                existing.platform_product_code = platform_product_code
+                existing.product_name = product_name
+                existing.updated_at = datetime.now()
+                updated += 1
+            else:
+                review = ProductReview(
+                    product_id=product_id,
+                    review_source_id=None,
+                    platform=platform,
+                    platform_product_code=platform_product_code,
+                    product_name=product_name,
+                    external_id=external_id,
+                    rating=review_data.get("rating", 5.0),
+                    content=review_data.get("content", ""),
+                    author=review_data.get("author"),
+                    purchased_option=review_data.get("purchased_option"),
+                    reviewed_at=review_data.get("reviewed_at"),
+                    is_visible=True,
+                    created_at=datetime.now(),
+                    updated_at=datetime.now()
+                )
+                db.add(review)
+                added += 1
 
     db.commit()
 
-    unmatched = sum(1 for r in reviews if r.get("product_code") and not product_cache.get(r.get("product_code")))
+    unmatched = sum(1 for r in reviews if r.get("product_code") and not source_cache.get(r.get("product_code")) and not product_cache.get(r.get("product_code")))
     if unmatched > 0:
         logger.info(f"상품코드 미매칭 {unmatched}개 (관리자에서 매칭 필요)")
 
