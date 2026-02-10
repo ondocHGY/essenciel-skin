@@ -224,16 +224,17 @@ def start_scheduler():
 
     scheduler = BackgroundScheduler()
 
-    # 매일 지정 시간에 동기화
+    # 매일 지정 시간에 동기화 (쉼표 구분으로 여러 시각 지원)
+    hours = settings.SYNC_HOURS
     scheduler.add_job(
         sync_all_platforms,
-        CronTrigger(hour=settings.SYNC_HOUR, minute=settings.SYNC_MINUTE),
+        CronTrigger(hour=hours, minute=settings.SYNC_MINUTE),
         id="daily_review_sync",
         replace_existing=True
     )
 
     scheduler.start()
-    logger.info(f"스케줄러 시작: 매일 {settings.SYNC_HOUR:02d}:{settings.SYNC_MINUTE:02d} 동기화")
+    logger.info(f"스케줄러 시작: 매일 {hours}시 {settings.SYNC_MINUTE:02d}분 동기화")
 
 
 def stop_scheduler():

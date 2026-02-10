@@ -78,21 +78,21 @@ class Qoo10Scraper(BaseScraper):
         return options
 
     def start(self):
-        """브라우저 시작"""
+        """브라우저 시작 (reCAPTCHA 때문에 headless=False + Xvfb 사용)"""
         if XVFB_AVAILABLE and settings.CHROME_HEADLESS:
             self.display = Display(visible=0, size=(1920, 1080))
             self.display.start()
-            logger.info("가상 디스플레이 시작")
+            logger.info("가상 디스플레이(Xvfb) 시작")
 
         options = self._get_chrome_options()
         self.driver = uc.Chrome(
             options=options,
-            headless=False,
+            headless=False,  # reCAPTCHA v2는 headless 감지 → Xvfb로 대체
             use_subprocess=True,
             version_main=settings.CHROME_VERSION
         )
         self.driver.implicitly_wait(10)
-        logger.info("Chrome 브라우저 시작")
+        logger.info("Chrome 브라우저 시작 (headless=False + Xvfb)")
 
     def stop(self):
         """브라우저 종료"""
@@ -149,7 +149,8 @@ class Qoo10Scraper(BaseScraper):
                 time.sleep(3)
 
                 if "Login.aspx" not in self.driver.current_url:
-                    logger.info("쿠키 로그인 성공")
+                    self._save_cookies()  # 갱신된 쿠키 재저장 (수명 연장)
+                    logger.info("쿠키 로그인 성공 (쿠키 갱신 저장)")
                     return True
                 else:
                     logger.warning("쿠키 만료됨")

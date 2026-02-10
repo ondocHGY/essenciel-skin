@@ -4,6 +4,7 @@ import os
 import time
 import glob
 import json
+import random
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from selenium.webdriver.common.by import By
@@ -13,9 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import (
     TimeoutException, NoSuchElementException, UnexpectedAlertPresentException
 )
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.chrome.service import Service
+import undetected_chromedriver as uc
 import pandas as pd
 import logging
 
@@ -23,6 +22,13 @@ from app.scrapers.base import BaseScraper
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def human_type(element, text):
+    """사람처럼 한 글자씩 타이핑"""
+    for char in text:
+        element.send_keys(char)
+        time.sleep(random.uniform(0.03, 0.08))
 
 
 class NaverScraper(BaseScraper):
@@ -44,13 +50,9 @@ class NaverScraper(BaseScraper):
 
         os.makedirs(self.download_path, exist_ok=True)
 
-    def _get_chrome_options(self) -> ChromeOptions:
+    def _get_chrome_options(self) -> uc.ChromeOptions:
         """Chrome 옵션 설정"""
-        options = ChromeOptions()
-
-        # Docker/Linux headless 모드 (가장 먼저 설정)
-        if settings.CHROME_HEADLESS:
-            options.add_argument("--headless=new")
+        options = uc.ChromeOptions()
 
         # 필수 Docker 옵션
         options.add_argument("--no-sandbox")
@@ -80,9 +82,13 @@ class NaverScraper(BaseScraper):
     def start(self):
         """브라우저 시작"""
         options = self._get_chrome_options()
-        self.driver = webdriver.Chrome(options=options)
+        self.driver = uc.Chrome(
+            options=options,
+            headless=settings.CHROME_HEADLESS,
+            version_main=settings.CHROME_VERSION,
+        )
         self.driver.implicitly_wait(10)
-        logger.info("Chrome 브라우저 시작")
+        logger.info(f"Chrome 브라우저 시작 (headless={settings.CHROME_HEADLESS})")
 
     def stop(self):
         """브라우저 종료"""
@@ -136,28 +142,22 @@ class NaverScraper(BaseScraper):
 
                 # 로그인 상태 확인 (로그인 페이지로 리다이렉트 안되면 성공)
                 if "login" not in self.driver.current_url.lower():
-                    logger.info("쿠키 로그인 성공")
+                    self._save_cookies()  # 갱신된 쿠키 재저장 (수명 연장)
+                    logger.info("쿠키 로그인 성공 (쿠키 갱신 저장)")
                     return True
                 else:
-                    logger.warning("쿠키 만료됨")
+                    logger.warning("쿠키 만료됨, ID/PW 로그인 시도")
 
             # ID/PW 로그인 시도
             logger.info("ID/PW 로그인 시도...")
             self.driver.get(self.NAVER_LOGIN_URL)
             time.sleep(5)
 
-            # 현재 URL 및 페이지 소스 디버깅
             logger.info(f"현재 URL: {self.driver.current_url}")
 
             wait = WebDriverWait(self.driver, 20)
 
-            # 모든 input 요소 찾기 (디버깅)
-            inputs = self.driver.find_elements(By.TAG_NAME, "input")
-            logger.info(f"페이지 내 input 수: {len(inputs)}")
-            for inp in inputs[:5]:
-                logger.info(f"  input: type='{inp.get_attribute('type')}' id='{inp.get_attribute('id')}' name='{inp.get_attribute('name')}' placeholder='{inp.get_attribute('placeholder')}'")
-
-            # 네이버 커머스 로그인 폼
+            # 네이버 커머스 로그인 폼 - ID 입력창
             id_selectors = [
                 (By.CSS_SELECTOR, "input[type='text']"),
                 (By.CSS_SELECTOR, "input[placeholder*='아이디']"),
@@ -183,9 +183,7 @@ class NaverScraper(BaseScraper):
 
             if not id_input:
                 logger.error("ID 입력창을 찾을 수 없음")
-                # 스크린샷 저장
                 self.driver.save_screenshot("login_page_debug.png")
-                logger.info("스크린샷 저장: login_page_debug.png")
                 return False
 
             pw_input = None
@@ -201,29 +199,27 @@ class NaverScraper(BaseScraper):
                 logger.error("PW 입력창을 찾을 수 없음")
                 return False
 
-            # 클릭 후 값 입력 (pyperclip 없이)
+            # 사람처럼 한 글자씩 타이핑 (JS injection 대신)
             id_input.click()
             time.sleep(0.3)
-            id_input.clear()
-            # JavaScript로 값 설정 후 이벤트 발생
-            self.driver.execute_script("""
-                arguments[0].value = arguments[1];
-                arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
-                arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
-            """, id_input, self.naver_id)
+            human_type(id_input, self.naver_id)
             time.sleep(0.5)
+
+            id_value = id_input.get_attribute('value')
+            logger.info(f"ID 입력 완료 (길이: {len(id_value)})")
 
             pw_input.click()
             time.sleep(0.3)
-            pw_input.clear()
-            self.driver.execute_script("""
-                arguments[0].value = arguments[1];
-                arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
-                arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
-            """, pw_input, self.naver_password)
+            human_type(pw_input, self.naver_password)
             time.sleep(1)
 
-            logger.info("ID/PW 입력 완료")
+            pw_value = pw_input.get_attribute('value')
+            logger.info(f"PW 입력 완료 (길이: {len(pw_value)})")
+
+            if not id_value or not pw_value:
+                logger.error("입력값이 비어있음!")
+                self.driver.save_screenshot("login_input_empty.png")
+                return False
 
             # 로그인 버튼 클릭
             login_selectors = [
@@ -234,11 +230,6 @@ class NaverScraper(BaseScraper):
                 (By.XPATH, "//button[contains(text(), '로그인')]"),
                 (By.CSS_SELECTOR, "button[class*='login']"),
             ]
-
-            # 버튼 디버깅
-            buttons = self.driver.find_elements(By.TAG_NAME, "button")
-            for btn in buttons:
-                logger.info(f"버튼 발견: text='{btn.text}' class='{btn.get_attribute('class')}'")
 
             clicked = False
             for by, selector in login_selectors:

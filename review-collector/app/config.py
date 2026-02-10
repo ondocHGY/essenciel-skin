@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # 스케줄러 설정
     SYNC_ENABLED: bool = True
-    SYNC_HOUR: int = 3
+    SYNC_HOURS: str = "4,16"  # 실행 시각 (쉼표 구분, 예: "4,16" → 오전4시, 오후4시)
     SYNC_MINUTE: int = 0
 
     # 로깅
