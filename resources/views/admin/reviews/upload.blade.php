@@ -24,10 +24,10 @@
 
             {{-- 제품 선택 --}}
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">제품 선택 <span class="text-red-500">*</span></label>
-                <select name="product_id" required
+                <label class="block text-sm font-medium text-gray-700 mb-2">제품 선택 <span class="text-xs text-gray-400 font-normal">(선택사항 - 엑셀 내 상품코드로 자동 매칭)</span></label>
+                <select name="product_id"
                         class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 @error('product_id') border-red-500 @enderror">
-                    <option value="">제품을 선택하세요</option>
+                    <option value="">자동 매칭 (상품코드 기반)</option>
                     @foreach($products as $product)
                     <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>
                         {{ $product->name }} ({{ $product->brand }})

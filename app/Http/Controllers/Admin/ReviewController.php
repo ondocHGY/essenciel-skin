@@ -129,12 +129,12 @@ class ReviewController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
-            'product_id' => 'required|exists:products,id',
+            'product_id' => 'nullable|exists:products,id',
             'platform' => 'required|string|max:50',
         ]);
 
         $file = $request->file('file');
-        $productId = $request->product_id;
+        $defaultProductId = $request->product_id;
         $platform = $request->platform;
 
         try {
@@ -154,6 +154,20 @@ class ReviewController extends Controller
             $updated = 0;
             $skipped = 0;
 
+            // 상품코드 → product_id 캐시
+            $productCache = [];
+
+            // 리뷰 소스 캐시: external_id → product_id
+            $sourceCache = [];
+            $sources = ProductReviewSource::where('platform', $platform)
+                ->where('is_active', true)
+                ->whereNotNull('external_id')
+                ->whereNotNull('product_id')
+                ->get();
+            foreach ($sources as $src) {
+                $sourceCache[$src->external_id] = $src->product_id;
+            }
+
             DB::beginTransaction();
 
             for ($i = 1; $i < count($rows); $i++) {
@@ -172,10 +186,31 @@ class ReviewController extends Controller
                     continue;
                 }
 
+                // 상품코드로 product_id 자동 매칭
+                $productCode = $this->extractValue($row, $headerMap, 'product_code');
+                $productId = $defaultProductId; // 폼에서 선택한 값 (없으면 null)
+
+                if ($productCode) {
+                    // 1단계: 리뷰 소스에서 매칭
+                    if (isset($sourceCache[$productCode])) {
+                        $productId = $sourceCache[$productCode];
+                    } else {
+                        // 2단계: products 테이블에서 code 매칭
+                        if (!isset($productCache[$productCode])) {
+                            $productCache[$productCode] = Product::where('code', $productCode)->value('id');
+                        }
+                        if ($productCache[$productCode]) {
+                            $productId = $productCache[$productCode];
+                        }
+                    }
+                }
+
                 // 데이터 추출
                 $reviewData = [
                     'product_id' => $productId,
                     'platform' => $platform,
+                    'platform_product_code' => $productCode,
+                    'product_name' => $this->extractValue($row, $headerMap, 'product_name'),
                     'content' => $content,
                     'rating' => $this->extractRating($row, $headerMap),
                     'author' => $this->extractValue($row, $headerMap, 'author'),
@@ -269,6 +304,8 @@ class ReviewController extends Controller
             'author' => ['작성자', '작성자ID', 'author', 'user', 'name', '購入者', '닉네임'],
             'reviewed_at' => ['작성일', '등록일', 'date', '날짜', '日付', '登録日'],
             'external_id' => ['리뷰ID', '상품평번호', 'id', 'review_id', '번호', '상품평번호_h'],
+            'product_code' => ['상품코드', '商品コード', '商品番号', 'GdNo', 'Product Code', 'Item Code'],
+            'product_name' => ['상품명', '商品名', 'Product Name'],
         ];
 
         foreach ($headers as $index => $header) {
