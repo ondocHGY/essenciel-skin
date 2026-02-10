@@ -299,12 +299,12 @@ class ReviewController extends Controller
         $map = [];
 
         $mappings = [
-            'content' => ['댓글', '내용', 'content', 'review', '리뷰', 'レビュー内容', '리뷰내용'],
-            'rating' => ['평점', '만족도', 'rating', 'score', '점수', '評価', '별점'],
-            'author' => ['작성자', '작성자ID', 'author', 'user', 'name', '購入者', '닉네임'],
-            'reviewed_at' => ['작성일', '등록일', 'date', '날짜', '日付', '登録日'],
-            'external_id' => ['리뷰ID', '상품평번호', 'id', 'review_id', '번호', '상품평번호_h'],
-            'product_code' => ['상품코드', '商品コード', '商品番号', 'GdNo', 'Product Code', 'Item Code'],
+            'content' => ['댓글', '내용', 'content', 'review', '리뷰', 'レビュー内容', '리뷰내용', '리뷰상세내용'],
+            'rating' => ['평점', '만족도', 'rating', 'score', '점수', '評価', '별점', '구매자평점'],
+            'author' => ['작성자', '작성자ID', 'author', 'user', 'name', '購入者', '닉네임', '등록자'],
+            'reviewed_at' => ['작성일', '등록일', 'date', '날짜', '日付', '登録日', '리뷰등록일'],
+            'external_id' => ['리뷰ID', '상품평번호', 'id', 'review_id', '번호', '상품평번호_h', '리뷰글번호'],
+            'product_code' => ['상품코드', '상품번호', '商品コード', '商品番号', 'GdNo', 'Product Code', 'Item Code'],
             'product_name' => ['상품명', '商品名', 'Product Name'],
         ];
 
@@ -373,7 +373,7 @@ class ReviewController extends Controller
         }
 
         // 날짜 형식 파싱 시도
-        $formats = ['Y-m-d', 'Y/m/d', 'Y.m.d', 'Y-m-d H:i:s'];
+        $formats = ['Y-m-d', 'Y/m/d', 'Y.m.d', 'Y-m-d H:i:s', 'Y/m/d H:i:s', 'Y.m.d. H:i:s'];
 
         foreach ($formats as $format) {
             $date = \DateTime::createFromFormat($format, $value);
