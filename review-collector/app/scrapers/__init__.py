@@ -3,14 +3,13 @@
 from app.scrapers.base import BaseScraper
 from app.scrapers.qoo10 import Qoo10Scraper
 from app.scrapers.naver import NaverScraper
+from app.scrapers.musinsa import MusinsaScraper
 
 # 지원하는 플랫폼 스크래퍼 레지스트리
 SCRAPERS = {
     'qoo10': Qoo10Scraper,
     'naver': NaverScraper,
-    # 'coupang': CoupangScraper,  # 나중에 추가
-    # 'musinsa': MusinsaScraper,
-    # 'amazon': AmazonScraper,
+    'musinsa': MusinsaScraper,
 }
 
 

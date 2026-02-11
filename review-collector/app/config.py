@@ -43,16 +43,24 @@ class Settings(BaseSettings):
     # 로깅
     LOG_LEVEL: str = "INFO"
 
+    # 무신사 파트너 설정
+    MUSINSA_ID: str = ""
+    MUSINSA_PASSWORD: str = ""
+    MUSINSA_OTP_SECRET: str = ""
+    MUSINSA_COOKIE_PATH: str = "/app/data/musinsa_cookies.json"
+
     # 쿠키 경로 매핑
     COOKIE_PATHS: dict = {
         'qoo10': '/app/data/qsm_cookies.json',
         'naver': '/app/data/naver_cookies.json',
+        'musinsa': '/app/data/musinsa_cookies.json',
     }
 
     # 쿠키 플랫폼 라벨
     COOKIE_LABELS: dict = {
         'qoo10': 'Qoo10 (QSM)',
         'naver': '네이버 스마트스토어',
+        'musinsa': '무신사 파트너',
     }
 
     @property

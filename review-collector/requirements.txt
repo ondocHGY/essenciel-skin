@@ -21,6 +21,9 @@ cryptography==42.0.2
 # Scheduler
 apscheduler==3.10.4
 
+# OTP
+pyotp==2.9.0
+
 # Config
 pydantic-settings==2.1.0
 python-dotenv==1.0.1

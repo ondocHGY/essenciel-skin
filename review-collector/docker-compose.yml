@@ -15,12 +15,17 @@ services:
       - NAVER_PASSWORD=${NAVER_PASSWORD}
       - NAVER_COOKIE_PATH=/app/data/naver_cookies.json
 
+      # 무신사 파트너 설정
+      - MUSINSA_ID=${MUSINSA_ID}
+      - MUSINSA_PASSWORD=${MUSINSA_PASSWORD}
+      - MUSINSA_OTP_SECRET=${MUSINSA_OTP_SECRET}
+
       # 데이터베이스 설정 (Laravel DB)
-      - DB_HOST=${DB_HOST:-host.docker.internal}
+      - DB_HOST=${DB_HOST:-mariadb}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_NAME=${DB_NAME:-qrcode}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE:-qrcode}
+      - DB_USERNAME=${DB_USERNAME:-test}
+      - DB_PASSWORD=${DB_PASSWORD:-test}
 
       # Chrome 설정
       - CHROME_HEADLESS=true
@@ -51,7 +56,10 @@ services:
 
     networks:
       - review-network
+      - laradock_backend
 
 networks:
   review-network:
     driver: bridge
+  laradock_backend:
+    external: true
