@@ -130,7 +130,7 @@ class SyncLogResponse(BaseModel):
     reviews_updated: int = 0
     total_reviews: int = 0
     error_message: Optional[str] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

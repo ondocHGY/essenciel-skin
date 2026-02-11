@@ -47,13 +47,32 @@ def main():
                 if "login" not in current_url and "accounts.commerce" not in current_url:
                     print(f"로그인 감지! URL: {current_url}")
 
-                    # 스마트스토어 센터로 이동해서 쿠키 확보
-                    print("스마트스토어 센터로 이동...")
-                    driver.get(SMARTSTORE_HOME_URL)
-                    time.sleep(5)
+                    # 여러 도메인을 방문하여 모든 쿠키 수집
+                    all_cookies = {}
 
+                    # 1) nid.naver.com - 핵심 인증 쿠키 (NID_AUT, NID_SES)
+                    print("nid.naver.com 쿠키 수집...")
+                    driver.get("https://nid.naver.com/nidlogin.login")
+                    time.sleep(2)
+                    for c in driver.get_cookies():
+                        all_cookies[c['name']] = c
+
+                    # 2) 스마트스토어 센터
+                    print("스마트스토어 센터 쿠키 수집...")
+                    driver.get(SMARTSTORE_HOME_URL)
+                    time.sleep(3)
+                    for c in driver.get_cookies():
+                        all_cookies[c['name']] = c
+
+                    # 3) 리뷰 페이지
+                    print("리뷰 페이지 쿠키 수집...")
+                    driver.get("https://sell.smartstore.naver.com/#/review/search")
+                    time.sleep(3)
+                    for c in driver.get_cookies():
+                        all_cookies[c['name']] = c
+
+                    cookies = list(all_cookies.values())
                     os.makedirs(os.path.dirname(COOKIE_FILE), exist_ok=True)
-                    cookies = driver.get_cookies()
                     with open(COOKIE_FILE, 'w', encoding='utf-8') as f:
                         json.dump(cookies, f, indent=2, ensure_ascii=False)
 
@@ -63,6 +82,8 @@ def main():
                     # 주요 쿠키 확인
                     important = [c['name'] for c in cookies if c['name'] in ['NID_AUT', 'NID_SES', 'NID_JKL']]
                     print(f"인증 쿠키: {important}")
+                    if not important:
+                        print("⚠ NID_AUT/NID_SES 미발견 - 인증 쿠키가 부족할 수 있습니다")
                     saved = True
                     break
             except Exception:

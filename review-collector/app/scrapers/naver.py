@@ -285,6 +285,19 @@ class NaverScraper(BaseScraper):
             self.driver.get(self.SMARTSTORE_REVIEW_URL)
             time.sleep(5)  # SPA 로딩 대기
 
+            # 리뷰 페이지에서 로그인 요구 여부 확인
+            if "login" in self.driver.current_url.lower():
+                logger.error("리뷰 페이지 접근 시 로그인 페이지로 리다이렉트됨")
+                return False
+
+            try:
+                login_btns = self.driver.find_elements(By.XPATH, "//button[contains(text(), '로그인')]")
+                if login_btns:
+                    logger.error(f"리뷰 페이지에서 로그인 버튼 발견 ({len(login_btns)}개) - 인증 실패")
+                    return False
+            except Exception:
+                pass
+
             wait = WebDriverWait(self.driver, 15)
 
             # 리뷰 작성일 기간 설정 - "1개월" 버튼 클릭

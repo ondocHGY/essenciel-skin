@@ -294,26 +294,28 @@ review-collector/
 ├── app/
 │   ├── config.py           # 설정 관리 (pydantic-settings)
 │   ├── database.py         # SQLAlchemy DB 연결
+│   ├── main.py             # FastAPI 앱 진입점
 │   ├── models.py           # DB 모델 (ProductReviewSource, ProductReview)
 │   ├── scheduler.py        # APScheduler 기반 스케줄러
 │   └── scrapers/
 │       ├── __init__.py     # 스크래퍼 팩토리
 │       ├── base.py         # BaseScraper 추상 클래스
 │       ├── qoo10.py        # Qoo10 QSM 스크래퍼
-│       └── naver.py        # 네이버 스마트스토어 스크래퍼
+│       ├── naver.py        # 네이버 스마트스토어 스크래퍼
+│       └── musinsa.py      # 무신사 파트너 스크래퍼 (SSO API + OTP)
 ├── data/
 │   ├── qsm_cookies.json    # Qoo10 쿠키 (gitignore)
 │   └── naver_cookies.json  # 네이버 쿠키 (gitignore)
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
-├── main.py                 # FastAPI 앱 진입점
 └── test_*.py               # 테스트 스크립트
 ```
 
 ### 지원 플랫폼
 - **Qoo10**: QSM(판매자 센터) 엑셀 다운로드 방식
 - **Naver**: 스마트스토어 센터 엑셀 다운로드 방식 (쿠키 로그인)
+- **Musinsa**: SSO API 로그인 + Google OTP 자동 인증 (쿠키 불필요)
 
 ### 실행 방법
 ```bash
@@ -337,6 +339,11 @@ QSM_PASSWORD=your_qsm_password
 NAVER_ID=your_naver_id
 NAVER_PASSWORD=your_naver_password
 
+# 무신사 파트너
+MUSINSA_ID=your_musinsa_id
+MUSINSA_PASSWORD=your_musinsa_password
+MUSINSA_OTP_SECRET=your_google_otp_secret_key
+
 # Chrome
 CHROME_HEADLESS=true
 DOWNLOAD_PATH=/tmp/review_downloads
@@ -350,14 +357,18 @@ DB_PASSWORD=
 
 # 스케줄러
 SYNC_ENABLED=true
-SYNC_HOUR=3
+SYNC_HOURS=4,16
 SYNC_MINUTE=0
 ```
 
 ### API 엔드포인트
 - `GET /health`: 헬스체크
-- `POST /sync`: 전체 소스 동기화 트리거
-- `POST /sync/{source_id}`: 특정 소스 동기화
+- `GET /api/reviews/stats`: 리뷰 통계 조회
+- `POST /api/reviews/sync`: 전체 플랫폼 동기화 (순차 처리, 결과 리스트 반환)
+- `POST /api/reviews/sync/{platform}`: 특정 플랫폼 동기화
+- `GET /api/sync-logs`: 동기화 실행 기록
+- `GET /api/cookies`: 쿠키 상태 조회
+- `POST /api/cookies/{platform}`: 쿠키 업로드
 
 ### 네이버 쿠키 로그인
 네이버 커머스는 ID/PW 로그인 시 캡챠가 발생하므로 쿠키 로그인 사용:
@@ -366,7 +377,43 @@ SYNC_MINUTE=0
 3. `data/naver_cookies.json` 파일 자동 저장
 4. 이후 쿠키로 자동 로그인
 
+### 무신사 인증 흐름
+쿠키 기반이 아닌 SSO API 직접 호출 + pyotp 자동 OTP 생성 방식:
+1. `POST api.one.musinsa.com/.../login/password` → `sso-pre-auth-token` 쿠키
+2. `POST api.one.musinsa.com/.../login/otp` (pyotp로 TOTP 코드 생성) → 전체 인증 쿠키 발급
+3. `GET bizest.musinsa.com` 리뷰 페이지 → PHPSESSID 세션 쿠키
+4. `POST bizest.musinsa.com/po/api/csm/csm07/search` → 리뷰 JSON (form-encoded, 대문자 파라미터: `PAGE`, `LIMIT`, `MENU_ID`)
+
+토큰 수명: pp-auth(5분), pp-auth-rtk(4시간), partner-platform-rtk(24시간)
+→ 매 동기화 시 ID/PW+OTP로 새로 로그인하므로 토큰 만료 무관
+
 ### 주의사항
 - `data/*.json` (쿠키 파일)은 gitignore
 - `__pycache__/`, `.env`는 gitignore
 - Docker에서는 headless 모드 필수 (`CHROME_HEADLESS=true`)
+- 무신사 SSO는 짧은 시간 내 연속 로그인 시 간헐적 401 발생 가능 (5회 실패 시 30분 잠금)
+
+---
+
+### 2026-02-11
+
+#### 무신사 파트너 스크래퍼 추가 (SSO API + OTP 자동 로그인)
+
+**`review-collector/app/scrapers/musinsa.py`** (신규)
+- 쿠키 기반 → SSO API 직접 호출 + pyotp OTP 자동 생성 방식으로 구현
+- 인증: `login/password` → `login/otp` → bizest 리뷰 페이지 → 리뷰 API
+- 리뷰 API: form-encoded POST, 대문자 파라미터 (`PAGE`, `LIMIT`, `MENU_ID`)
+- 페이지네이션: LIMIT=1000으로 649개 리뷰 1회 호출로 전체 수집
+
+**`review-collector/app/config.py`**
+- `MUSINSA_OTP_SECRET` 설정 추가
+
+**`review-collector/docker-compose.yml`**
+- `MUSINSA_ID`, `MUSINSA_PASSWORD`, `MUSINSA_OTP_SECRET` 환경변수 추가
+
+**`review-collector/requirements.txt`**
+- `pyotp==2.9.0` 추가
+
+**`review-collector/app/main.py`**
+- `POST /api/reviews/sync` 전체 동기화 시 백그라운드 → 순차 처리로 변경
+- 각 플랫폼별 시작/완료 로그 출력, 응답에 전체 플랫폼 결과 리스트 반환
