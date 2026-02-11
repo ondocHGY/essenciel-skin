@@ -132,31 +132,29 @@ def get_review_stats(
 
 # ============== 리뷰 동기화 ==============
 
-@app.post("/api/reviews/sync", response_model=SyncResult)
+@app.post("/api/reviews/sync")
 def sync_reviews(
     request: SyncRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    """리뷰 동기화 실행 (플랫폼 기반)"""
+    """리뷰 동기화 실행 (모든 플랫폼 순차 처리)"""
     if request.platform:
-        # 특정 플랫폼 동기화
         platforms = [request.platform]
     else:
-        # 전체 플랫폼 동기화
         platforms = get_supported_platforms()
 
     if not platforms:
         raise HTTPException(status_code=400, detail="동기화할 플랫폼이 없습니다")
 
-    # 첫 번째 플랫폼 동기화
-    result = _sync_platform(platforms[0], db, trigger_type='manual')
+    results = []
+    for p in platforms:
+        logger.info(f"=== [{p}] 수동 동기화 시작 ===")
+        result = _sync_platform(p, db, trigger_type='manual')
+        status = "성공" if result.success else "실패"
+        logger.info(f"=== [{p}] {status}: +{result.reviews_added}개 추가, {result.reviews_updated}개 업데이트, 총 {result.total_reviews}개 ===")
+        results.append(result)
 
-    # 나머지 플랫폼은 백그라운드
-    for p in platforms[1:]:
-        background_tasks.add_task(_sync_platform, p, db, trigger_type='manual')
-
-    return result
+    return results
 
 
 @app.post("/api/reviews/sync/{platform}")
