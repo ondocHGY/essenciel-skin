@@ -56,10 +56,7 @@ services:
 
     networks:
       - review-network
-      - laradock_backend
 
 networks:
   review-network:
     driver: bridge
-  laradock_backend:
-    external: true
