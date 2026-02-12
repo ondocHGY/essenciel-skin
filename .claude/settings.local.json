@@ -21,7 +21,16 @@
       "WebFetch(domain:partner.musinsa.com)",
       "Bash(dir \"C:\\\\ondoc\\\\essenciel_qrcode\\\\review-collector\\\\data\\\\musinsa_cookies.json\")",
       "Bash(curl:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:minyeamer.github.io)",
+      "WebFetch(domain:qxguide.oopy.io)",
+      "WebFetch(domain:newstruck.net)",
+      "WebFetch(domain:tmapi.top)",
+      "WebFetch(domain:wendeehsu.medium.com)",
+      "Bash(git -C C:ondocessenciel_qrcode status)",
+      "Bash(git -C \"C:/ondoc/essenciel_qrcode\" add \"review-collector/save_shopee_cookies_local.py\")"
     ]
   }
 }

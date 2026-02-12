@@ -25,6 +25,26 @@ class ProductController extends Controller
             ->pluck('count', 'platform')
             ->toArray();
 
-        return view('product.show', compact('product', 'platformReviewCounts'));
+        // 평점 분포 조회 (1~5점별 개수)
+        $ratingDistribution = ProductReview::where('product_id', $product->id)
+            ->whereNotNull('rating')
+            ->where('rating', '>', 0)
+            ->selectRaw('FLOOR(rating) as star, count(*) as count')
+            ->groupBy('star')
+            ->pluck('count', 'star')
+            ->toArray();
+
+        // 평균 평점
+        $averageRating = ProductReview::where('product_id', $product->id)
+            ->whereNotNull('rating')
+            ->where('rating', '>', 0)
+            ->avg('rating');
+
+        // 다른 제품 분석용 제품 목록
+        $otherProducts = Product::where('id', '!=', $product->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('product.show', compact('product', 'platformReviewCounts', 'otherProducts', 'ratingDistribution', 'averageRating'));
     }
 }

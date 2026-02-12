@@ -113,6 +113,34 @@
             </div>
         </div>
 
+        {{-- 카드 위치 설정 --}}
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">카드 위치 설정</h2>
+            <p class="text-sm text-gray-500 mb-4">메인 페이지 제품 썸네일 위에 표시되는 성분 카드의 위치를 설정합니다.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">위에서 (top)</label>
+                    <input type="text" name="card_position[top]" value="{{ old('card_position.top') }}"
+                           placeholder="예: 20%"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">왼쪽에서 (left)</label>
+                    <input type="text" name="card_position[left]" value="{{ old('card_position.left') }}"
+                           placeholder="예: 10%"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">오른쪽에서 (right)</label>
+                    <input type="text" name="card_position[right]" value="{{ old('card_position.right') }}"
+                           placeholder="예: 5%"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">left와 right 중 하나만 입력하세요. 비워두면 기본 위치가 사용됩니다.</p>
+        </div>
+
         {{-- 추가 설정 --}}
         <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">추가 설정</h2>

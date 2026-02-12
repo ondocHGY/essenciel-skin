@@ -45,36 +45,77 @@
     </div>
 
     {{-- 섹션 1: 수동 동기화 --}}
-    <div class="bg-white rounded-xl shadow-sm p-5 lg:p-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm p-5 lg:p-6 mb-6" x-data="syncManager()">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">수동 동기화</h2>
-        <form method="POST" action="{{ route('admin.scraper.sync') }}" x-ref="syncForm">
-            @csrf
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="flex-1">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">플랫폼 (선택)</label>
-                    <select name="platform" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">전체 (모든 플랫폼)</option>
-                        @foreach($platforms as $key => $label)
-                            <option value="{{ $key }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <x-button type="submit" variant="primary" size="md"
-                              x-on:click="syncing = true"
-                              x-bind:disabled="syncing || !{{ $serviceStatus['online'] ? 'true' : 'false' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             :class="syncing && 'animate-spin'">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        <span x-text="syncing ? '동기화 중...' : '동기화 실행'"></span>
-                    </x-button>
-                </div>
-            </div>
-            @if(!$serviceStatus['online'])
-                <p class="text-sm text-red-500 mt-2">Review Collector 서비스가 오프라인 상태입니다. 서비스를 먼저 시작해주세요.</p>
-            @endif
-        </form>
+
+        @if(!$serviceStatus['online'])
+            <p class="text-sm text-red-500 mb-4">Review Collector 서비스가 오프라인 상태입니다. 서비스를 먼저 시작해주세요.</p>
+        @endif
+
+        {{-- 플랫폼별 동기화 버튼 --}}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+            @php
+                $scraperPlatforms = [
+                    'qoo10' => ['label' => 'Qoo10', 'icon' => 'Q', 'color' => 'red'],
+                    'naver' => ['label' => '네이버', 'icon' => 'N', 'color' => 'green'],
+                    'musinsa' => ['label' => '무신사', 'icon' => 'M', 'color' => 'gray'],
+                    'shopee' => ['label' => 'Shopee', 'icon' => 'S', 'color' => 'orange'],
+                ];
+                $colorMap = [
+                    'red' => 'bg-red-50 border-red-200 hover:bg-red-100 text-red-700',
+                    'green' => 'bg-green-50 border-green-200 hover:bg-green-100 text-green-700',
+                    'gray' => 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700',
+                    'orange' => 'bg-orange-50 border-orange-200 hover:bg-orange-100 text-orange-700',
+                ];
+            @endphp
+            @foreach($scraperPlatforms as $key => $info)
+                <form method="POST" action="{{ route('admin.scraper.sync') }}"
+                      x-on:submit.prevent="submitSync('{{ $key }}', $event.target)">
+                    @csrf
+                    <input type="hidden" name="platform" value="{{ $key }}">
+                    <button type="submit"
+                            class="w-full flex items-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium transition-all {{ $colorMap[$info['color']] }}"
+                            :class="syncingPlatform === '{{ $key }}' && 'opacity-75 cursor-wait'"
+                            :disabled="syncingPlatform !== null || !{{ $serviceStatus['online'] ? 'true' : 'false' }}">
+                        <span class="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center text-xs font-bold shrink-0"
+                              :class="syncingPlatform === '{{ $key }}' && 'animate-spin'">
+                            <template x-if="syncingPlatform === '{{ $key }}'">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </template>
+                            <template x-if="syncingPlatform !== '{{ $key }}'">
+                                <span>{{ $info['icon'] }}</span>
+                            </template>
+                        </span>
+                        <span x-text="syncingPlatform === '{{ $key }}' ? '동기화 중...' : '{{ $info['label'] }}'"></span>
+                    </button>
+                </form>
+            @endforeach
+
+            {{-- 전체 동기화 --}}
+            <form method="POST" action="{{ route('admin.scraper.sync') }}"
+                  x-on:submit.prevent="submitSync('all', $event.target)">
+                @csrf
+                <button type="submit"
+                        class="w-full flex items-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium transition-all bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700"
+                        :class="syncingPlatform === 'all' && 'opacity-75 cursor-wait'"
+                        :disabled="syncingPlatform !== null || !{{ $serviceStatus['online'] ? 'true' : 'false' }}">
+                    <span class="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center text-xs font-bold shrink-0"
+                          :class="syncingPlatform === 'all' && 'animate-spin'">
+                        <template x-if="syncingPlatform === 'all'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </template>
+                        <template x-if="syncingPlatform !== 'all'">
+                            <span>All</span>
+                        </template>
+                    </span>
+                    <span x-text="syncingPlatform === 'all' ? '전체 동기화 중...' : '전체 동기화'"></span>
+                </button>
+            </form>
+        </div>
     </div>
 
     {{-- 섹션 2: 리뷰 소스 관리 --}}
@@ -436,6 +477,16 @@ function scraperPage() {
     return {
         syncing: false,
         showAddSource: false,
+    }
+}
+
+function syncManager() {
+    return {
+        syncingPlatform: null,
+        submitSync(platform, form) {
+            this.syncingPlatform = platform;
+            form.submit();
+        }
     }
 }
 </script>

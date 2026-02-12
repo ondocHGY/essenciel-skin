@@ -49,11 +49,15 @@ class Settings(BaseSettings):
     MUSINSA_OTP_SECRET: str = ""
     MUSINSA_COOKIE_PATH: str = "/app/data/musinsa_cookies.json"
 
+    # Shopee 셀러센터 설정
+    SHOPEE_COOKIE_PATH: str = "/app/data/shopee_cookies.json"
+
     # 쿠키 경로 매핑
     COOKIE_PATHS: dict = {
         'qoo10': '/app/data/qsm_cookies.json',
         'naver': '/app/data/naver_cookies.json',
         'musinsa': '/app/data/musinsa_cookies.json',
+        'shopee': '/app/data/shopee_cookies.json',
     }
 
     # 쿠키 플랫폼 라벨
@@ -61,6 +65,7 @@ class Settings(BaseSettings):
         'qoo10': 'Qoo10 (QSM)',
         'naver': '네이버 스마트스토어',
         'musinsa': '무신사 파트너',
+        'shopee': 'Shopee 셀러센터',
     }
 
     @property

@@ -278,8 +278,9 @@ CACHE_STORE=database
 
 **데이터베이스 테이블 추가**
 - **product_review_sources**: product_id, platform, platform_name, external_url, review_count, average_rating, api_config(encrypted), synced_at
-- **product_reviews**: product_id, review_source_id, platform, platform_product_code, rating, title, content, author, images(JSON), reviewed_at
-  - `platform_product_code`: 플랫폼별 상품코드 (네이버 상품번호, Qoo10 상품코드 등)
+- **product_reviews**: product_id, review_source_id(string), platform, platform_product_code, product_name, rating, title, content, author, images(JSON), reviewed_at
+  - `review_source_id`: 플랫폼 상품코드 문자열 (FK 아님, product_review_sources.external_id와 매칭)
+  - `platform_product_code`: 플랫폼별 상품코드 (네이버 상품번호, Qoo10 상품코드, Shopee name_hash 등)
   - `product_id`: 매칭된 제품 ID (NULL 허용, 나중에 관리자에서 매칭 가능)
 
 ---
@@ -302,10 +303,13 @@ review-collector/
 │       ├── base.py         # BaseScraper 추상 클래스
 │       ├── qoo10.py        # Qoo10 QSM 스크래퍼
 │       ├── naver.py        # 네이버 스마트스토어 스크래퍼
-│       └── musinsa.py      # 무신사 파트너 스크래퍼 (SSO API + OTP)
+│       ├── musinsa.py      # 무신사 파트너 스크래퍼 (SSO API + OTP)
+│       └── shopee.py       # Shopee 셀러센터 스크래퍼 (DOM 스크래핑)
+│   ├── parsers.py          # 엑셀 업로드 파서 (W컨셉, 쿠팡)
 ├── data/
 │   ├── qsm_cookies.json    # Qoo10 쿠키 (gitignore)
-│   └── naver_cookies.json  # 네이버 쿠키 (gitignore)
+│   ├── naver_cookies.json  # 네이버 쿠키 (gitignore)
+│   └── shopee_cookies.json # Shopee 쿠키 (gitignore)
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
@@ -316,6 +320,7 @@ review-collector/
 - **Qoo10**: QSM(판매자 센터) 엑셀 다운로드 방식
 - **Naver**: 스마트스토어 센터 엑셀 다운로드 방식 (쿠키 로그인)
 - **Musinsa**: SSO API 로그인 + Google OTP 자동 인증 (쿠키 불필요)
+- **Shopee**: 셀러센터(seller.shopee.kr) DOM 스크래핑 (쿠키 로그인)
 
 ### 실행 방법
 ```bash
@@ -369,6 +374,7 @@ SYNC_MINUTE=0
 - `GET /api/sync-logs`: 동기화 실행 기록
 - `GET /api/cookies`: 쿠키 상태 조회
 - `POST /api/cookies/{platform}`: 쿠키 업로드
+- `POST /api/reviews/upload/{platform}`: 엑셀 파일 업로드 (W컨셉, 쿠팡)
 
 ### 네이버 쿠키 로그인
 네이버 커머스는 ID/PW 로그인 시 캡챠가 발생하므로 쿠키 로그인 사용:

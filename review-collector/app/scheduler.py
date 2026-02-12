@@ -138,10 +138,13 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
         platform_product_code = review_data.get("product_code")
         product_name = review_data.get("product_name")
 
-        # product_ids 결정: 2단계 매칭 (다대다)
+        # product_ids 결정: 리뷰 데이터에 직접 지정된 product_id 우선 사용
         product_ids = []
 
-        if platform_product_code:
+        direct_product_id = review_data.get("product_id")
+        if direct_product_id:
+            product_ids = [direct_product_id]
+        elif platform_product_code:
             # 1단계: product_review_sources에서 external_id 매칭 (여러 product_id 가능)
             if platform_product_code in source_cache:
                 product_ids = source_cache[platform_product_code]
@@ -181,6 +184,7 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
             if existing:
                 existing.rating = review_data.get("rating", 5.0)
                 existing.content = review_data.get("content", "")
+                existing.review_source_id = platform_product_code
                 existing.platform_product_code = platform_product_code
                 existing.product_name = product_name
                 existing.updated_at = datetime.now()
@@ -188,7 +192,7 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
             else:
                 review = ProductReview(
                     product_id=product_id,
-                    review_source_id=None,
+                    review_source_id=platform_product_code,
                     platform=platform,
                     platform_product_code=platform_product_code,
                     product_name=product_name,

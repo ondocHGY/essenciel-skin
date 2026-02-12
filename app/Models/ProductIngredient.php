@@ -14,12 +14,14 @@ class ProductIngredient extends Model
         'percentage',
         'description',
         'tags',
+        'card_position',
         'sort_order',
         'is_active',
     ];
 
     protected $casts = [
         'tags' => 'array',
+        'card_position' => 'array',
         'is_active' => 'boolean',
     ];
 

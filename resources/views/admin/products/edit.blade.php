@@ -281,6 +281,252 @@
             }
         </script>
 
+        <!-- 메인 썸네일 (메인페이지용) -->
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="thumbnailUploader()">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">메인 썸네일</h2>
+            <p class="text-sm text-gray-500 mb-4">메인 페이지 히어로 영역에 표시될 큰 이미지입니다. 설정하지 않으면 제품 이미지가 사용됩니다. (JPG, PNG, GIF, WEBP / 최대 5MB)</p>
+
+            <div class="flex items-start gap-6">
+                <!-- 이미지 미리보기 -->
+                <div class="w-40 h-40 flex-shrink-0 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative">
+                    <template x-if="!thumbPreview && !currentThumb">
+                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </template>
+                    <template x-if="thumbPreview">
+                        <img :src="thumbPreview" class="w-full h-full object-contain">
+                    </template>
+                    <template x-if="!thumbPreview && currentThumb">
+                        <img :src="currentThumb" class="w-full h-full object-contain">
+                    </template>
+                    <!-- 삭제 버튼 -->
+                    <template x-if="currentThumb && !removeThumb">
+                        <button type="button" @click="removeThumb = true; currentThumb = null"
+                                class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- 업로드 버튼 -->
+                <div class="flex-1">
+                    <label class="block">
+                        <span class="sr-only">메인 썸네일 선택</span>
+                        <input type="file" name="main_thumbnail" accept="image/*" @change="handleThumbSelect($event)"
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    </label>
+                    <p class="mt-2 text-xs text-gray-400">권장: 세로로 긴 제품 이미지 (배경 투명 PNG 추천)</p>
+                    <input type="hidden" name="remove_main_thumbnail" :value="removeThumb ? '1' : '0'">
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function thumbnailUploader() {
+                return {
+                    thumbPreview: null,
+                    currentThumb: @json($product->main_thumbnail ? asset('storage/' . $product->main_thumbnail) : null),
+                    removeThumb: false,
+                    handleThumbSelect(event) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            this.thumbPreview = URL.createObjectURL(file);
+                            this.removeThumb = false;
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <!-- 성분 카드 위치 편집기 -->
+        @php
+            $activeIngredients = $product->activeIngredients;
+            $thumbSrc = $product->main_thumbnail
+                ? asset('storage/' . $product->main_thumbnail)
+                : ($product->image ? asset('storage/' . $product->image) : null);
+            $ingredientsJson = $activeIngredients->map(fn($i) => [
+                'id' => $i->id,
+                'name' => $i->name,
+                'card_position' => $i->card_position,
+            ])->values();
+        @endphp
+        @if($activeIngredients->count() > 0 && $thumbSrc)
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="cardPositionEditor()">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">성분 카드 위치 설정</h2>
+                    <p class="text-sm text-gray-500 mt-1">카드를 드래그하여 위치를 조정하세요</p>
+                </div>
+                <button type="button" @click="savePositions()"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                        :class="saving ? 'opacity-50 cursor-not-allowed' : ''"
+                        :disabled="saving">
+                    <template x-if="saving">
+                        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </template>
+                    <template x-if="!saving">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </template>
+                    <span x-text="saving ? '저장 중...' : (saved ? '저장됨' : '위치 저장')"></span>
+                </button>
+            </div>
+
+            <!-- 미리보기 영역 -->
+            <div class="relative mx-auto rounded-xl overflow-hidden bg-gray-100 border border-gray-200 select-none"
+                 style="aspect-ratio: 343 / 395; max-width: 400px;"
+                 x-ref="previewArea"
+                 @mouseup="onDragEnd()" @mouseleave="onDragEnd()" @mousemove="onDrag($event)"
+                 @touchend="onDragEnd()" @touchmove.prevent="onTouchDrag($event)">
+                <img src="{{ $thumbSrc }}" class="w-full h-full object-cover" draggable="false">
+
+                <!-- 카드들 -->
+                <template x-for="(card, idx) in cards" :key="card.id">
+                    <div class="absolute z-10 cursor-grab active:cursor-grabbing"
+                         :style="'top: ' + card.top + '%; left: ' + card.left + '%;'"
+                         @mousedown.prevent="onDragStart(idx, $event)"
+                         @touchstart.prevent="onTouchStart(idx, $event)">
+                        <div class="flex items-center gap-1.5 bg-white rounded-full px-2.5 py-1.5 shadow-lg" style="box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                            <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+                                <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-900 whitespace-nowrap" x-text="card.name"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- 카드별 좌표 목록 -->
+            <div class="mt-4 space-y-2">
+                <template x-for="(card, idx) in cards" :key="card.id">
+                    <div class="flex items-center gap-3 text-sm">
+                        <span class="w-28 font-medium text-gray-700 truncate" x-text="card.name"></span>
+                        <label class="flex items-center gap-1 text-gray-500">
+                            top
+                            <input type="number" x-model.number="card.top" min="0" max="100" step="1"
+                                   @change="saved = false"
+                                   class="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center">
+                            %
+                        </label>
+                        <label class="flex items-center gap-1 text-gray-500">
+                            left
+                            <input type="number" x-model.number="card.left" min="0" max="100" step="1"
+                                   @change="saved = false"
+                                   class="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center">
+                            %
+                        </label>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <script>
+            function cardPositionEditor() {
+                const defaultPositions = [
+                    { top: 10, left: 0 },
+                    { top: 30, left: 70 },
+                    { top: 55, left: 5 },
+                    { top: 75, left: 65 },
+                    { top: 45, left: 0 },
+                ];
+
+                const ingredients = @json($ingredientsJson);
+
+                return {
+                    cards: ingredients.map((ing, idx) => ({
+                        id: ing.id,
+                        name: ing.name,
+                        top: ing.card_position?.top ? parseFloat(ing.card_position.top) : (defaultPositions[idx % defaultPositions.length]?.top ?? 10),
+                        left: ing.card_position?.left ? parseFloat(ing.card_position.left) : (defaultPositions[idx % defaultPositions.length]?.left ?? 0),
+                    })),
+                    dragging: null,
+                    dragOffset: { x: 0, y: 0 },
+                    saving: false,
+                    saved: false,
+
+                    onDragStart(idx, e) {
+                        this.dragging = idx;
+                        const rect = this.$refs.previewArea.getBoundingClientRect();
+                        const cardX = (this.cards[idx].left / 100) * rect.width;
+                        const cardY = (this.cards[idx].top / 100) * rect.height;
+                        this.dragOffset.x = e.clientX - rect.left - cardX;
+                        this.dragOffset.y = e.clientY - rect.top - cardY;
+                    },
+
+                    onTouchStart(idx, e) {
+                        const touch = e.touches[0];
+                        this.dragging = idx;
+                        const rect = this.$refs.previewArea.getBoundingClientRect();
+                        const cardX = (this.cards[idx].left / 100) * rect.width;
+                        const cardY = (this.cards[idx].top / 100) * rect.height;
+                        this.dragOffset.x = touch.clientX - rect.left - cardX;
+                        this.dragOffset.y = touch.clientY - rect.top - cardY;
+                    },
+
+                    onDrag(e) {
+                        if (this.dragging === null) return;
+                        const rect = this.$refs.previewArea.getBoundingClientRect();
+                        let x = e.clientX - rect.left - this.dragOffset.x;
+                        let y = e.clientY - rect.top - this.dragOffset.y;
+                        this.cards[this.dragging].left = Math.round(Math.max(0, Math.min(85, (x / rect.width) * 100)));
+                        this.cards[this.dragging].top = Math.round(Math.max(0, Math.min(95, (y / rect.height) * 100)));
+                        this.saved = false;
+                    },
+
+                    onTouchDrag(e) {
+                        if (this.dragging === null) return;
+                        const touch = e.touches[0];
+                        const rect = this.$refs.previewArea.getBoundingClientRect();
+                        let x = touch.clientX - rect.left - this.dragOffset.x;
+                        let y = touch.clientY - rect.top - this.dragOffset.y;
+                        this.cards[this.dragging].left = Math.round(Math.max(0, Math.min(85, (x / rect.width) * 100)));
+                        this.cards[this.dragging].top = Math.round(Math.max(0, Math.min(95, (y / rect.height) * 100)));
+                        this.saved = false;
+                    },
+
+                    onDragEnd() {
+                        this.dragging = null;
+                    },
+
+                    async savePositions() {
+                        this.saving = true;
+                        try {
+                            const res = await fetch('{{ route("admin.products.ingredients.positions", $product) }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                },
+                                body: JSON.stringify({
+                                    positions: this.cards.map(c => ({
+                                        id: c.id,
+                                        top: c.top + '%',
+                                        left: c.left + '%',
+                                    }))
+                                })
+                            });
+                            if (res.ok) {
+                                this.saved = true;
+                            }
+                        } catch (e) {
+                            alert('저장에 실패했습니다.');
+                        }
+                        this.saving = false;
+                    }
+                };
+            }
+        </script>
+        @endif
+
         <!-- 효능 설정 (결과 페이지용) -->
         <div class="bg-white rounded-xl shadow-sm p-6" x-data="efficacySettings()" @efficacy-type-changed.window="applyPreset($event.detail.type)">
             <div class="flex items-start justify-between mb-6">

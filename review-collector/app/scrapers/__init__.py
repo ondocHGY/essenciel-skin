@@ -4,12 +4,14 @@ from app.scrapers.base import BaseScraper
 from app.scrapers.qoo10 import Qoo10Scraper
 from app.scrapers.naver import NaverScraper
 from app.scrapers.musinsa import MusinsaScraper
+from app.scrapers.shopee import ShopeeScraper
 
 # 지원하는 플랫폼 스크래퍼 레지스트리
 SCRAPERS = {
     'qoo10': Qoo10Scraper,
     'naver': NaverScraper,
     'musinsa': MusinsaScraper,
+    'shopee': ShopeeScraper,
 }
 
 

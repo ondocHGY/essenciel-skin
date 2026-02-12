@@ -35,6 +35,7 @@ class ProductController extends Controller
             'category' => 'required|string|max:255',
             'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,soothing',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'main_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'base_curve' => 'required|array',
             'base_curve.moisture' => 'required|array|size:5',
             'base_curve.elasticity' => 'required|array|size:5',
@@ -49,6 +50,11 @@ class ProductController extends Controller
         // 이미지 업로드 처리
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        // 메인 썸네일 업로드 처리
+        if ($request->hasFile('main_thumbnail')) {
+            $validated['main_thumbnail'] = $request->file('main_thumbnail')->store('products/thumbnails', 'public');
         }
 
         $product = Product::create($validated);
@@ -77,6 +83,7 @@ class ProductController extends Controller
             'point_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'main_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'efficacy_phases' => 'nullable|array',
             'efficacy_phases.phase1' => 'nullable|string',
             'efficacy_phases.phase2' => 'nullable|string',
@@ -198,6 +205,20 @@ class ProductController extends Controller
         if ($request->input('remove_image') === '1' && $product->image) {
             Storage::disk('public')->delete($product->image);
             $validated['image'] = null;
+        }
+
+        // 메인 썸네일 업로드 처리
+        if ($request->hasFile('main_thumbnail')) {
+            if ($product->main_thumbnail) {
+                Storage::disk('public')->delete($product->main_thumbnail);
+            }
+            $validated['main_thumbnail'] = $request->file('main_thumbnail')->store('products/thumbnails', 'public');
+        }
+
+        // 메인 썸네일 삭제 요청
+        if ($request->input('remove_main_thumbnail') === '1' && $product->main_thumbnail) {
+            Storage::disk('public')->delete($product->main_thumbnail);
+            $validated['main_thumbnail'] = null;
         }
 
         $product->update($validated);

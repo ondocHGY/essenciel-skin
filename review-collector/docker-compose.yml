@@ -20,6 +20,9 @@ services:
       - MUSINSA_PASSWORD=${MUSINSA_PASSWORD}
       - MUSINSA_OTP_SECRET=${MUSINSA_OTP_SECRET}
 
+      # Shopee 셀러센터 설정
+      - SHOPEE_COOKIE_PATH=/app/data/shopee_cookies.json
+
       # 데이터베이스 설정 (Laravel DB)
       - DB_HOST=${DB_HOST:-mariadb}
       - DB_PORT=${DB_PORT:-3306}

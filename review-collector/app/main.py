@@ -19,6 +19,7 @@ from app.models import (
 )
 from app.scrapers import get_scraper, get_supported_platforms
 from app.scheduler import start_scheduler, stop_scheduler, save_reviews
+from app.parsers import UPLOAD_PARSERS, get_upload_platforms
 
 # 로깅 설정
 logging.basicConfig(
@@ -175,13 +176,80 @@ def sync_platform_reviews(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============== 엑셀 업로드 ==============
+
+@app.post("/api/reviews/upload/{platform}")
+async def upload_reviews(
+    platform: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """엑셀 파일 업로드로 리뷰 등록 (W컨셉, 쿠팡 등)"""
+    parser = UPLOAD_PARSERS.get(platform)
+    if not parser:
+        raise HTTPException(
+            status_code=400,
+            detail=f"업로드 미지원 플랫폼: {platform}. 지원: {get_upload_platforms()}"
+        )
+
+    if not file.filename.endswith(('.xls', '.xlsx')):
+        raise HTTPException(status_code=400, detail="엑셀 파일(.xls, .xlsx)만 지원합니다")
+
+    try:
+        # 임시 파일 저장
+        temp_path = os.path.join(settings.DOWNLOAD_PATH, f"upload_{platform}_{file.filename}")
+        os.makedirs(settings.DOWNLOAD_PATH, exist_ok=True)
+
+        content = await file.read()
+        with open(temp_path, 'wb') as f:
+            f.write(content)
+
+        logger.info(f"[{platform}] 엑셀 업로드: {file.filename} ({len(content)} bytes)")
+
+        # 파싱
+        reviews = parser(temp_path)
+
+        if not reviews:
+            os.remove(temp_path)
+            return {
+                "success": True,
+                "message": "파싱된 리뷰가 없습니다",
+                "reviews_added": 0,
+                "reviews_updated": 0,
+                "total_parsed": 0,
+            }
+
+        # DB 저장
+        added, updated = save_reviews(platform, reviews, db)
+
+        # 임시 파일 삭제
+        os.remove(temp_path)
+
+        logger.info(f"[{platform}] 업로드 완료: +{added}개 추가, {updated}개 업데이트")
+
+        return {
+            "success": True,
+            "message": f"{added}개 추가, {updated}개 업데이트",
+            "reviews_added": added,
+            "reviews_updated": updated,
+            "total_parsed": len(reviews),
+        }
+
+    except Exception as e:
+        logger.error(f"[{platform}] 업로드 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============== 플랫폼 정보 ==============
 
 @app.get("/api/platforms")
 def get_platforms():
     """지원 플랫폼 목록"""
     return {
-        "platforms": get_supported_platforms()
+        "platforms": get_supported_platforms(),
+        "upload_platforms": get_upload_platforms(),
     }
 
 

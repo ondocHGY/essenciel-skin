@@ -56,6 +56,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/products/{product}/ingredients/{ingredient}', [AdminProductIngredientController::class, 'update'])->name('products.ingredients.update');
         Route::delete('/products/{product}/ingredients/{ingredient}', [AdminProductIngredientController::class, 'destroy'])->name('products.ingredients.destroy');
         Route::post('/products/{product}/ingredients/reorder', [AdminProductIngredientController::class, 'reorder'])->name('products.ingredients.reorder');
+        Route::post('/products/{product}/ingredients/positions', [AdminProductIngredientController::class, 'updatePositions'])->name('products.ingredients.positions');
 
         // 설문 결과 관리
         Route::get('/surveys', [AdminSurveyController::class, 'index'])->name('surveys.index');

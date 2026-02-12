@@ -39,6 +39,10 @@ class ProductIngredientController extends Controller
             'description' => 'nullable|string|max:1000',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|string|max:50',
+            'card_position' => 'nullable|array',
+            'card_position.top' => 'nullable|string|max:20',
+            'card_position.left' => 'nullable|string|max:20',
+            'card_position.right' => 'nullable|string|max:20',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ]);
@@ -53,6 +57,14 @@ class ProductIngredientController extends Controller
             $validated['tags'] = array_values(array_filter($validated['tags'], fn($v) => !empty(trim($v))));
             if (empty($validated['tags'])) {
                 $validated['tags'] = null;
+            }
+        }
+
+        // 카드 위치 빈 값 필터링
+        if (isset($validated['card_position'])) {
+            $validated['card_position'] = array_filter($validated['card_position'], fn($v) => !empty(trim($v)));
+            if (empty($validated['card_position'])) {
+                $validated['card_position'] = null;
             }
         }
 
@@ -90,6 +102,10 @@ class ProductIngredientController extends Controller
             'description' => 'nullable|string|max:1000',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|string|max:50',
+            'card_position' => 'nullable|array',
+            'card_position.top' => 'nullable|string|max:20',
+            'card_position.left' => 'nullable|string|max:20',
+            'card_position.right' => 'nullable|string|max:20',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ]);
@@ -114,6 +130,14 @@ class ProductIngredientController extends Controller
             $validated['tags'] = array_values(array_filter($validated['tags'], fn($v) => !empty(trim($v))));
             if (empty($validated['tags'])) {
                 $validated['tags'] = null;
+            }
+        }
+
+        // 카드 위치 빈 값 필터링
+        if (isset($validated['card_position'])) {
+            $validated['card_position'] = array_filter($validated['card_position'], fn($v) => !empty(trim($v)));
+            if (empty($validated['card_position'])) {
+                $validated['card_position'] = null;
             }
         }
 
@@ -156,6 +180,32 @@ class ProductIngredientController extends Controller
             ProductIngredient::where('id', $id)
                 ->where('product_id', $product->id)
                 ->update(['sort_order' => $index]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * 성분 카드 위치 일괄 업데이트 (AJAX)
+     */
+    public function updatePositions(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'positions' => 'required|array',
+            'positions.*.id' => 'required|integer|exists:product_ingredients,id',
+            'positions.*.top' => 'nullable|string|max:20',
+            'positions.*.left' => 'nullable|string|max:20',
+        ]);
+
+        foreach ($validated['positions'] as $pos) {
+            $cardPosition = array_filter([
+                'top' => $pos['top'] ?? null,
+                'left' => $pos['left'] ?? null,
+            ], fn($v) => $v !== null && $v !== '');
+
+            ProductIngredient::where('id', $pos['id'])
+                ->where('product_id', $product->id)
+                ->update(['card_position' => empty($cardPosition) ? null : $cardPosition]);
         }
 
         return response()->json(['success' => true]);

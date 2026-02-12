@@ -32,7 +32,7 @@ class ProductReview(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, nullable=True)  # Laravel products.id 참조 (매칭 후 설정)
-    review_source_id = Column(Integer, nullable=True)  # product_review_sources.id 참조
+    review_source_id = Column(String(100), nullable=True)  # 플랫폼 상품코드 (platform_product_code)
     platform = Column(String(50))
     platform_product_code = Column(String(100), nullable=True)  # 플랫폼별 상품코드
     product_name = Column(String(500), nullable=True)  # 플랫폼에서 가져온 상품명

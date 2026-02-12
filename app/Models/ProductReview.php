@@ -40,7 +40,7 @@ class ProductReview extends Model
 
     public function reviewSource(): BelongsTo
     {
-        return $this->belongsTo(ProductReviewSource::class, 'review_source_id');
+        return $this->belongsTo(ProductReviewSource::class, 'review_source_id', 'external_id');
     }
 
     /**

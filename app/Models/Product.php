@@ -23,6 +23,7 @@ class Product extends Model
         'intro_summary',
         'intro_review_count',
         'image',
+        'main_thumbnail',
         'ingredient_details',
         'nanoliposome_info',
         'technology_section',

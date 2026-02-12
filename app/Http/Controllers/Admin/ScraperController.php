@@ -81,15 +81,35 @@ class ScraperController extends Controller
                 $body['platform'] = $request->platform;
             }
 
-            $response = Http::timeout(120)
+            $response = Http::timeout(600)
                 ->post($this->apiUrl() . '/api/reviews/sync', $body);
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                // API가 플랫폼별 결과 리스트를 반환
+                if (is_array($data) && isset($data[0])) {
+                    $totalAdded = 0;
+                    $totalUpdated = 0;
+                    $messages = [];
+                    foreach ($data as $result) {
+                        $platform = $result['platform'] ?? '';
+                        $success = $result['success'] ?? false;
+                        $added = $result['reviews_added'] ?? 0;
+                        $updated = $result['reviews_updated'] ?? 0;
+                        $totalAdded += $added;
+                        $totalUpdated += $updated;
+                        $status = $success ? '성공' : '실패';
+                        $messages[] = "{$platform}: {$status} (+{$added}, ↑{$updated})";
+                    }
+                    $summary = implode(' | ', $messages);
+                    return back()->with('success', "동기화 완료 — {$summary} (합계: 추가 {$totalAdded}, 업데이트 {$totalUpdated})");
+                }
+
+                // 단일 결과
                 $message = $data['message'] ?? '동기화 완료';
                 $added = $data['reviews_added'] ?? 0;
                 $updated = $data['reviews_updated'] ?? 0;
-
                 return back()->with('success', "{$message} (추가: {$added}, 업데이트: {$updated})");
             }
 
