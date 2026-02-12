@@ -455,9 +455,11 @@ function productPage() {
     const productCode = '{{ $product->code }}';
     const storageKey = `product_data_collected_${productCode}`;
 
-    const totalReviewCount = {{ $product->intro_review_count ?? 11257 }};
-    const platformRatios = [0.252, 0.225, 0.168, 0.144, 0.094, 0.069, 0.048, 0];
-    const targetCounts = platformRatios.map(ratio => Math.round(totalReviewCount * ratio));
+    // 플랫폼별 실제 DB 리뷰 수
+    const dbPlatformCounts = @json($platformReviewCounts);
+    const platformKeys = ['naver', 'coupang', 'hwahae', 'musinsa', 'wconcept', 'amazon', 'qoo10', 'shopee'];
+    const targetCounts = platformKeys.map(key => dbPlatformCounts[key] ?? 0);
+    const totalReviewCount = targetCounts.reduce((a, b) => a + b, 0);
 
     @php
         $efficacyType = $product->efficacy_type ?? 'moisture';

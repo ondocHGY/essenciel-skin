@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -17,6 +18,13 @@ class ProductController extends Controller
             $request->session()->put('skincare_session_id', Str::uuid()->toString());
         }
 
-        return view('product.show', compact('product'));
+        // 플랫폼별 실제 리뷰 수 조회
+        $platformReviewCounts = ProductReview::where('product_id', $product->id)
+            ->selectRaw('platform, count(*) as count')
+            ->groupBy('platform')
+            ->pluck('count', 'platform')
+            ->toArray();
+
+        return view('product.show', compact('product', 'platformReviewCounts'));
     }
 }
