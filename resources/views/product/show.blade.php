@@ -99,21 +99,20 @@
                 @foreach($ingredients as $index => $ingredient)
                 @php
                     $position = $ingredient->card_position ?? null;
-                    // 기본 위치: 카드들을 분산 배치
+                    // 기본 위치: 카드들을 분산 배치 (관리자와 동일하게 left 기준)
                     $defaultPositions = [
                         ['top' => '10%', 'left' => '0%'],
-                        ['top' => '30%', 'right' => '0%'],
+                        ['top' => '30%', 'left' => '70%'],
                         ['top' => '55%', 'left' => '5%'],
-                        ['top' => '75%', 'right' => '5%'],
+                        ['top' => '75%', 'left' => '65%'],
                         ['top' => '45%', 'left' => '0%'],
                     ];
                     $defaultPos = $defaultPositions[$index % count($defaultPositions)];
-                    $top = $position['top'] ?? ($defaultPos['top'] ?? 'auto');
-                    $left = $position['left'] ?? ($defaultPos['left'] ?? 'auto');
-                    $right = $position['right'] ?? ($defaultPos['right'] ?? 'auto');
+                    $top = $position['top'] ?? ($defaultPos['top'] ?? '0%');
+                    $left = $position['left'] ?? ($defaultPos['left'] ?? '0%');
                 @endphp
-                <div class="absolute z-10"
-                     style="top: {{ $top }}; {{ $left !== 'auto' ? 'left: ' . $left . ';' : '' }} {{ $right !== 'auto' ? 'right: ' . $right . ';' : '' }}">
+                <div class="absolute z-10 w-max"
+                     style="top: {{ $top }}; left: {{ $left }};">
                     <div class="flex items-center gap-2 rounded-full px-3 py-2"
                          style="background-color: rgba(255,255,255,0.55); box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
                         <div class="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">
