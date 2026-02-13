@@ -19,6 +19,11 @@
     $iGa = fn($word) => $josa($word, '이', '가');
     $eulReul = fn($word) => $josa($word, '을', '를');
 
+    // {중괄호} 텍스트를 파란색 볼드 강조로 변환
+    $blueHighlight = function($text) {
+        return preg_replace('/\{(.+?)\}/', '<span style="color: #3F78EB; font-weight: 700;">$1</span>', e($text));
+    };
+
     $efficacyNames = \App\Models\Product::$efficacyTypes;
     $efficacyType = $result->metrics['efficacy_type'] ?? 'moisture';
     $efficacyName = $efficacyNames[$efficacyType] ?? '수분 공급';
@@ -89,10 +94,11 @@
     $regenerationLevel = $characteristics['regeneration']['level'] ?? 3;
     $moistureLevel = $characteristics['moisture_retention']['level'] ?? 3;
     $pigmentLevel = $characteristics['pigment_reactivity']['level'] ?? 3;
+    $sensitivityLevel = $characteristics['sensitivity']['level'] ?? 3;
 
     $profileData = [
         'regeneration' => [
-            'label' => '피부재생속도',
+            'label' => '피부 재생 속도',
             'level' => $regenerationLevel,
             'description' => match($regenerationLevel) {
                 5 => '매우 빠른 편',
@@ -103,7 +109,7 @@
             },
         ],
         'moisture_retention' => [
-            'label' => '피부 수분유지력',
+            'label' => '피부 수분 유지력',
             'level' => $moistureLevel,
             'description' => match($moistureLevel) {
                 5 => '매우 많은 편',
@@ -125,6 +131,31 @@
             },
         ],
     ];
+
+    // 피부 설명 텍스트 생성 (결과 상단용) - 느낌 기반 문구
+    // 1번 문구: 수분 유지력 기반 증상
+    $skinDescText1 = match(true) {
+        $moistureLevel <= 2 => '속당김',
+        $moistureLevel >= 4 => '촉촉함',
+        default => '가벼운 건조함',
+    };
+
+    // 2번 문구: 민감도 수준
+    $skinDescText2 = match(true) {
+        $sensitivityLevel >= 4 => '높은',
+        $sensitivityLevel <= 2 => '낮은',
+        default => '보통인',
+    };
+
+    // 3번 문구: 효능 타입 기반 피부 타입
+    $skinTypeText = match($efficacyType) {
+        'moisture' => '건조 피부',
+        'elasticity' => '탄력저하 피부',
+        'tone' => '칙칙한 피부',
+        'pore' => '모공성 피부',
+        'soothing' => '민감성 피부',
+        default => '복합성 피부',
+    };
 @endphp
 
 @section('content')
@@ -145,522 +176,394 @@
         </div>
     </div>
 
-    {{-- 상단 헤더 (메인과 동일하게 고정) --}}
-    <div x-show="!isLoading" class="bg-black py-4 sticky top-0 z-50 overflow-hidden">
-        <div class="flex items-center gap-3">
-            <img src="{{ asset('logo_white.png') }}" alt="essenciel" class="h-5 flex-shrink-0 ml-4">
-            <div class="marquee-container overflow-hidden flex-1">
-                <div class="marquee-track">
-                    <span class="marquee-text text-sm text-white">에센시엘은 검증된 데이터를 기반으로 과학적으로 설계합니다.</span>
-                    <span class="marquee-text text-sm text-white">에센시엘은 검증된 데이터를 기반으로 과학적으로 설계합니다.</span>
-                    <span class="marquee-text text-sm text-white">에센시엘은 검증된 데이터를 기반으로 과학적으로 설계합니다.</span>
-                </div>
+    {{-- 상단 헤더 (제품 상세와 동일) --}}
+    <div x-show="!isLoading" class="bg-black sticky top-0 z-50">
+        <div class="max-w-lg mx-auto flex items-center justify-between px-4 py-3">
+            <img src="{{ asset('logo_white.png') }}" alt="Essenciel" class="h-5">
+            <button @click="menuOpen = !menuOpen" class="text-white p-1">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="5" cy="12" r="2"/>
+                    <circle cx="12" cy="12" r="2"/>
+                    <circle cx="19" cy="12" r="2"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    {{-- 메뉴 드롭다운 --}}
+    <div x-show="menuOpen" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
+         @click.away="menuOpen = false"
+         class="fixed top-12 right-2 z-[60] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden min-w-[180px]">
+        <a href="{{ route('product.show', $product->code) }}"
+           class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            제품 상세
+        </a>
+        <a href="{{ route('survey.index', $product->code) }}"
+           class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+            다른 제품 분석
+        </a>
+    </div>
+
+    {{-- 분석 완료 섹션 --}}
+    <div x-show="!isLoading" class="text-center pt-10 pb-6 bg-white">
+        <div class="max-w-[375px] mx-auto px-5">
+            {{-- 파란 원형 체크 아이콘 --}}
+            <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style="background-color: #3F78EB;">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-6">분석 완료되었습니다.</h2>
+
+            {{-- 피부 설명 (회색 박스) --}}
+            <div class="bg-gray-50 rounded-xl px-5 py-5 text-center">
+                <p class="text-base text-gray-700 leading-relaxed font-semibold">
+                    당신의 피부는<br>
+                    <span style="color: #3F78EB;">{{ $skinDescText1 }}</span>{{ $iGa($skinDescText1) }} 느껴지고,<br>
+                    <span style="color: #3F78EB;">민감도</span>가 {{ $skinDescText2 }} <span style="color: #3F78EB;">{{ $skinTypeText }}</span>입니다.
+                </p>
             </div>
         </div>
     </div>
 
-    {{-- 분석 완료 섹션 (전체 배경 그라데이션, 가로세로 비율 18:15) --}}
-    <div x-show="!isLoading" class="text-center" style="background: linear-gradient(180deg, #FFFFFF 0%, {{ $darkerPointColor }}50 100%); aspect-ratio: 18 / 15;">
-        <div class="max-w-[375px] mx-auto px-4 h-full flex flex-col justify-center">
-            {{-- 반원 게이지 + 이동하는 점 --}}
-            <div class="relative mx-auto" style="width: 340px; height: 180px;">
-                {{-- 반원 게이지 배경 --}}
-                <svg class="absolute top-0 left-0 w-full h-full" viewBox="0 0 210 110">
-                    <defs>
-                        {{-- 게이지 그라데이션 (연한색 → 진한색) --}}
-                        <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="{{ $pointColor }}"/>
-                            <stop offset="100%" stop-color="{{ $darkerPointColor }}"/>
-                        </linearGradient>
-                    </defs>
-                    {{-- 배경 반원 --}}
-                    <path d="M 15 95 A 90 90 0 0 1 195 95" fill="none" stroke="#E5E5E5" stroke-width="8" stroke-linecap="round"/>
-                    {{-- 게이지 반원 (애니메이션 + 그라데이션) --}}
-                    <path d="M 15 95 A 90 90 0 0 1 195 95" fill="none" stroke="url(#gaugeGradient)" stroke-width="8" stroke-linecap="round"
-                          stroke-dasharray="283" :stroke-dashoffset="283 - (gaugeProgress * 283 / 100)"/>
-                    {{-- 이동하는 점 마커 (흰색 점 + 포인트컬러 테두리) --}}
-                    <circle :cx="markerX" :cy="markerY" r="6" fill="white" stroke="{{ $darkerPointColor }}" stroke-width="4"/>
-                </svg>
+    {{-- 탭 메뉴 --}}
+    <div x-show="!isLoading" class="sticky top-[52px] z-40 bg-white">
+        <div class="flex max-w-lg mx-auto border-b border-gray-200">
+            <button @click="activeTab = 'analysis'"
+                    :class="activeTab === 'analysis' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
+                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">피부 분석</button>
+            <button @click="activeTab = 'prediction'"
+                    :class="activeTab === 'prediction' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
+                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">효과 예측</button>
+            <button @click="activeTab = 'guide'"
+                    :class="activeTab === 'guide' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
+                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">사용 가이드</button>
+        </div>
+    </div>
 
-                {{-- 중앙 텍스트 (퍼센트만) --}}
-                <div class="absolute inset-0 flex items-center justify-center" style="padding-top: 50px;">
-                    <span class="font-bold text-gray-900" style="font-size: 66px;" x-text="Math.round(gaugeProgress) + '%'">0%</span>
-                </div>
-            </div>
+    <div x-show="!isLoading" class="px-5 py-8 max-w-lg mx-auto pb-52">
+        {{-- ===== 탭 1: 피부 분석 ===== --}}
+        <div x-show="activeTab === 'analysis'">
+        {{-- 1. 나의 피부 분석 --}}
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">나의 피부 분석</h2>
 
-            {{-- 상품명 + 결과 생성 상태 (게이지 하단) --}}
-            <div class="text-center -mt-2 mb-4">
-                <p class="text-sm text-gray-500">{{ $product->name }}</p>
-                <p class="text-sm text-gray-500" x-text="gaugeProgress >= 100 ? '결과 생성완료' : '결과 생성중'">결과 생성중</p>
-            </div>
-
-            {{-- 분석 완료 버튼 (채워지는 애니메이션) --}}
-            <div x-data="analysisCompleteBtn()" x-init="startFill()" class="w-3/5 mx-auto">
-                <div class="relative py-3 bg-white rounded-xl overflow-hidden">
-                    {{-- 검은색 채움 (왼쪽→오른쪽) --}}
-                    <div class="absolute inset-0 bg-black"
-                         :style="'width: ' + (fillProgress * 100) + '%'"></div>
-                    {{-- 텍스트 --}}
-                    <span class="relative z-10 font-semibold transition-all duration-300"
-                          :class="fillProgress >= 1 ? 'text-white' : 'text-transparent'">
-                        분석 완료
+        <div class="space-y-4">
+            @foreach($profileData as $key => $data)
+            @php
+                $level = $data['level'];
+                if ($level >= 4) {
+                    $badgeBg = '#E8F0FE'; $badgeColor = '#3F78EB';
+                    $badgeEmoji = '👍'; $badgeText = 'GOOD';
+                } elseif ($level >= 3) {
+                    $badgeBg = '#F0F0F0'; $badgeColor = '#888888';
+                    $badgeEmoji = '≈'; $badgeText = 'NORMAL';
+                } else {
+                    $badgeBg = '#FEE8E8'; $badgeColor = '#E05050';
+                    $badgeEmoji = '⚠️'; $badgeText = 'CARE';
+                }
+                $descHighlight = match(true) {
+                    $level >= 4 => '평균 이상',
+                    $level >= 3 => '평균',
+                    default => '평균 이하',
+                };
+                $gaugeLabels = [
+                    'regeneration' => ['느림', '보통', '빠름'],
+                    'moisture_retention' => ['낮음', '보통', '높음'],
+                    'pigment_reactivity' => ['낮음', '보통', '높음'],
+                ];
+                $labels = $gaugeLabels[$key] ?? ['낮음', '보통', '높음'];
+            @endphp
+            <div class="rounded-2xl p-5" style="background-color: #F5F6F8;"
+                 x-data="profileGauge({{ $loop->index }}, {{ ($level / 5) * 100 }})" x-init="startAnimation()">
+                {{-- 제목 + 뱃지 --}}
+                <div class="flex items-center gap-2 mb-2">
+                    <h3 class="text-lg font-bold text-gray-900">{{ $data['label'] }}</h3>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+                          style="background-color: {{ $badgeBg }}; color: {{ $badgeColor }};">
+                        {{ $badgeEmoji }} {{ $badgeText }}
                     </span>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div x-show="!isLoading" class="px-5 py-8 max-w-lg mx-auto">
-        {{-- 1. 피부 반응 프로파일 요약 --}}
-        <div class="bg-white rounded-2xl mb-10" style="border: 1px solid #D9D9D9;">
-            <div class="p-6">
-                {{-- 타이틀 --}}
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-lg font-bold text-gray-900">피부 반응 프로파일 요약</h2>
-                </div>
-
-                @php
-                    $averagePositions = [45, 50, 54]; // 각 항목별 평균 표시선 위치 (%)
-                @endphp
-                <div class="space-y-8">
-                    @foreach($profileData as $key => $data)
-                    @php $avgPos = $averagePositions[$loop->index] ?? 50; @endphp
-                    <div x-data="profileGauge({{ $loop->index }}, {{ ($data['level'] / 5) * 100 }})" x-init="startAnimation()">
-                        {{-- 텍스트 (두 줄) --}}
-                        <p class="mb-1 font-semibold" style="font-size: 24px; color: #999999;">
-                            당신의 <span style="color: #000000;">{{ $data['label'] }}</span>{{ $eunNeun($data['label']) }}
-                        </p>
-                        <p class="mb-8 font-semibold" style="font-size: 24px; color: #999999;">
-                            <span style="color: #999999;">{{ $data['description'] }}</span>입니다.
-                        </p>
-
-                        {{-- 게이지 바 --}}
-                        <div class="relative rounded-full overflow-visible" style="background-color: #E8E8E8; height: 32px;">
-                            {{-- 평균 지점 표시 --}}
-                            <div class="absolute transform -translate-x-1/2 text-base text-gray-500 font-medium" style="left: {{ $avgPos }}%; top: -28px;">평균</div>
-                            <div class="absolute top-0 transform -translate-x-1/2 bg-gray-800 z-10" style="left: {{ $avgPos }}%; height: 32px; width: 3px;"></div>
-                            {{-- 게이지 (포인트 컬러 그라데이션) --}}
-                            <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
-                                 :style="'width: ' + currentWidth + '%; background: linear-gradient(to right, {{ $pointColor }}, {{ $darkerPointColor }})'">
-                            </div>
-                        </div>
-                        {{-- 하단 라벨 (항목별로 다른 텍스트) --}}
-                        @php
-                            $gaugeLabels = [
-                                'regeneration' => ['느림', '보통', '빠름'],
-                                'moisture_retention' => ['낮음', '보통', '높음'],
-                                'pigment_reactivity' => ['낮음', '보통', '높음'],
-                            ];
-                            $labels = $gaugeLabels[$key] ?? ['낮음', '보통', '높음'];
-                        @endphp
-                        <div class="flex justify-between mt-3 px-1">
-                            <span class="text-base text-gray-400">{{ $labels[0] }}</span>
-                            <span class="text-base text-gray-400">{{ $labels[1] }}</span>
-                            <span class="text-base text-gray-400">{{ $labels[2] }}</span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        {{-- 2. 효능 발현 예측 --}}
-        <div class="bg-white rounded-2xl mb-10" style="border: 1px solid #D9D9D9;">
-            <div class="p-6">
-                {{-- 타이틀 --}}
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-lg font-bold text-gray-900">효능 발현 예측</h2>
-                </div>
-
-                {{-- 원형 틱 게이지 애니메이션 --}}
-                <div class="relative w-60 h-60 mx-auto mb-8">
-                    {{-- 원형 틱 마크 (6시부터 시계방향) --}}
-                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" style="z-index: 1;">
-                        @php
-                            $totalTicks = 36; // 총 틱 개수
-                            $outerRadius = 98; // 외부 반지름
-                            $tickLength = 20; // 틱 길이
-                        @endphp
-                        @for($i = 0; $i < $totalTicks; $i++)
-                        @php
-                            // 6시(90도)부터 시계방향으로 시작
-                            $angle = deg2rad(($i * 360 / $totalTicks) + 90);
-                            $x1 = 100 + ($outerRadius - $tickLength) * cos($angle);
-                            $y1 = 100 + ($outerRadius - $tickLength) * sin($angle);
-                            $x2 = 100 + $outerRadius * cos($angle);
-                            $y2 = 100 + $outerRadius * sin($angle);
-                        @endphp
-                        <line
-                            x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                            x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                            stroke-width="3"
-                            stroke-linecap="round"
-                            class="tick-mark"
-                            data-index="{{ $i }}"
-                            stroke="#D9D9D9"/>
-                        @endfor
-                    </svg>
-
-                    {{-- 중앙 텍스트 (틱 마크 안쪽 영역) --}}
-                    <div class="absolute inset-0 flex items-center justify-center" style="z-index: 2;">
-                        <div class="w-36 h-36 rounded-full bg-white flex flex-col items-center justify-center text-center">
-                            <span class="text-sm text-gray-500 mb-1">한 달 사용 후</span>
-                            <span class="text-xl font-bold text-gray-900">{{ $efficacyName }}</span>
-                            <span class="text-2xl font-bold text-gray-900">{{ $improvementPercent }}% 개선</span>
-                        </div>
-                    </div>
-                </div>
-
                 {{-- 설명 텍스트 --}}
-                <div class="rounded-xl p-5" style="background-color: {{ $lightTintColor }}; border: 1px solid {{ $pointColor }};">
-                    <p class="text-base leading-relaxed" style="color: #999999;">
-                        고객님이 <span class="font-semibold" style="color: #000000;">{{ $product->name }}</span>{{ $eulReul($product->name) }}
-                        꾸준히 사용할 경우 한달 뒤 <span class="font-bold" style="color: {{ $textPointColor }};">{{ $efficacyName }}{{ $iGa($efficacyName) }} {{ $improvementPercent }}% 개선</span>될 것으로 예측됩니다.
-                    </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    {{ $data['label'] }}{{ $iGa($data['label']) }} <span style="color: #3F78EB;">{{ $descHighlight }}</span>입니다.
+                </p>
+                {{-- 게이지 바 --}}
+                <div class="relative rounded-full overflow-hidden" style="background-color: #E0E2E8; height: 8px;">
+                    <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
+                         :style="'width: ' + currentWidth + '%; background-color: #3F78EB'">
+                    </div>
                 </div>
+                {{-- 하단 라벨 --}}
+                <div class="flex justify-between mt-2 px-1">
+                    <span class="text-xs text-gray-400">{{ $labels[0] }}</span>
+                    <span class="text-xs text-gray-400">{{ $labels[1] }}</span>
+                    <span class="text-xs text-gray-400">{{ $labels[2] }}</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="mb-10"></div>
+
+        </div>
+
+        {{-- ===== 탭 2: 효과 예측 ===== --}}
+        <div x-show="activeTab === 'prediction'">
+        {{-- 2. 효능 발현 예측 --}}
+        <div class="mb-10">
+            <h2 class="text-lg font-bold text-gray-900 mb-6">효능 발현 예측</h2>
+
+            {{-- 원형 틱 게이지 애니메이션 --}}
+            <div class="relative w-60 h-60 mx-auto mb-8">
+                {{-- 원형 틱 마크 (6시부터 시계방향, 72개) --}}
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" style="z-index: 1;">
+                    @php
+                        $totalTicks = 72;
+                        $outerRadius = 98;
+                        $tickLength = 14;
+                    @endphp
+                    @for($i = 0; $i < $totalTicks; $i++)
+                    @php
+                        $angle = deg2rad(($i * 360 / $totalTicks) + 90);
+                        $x1 = 100 + ($outerRadius - $tickLength) * cos($angle);
+                        $y1 = 100 + ($outerRadius - $tickLength) * sin($angle);
+                        $x2 = 100 + $outerRadius * cos($angle);
+                        $y2 = 100 + $outerRadius * sin($angle);
+                    @endphp
+                    <line
+                        x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
+                        x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        class="tick-mark"
+                        data-index="{{ $i }}"
+                        stroke="#D9D9D9"/>
+                    @endfor
+                </svg>
+
+                {{-- 중앙 텍스트 --}}
+                <div class="absolute inset-0 flex items-center justify-center" style="z-index: 2;">
+                    <div class="w-36 h-36 rounded-full bg-white flex flex-col items-center justify-center text-center">
+                        <span class="text-sm text-gray-500 mb-1">한 달 사용 후</span>
+                        <span class="text-xl font-bold text-gray-900">{{ $efficacyName }}</span>
+                        <span class="text-2xl font-bold text-gray-900">{{ $improvementPercent }}% 개선</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 설명 텍스트 (회색 배경) --}}
+            <div class="rounded-xl p-5" style="background-color: #F5F6F8;">
+                <p class="text-sm leading-relaxed text-gray-500">
+                    고객님이 <span class="font-bold text-black">{{ $product->name }}</span>{{ $eulReul($product->name) }}
+                    꾸준히 사용할 경우 <span class="font-bold" style="color: #3F7BEB;">한 달 뒤 {{ $efficacyName }} {{ $improvementPercent }}% 개선</span>될 것으로 예측됩니다.
+                </p>
             </div>
         </div>
 
-        {{-- 마일스톤 카드 슬라이드쇼 (1.5개 노출, 무한 자동 슬라이드) --}}
-        <div class="mb-8" x-data="milestoneCarousel()" x-init="init()">
-            @php
-                $totalTicks = 28; // 28일 기준
-                $tickRadius = 42; // 틱 원 반지름
-                $tickLength = 8; // 틱 길이
-            @endphp
-            <div class="relative ml-4">
-                {{-- 왼쪽 오버레이 (이전 슬라이드 완전 가림) --}}
-                <div class="absolute left-0 top-0 bottom-0 w-4 bg-[#f3f4f6] z-10" style="margin-left: -16px;"></div>
-                <div class="overflow-hidden" style="clip-path: inset(0 0 0 0);">
-                    <div class="milestone-track flex gap-3"
-                         style="transition: transform 500ms ease-out; transform: translateX(0px);">
-                    {{-- 카드 1: 7-10일 --}}
-                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
-                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
-                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                @for($i = 0; $i < $totalTicks; $i++)
-                                @php
-                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                    $x2 = 50 + $tickRadius * cos($angle);
-                                    $y2 = 50 + $tickRadius * sin($angle);
-                                    $isFilled = $i < 10;
-                                @endphp
-                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                      stroke="{{ $isFilled ? $pointColor : '#FFFFFF' }}"
-                                      stroke-width="3" stroke-linecap="round"/>
-                                @endfor
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
-                            </div>
-                        </div>
-                        <span class="text-white text-lg font-bold flex-shrink-0">7-10일</span>
-                    </div>
-                    {{-- 카드 2: 21-28일 --}}
-                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
-                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[1] ?? '효과 최대 발현')) !!}</p>
-                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                @for($i = 0; $i < $totalTicks; $i++)
-                                @php
-                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                    $x2 = 50 + $tickRadius * cos($angle);
-                                    $y2 = 50 + $tickRadius * sin($angle);
-                                @endphp
-                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                      stroke="{{ $pointColor }}"
-                                      stroke-width="3" stroke-linecap="round"/>
-                                @endfor
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
-                            </div>
-                        </div>
-                        <span class="text-white text-lg font-bold flex-shrink-0">21-28일</span>
-                    </div>
-                    {{-- 무한 루프를 위한 복제 카드 1 --}}
-                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
-                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[0] ?? '초기 톤 개선 체감')) !!}</p>
-                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                @for($i = 0; $i < $totalTicks; $i++)
-                                @php
-                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                    $x2 = 50 + $tickRadius * cos($angle);
-                                    $y2 = 50 + $tickRadius * sin($angle);
-                                    $isFilled = $i < 10;
-                                @endphp
-                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                      stroke="{{ $isFilled ? $pointColor : '#FFFFFF' }}"
-                                      stroke-width="3" stroke-linecap="round"/>
-                                @endfor
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
-                            </div>
-                        </div>
-                        <span class="text-white text-lg font-bold flex-shrink-0">7-10일</span>
-                    </div>
-                    {{-- 무한 루프를 위한 복제 카드 2 --}}
-                    <div class="milestone-card bg-black rounded-2xl px-4 py-2 flex items-center justify-between flex-shrink-0" style="width: 280px; height: 115px;">
-                        <p class="text-white text-sm font-medium leading-tight flex-shrink-0" style="width: 60px;">{!! nl2br(e($milestoneLabels[1] ?? '효과 최대 발현')) !!}</p>
-                        <div class="relative flex-shrink-0" style="width: 90px; height: 90px;">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                @for($i = 0; $i < $totalTicks; $i++)
-                                @php
-                                    $angle = deg2rad(($i * 360 / $totalTicks) - 90);
-                                    $x1 = 50 + ($tickRadius - $tickLength) * cos($angle);
-                                    $y1 = 50 + ($tickRadius - $tickLength) * sin($angle);
-                                    $x2 = 50 + $tickRadius * cos($angle);
-                                    $y2 = 50 + $tickRadius * sin($angle);
-                                @endphp
-                                <line x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                                      x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                                      stroke="{{ $pointColor }}"
-                                      stroke-width="3" stroke-linecap="round"/>
-                                @endfor
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-white text-[10px] text-center leading-tight px-2"></span>
-                            </div>
-                        </div>
-                        <span class="text-white text-lg font-bold flex-shrink-0">21-28일</span>
-                    </div>
-                </div>
-                </div>
+        {{-- 마일스톤 카드 (한눈에 보기) --}}
+        @php
+            $milestoneIcons = [
+                'moisture' => '💧',
+                'elasticity' => '🔬',
+                'tone' => '✨',
+                'pore' => '🔍',
+                'soothing' => '🌿',
+            ];
+            $icon1 = $milestoneIcons[$efficacyType] ?? '💧';
+            $icon2 = '⚖️';
+        @endphp
+        <div class="grid grid-cols-2 gap-3 mb-10">
+            <div class="rounded-2xl p-5 text-center bg-white" style="border: 1px solid #D9D9D9;">
+                <div class="text-3xl mb-3">{{ $icon1 }}</div>
+                <p class="text-xs text-gray-400 mb-1">7-10일 사용 시</p>
+                <p class="text-sm font-bold text-gray-900">{!! nl2br(e($milestoneLabels[0] ?? '보습 개선 체감')) !!}</p>
+            </div>
+            <div class="rounded-2xl p-5 text-center bg-white" style="border: 1px solid #D9D9D9;">
+                <div class="text-3xl mb-3">{{ $icon2 }}</div>
+                <p class="text-xs text-gray-400 mb-1">21-28일 사용 시</p>
+                <p class="text-sm font-bold text-gray-900">{!! nl2br(e($milestoneLabels[1] ?? '수분 밸런스 안정화')) !!}</p>
             </div>
         </div>
 
         {{-- 3. 단계별 효과 --}}
-        <div class="bg-white rounded-2xl mb-8" style="border: 1px solid #D9D9D9;">
-            <div class="p-5">
-                {{-- 타이틀 --}}
-                <div class="flex items-center gap-2 mb-4">
-                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">단계별 효과</h2>
+
+            {{-- 그래프 영역 --}}
+            <div class="rounded-xl p-4 mb-6" style="background-color: #F6F6F6;">
+                <div class="h-48">
+                    <canvas id="efficacyPhaseChart"></canvas>
+                </div>
+            </div>
+
+            {{-- 타임라인 + 버튼 + 설명 --}}
+            <div class="space-y-0" x-data="timelineAnimation()" x-init="startAnimation()">
+                {{-- Phase 1: D0-5 --}}
+                <div class="flex items-start gap-5">
+                    <div class="flex flex-col items-center flex-shrink-0" style="width: 20px;">
+                        <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #3F7BEB;">
+                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <div class="relative w-full flex justify-center mt-2" style="height: 80px;">
+                            <div class="absolute inset-y-0 border-l-2 border-solid" style="border-color: #000000;"></div>
+                            <div class="absolute top-0 w-0.5 transition-all duration-700 ease-out" style="background-color: #3F7BEB;"
+                                 :style="'height: ' + line1Height + '%'"></div>
+                        </div>
                     </div>
-                    <h2 class="text-lg font-bold text-gray-900">단계별 효과</h2>
+                    <div class="flex-1 pb-10">
+                        <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-gray-900" style="background-color: #EEEEEE;">
+                            ~5일 사용 시
+                        </button>
+                        <p class="text-base text-gray-700 leading-relaxed">{!! $blueHighlight($descriptions['phase1']) !!}</p>
+                    </div>
                 </div>
 
-                {{-- 그래프 영역 --}}
-                <div class="rounded-xl p-4 mb-6" style="background-color: #F6F6F6;">
-                    <div class="h-48">
-                        <canvas id="efficacyPhaseChart"></canvas>
+                {{-- Phase 2: 7~10일 --}}
+                <div class="flex items-start gap-5">
+                    <div class="flex flex-col items-center flex-shrink-0" style="width: 20px;">
+                        <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #3F7BEB;">
+                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <div class="relative w-full flex justify-center mt-2" style="height: 80px;">
+                            <div class="absolute inset-y-0 border-l-2 border-solid" style="border-color: #000000;"></div>
+                            <div class="absolute top-0 w-0.5 transition-all duration-700 ease-out" style="background-color: #3F7BEB;"
+                                 :style="'height: ' + line2Height + '%'"></div>
+                        </div>
+                    </div>
+                    <div class="flex-1 pb-10">
+                        <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-gray-900" style="background-color: #EEEEEE;">
+                            7~10일 사용 시
+                        </button>
+                        <p class="text-base text-gray-700 leading-relaxed">{!! $blueHighlight($descriptions['phase2']) !!}</p>
                     </div>
                 </div>
 
-                {{-- 타임라인 + 버튼 + 설명 (실선만 애니메이션) --}}
-                <div class="space-y-0" x-data="timelineAnimation()" x-init="startAnimation()">
-                    {{-- Phase 1: D0-5 (흰색/회색) --}}
-                    <div class="flex items-start gap-5">
-                        <div class="flex flex-col items-center flex-shrink-0" style="width: 16px;">
-                            <div class="w-4 h-4 rounded-full" style="background-color: #D9D9D9;"></div>
-                            <div class="relative w-full flex justify-center" style="height: 120px;">
-                                <div class="absolute inset-y-0 border-l-2 border-dashed" style="border-color: #D9D9D9;"></div>
-                                <div class="absolute top-0 w-0.5 bg-black transition-all duration-700 ease-out"
-                                     :style="'height: ' + line1Height + '%'"></div>
-                            </div>
+                {{-- Phase 3: 21~28일 --}}
+                <div class="flex items-start gap-5">
+                    <div class="flex flex-col items-center flex-shrink-0" style="width: 20px;">
+                        <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: #3F7BEB;">
+                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                            </svg>
                         </div>
-                        <div class="flex-1 pb-10">
-                            <button class="px-4 py-2 text-base font-bold rounded-lg mb-3" style="background-color: #F4F4F4; color: #000000;">
-                                D0-5
-                            </button>
-                            <p class="text-base text-gray-700 leading-relaxed">{{ $descriptions['phase1'] }}</p>
+                        <div class="relative w-full flex justify-center mt-2" style="height: 80px;">
+                            <div class="absolute inset-y-0 border-l-2 border-solid" style="border-color: #000000;"></div>
+                            <div class="absolute top-0 w-0.5 transition-all duration-700 ease-out" style="background-color: #3F7BEB;"
+                                 :style="'height: ' + line3Height + '%'"></div>
                         </div>
                     </div>
-
-                    {{-- Phase 2: D7-10 (포인트컬러) --}}
-                    <div class="flex items-start gap-5">
-                        <div class="flex flex-col items-center flex-shrink-0" style="width: 16px;">
-                            <div class="w-4 h-4 rounded-full" style="background-color: {{ $pointColor }};"></div>
-                            <div class="relative w-full flex justify-center" style="height: 120px;">
-                                <div class="absolute inset-y-0 border-l-2 border-dashed" style="border-color: #D9D9D9;"></div>
-                                <div class="absolute top-0 w-0.5 bg-black transition-all duration-700 ease-out"
-                                     :style="'height: ' + line2Height + '%'"></div>
-                            </div>
-                        </div>
-                        <div class="flex-1 pb-10">
-                            <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-white" style="background-color: {{ $pointColor }};">
-                                D7-10
-                            </button>
-                            <p class="text-base text-gray-700 leading-relaxed">{{ $descriptions['phase2'] }}</p>
-                        </div>
-                    </div>
-
-                    {{-- Phase 3: D21-28 (검은색) --}}
-                    <div class="flex items-start gap-5">
-                        <div class="flex flex-col items-center flex-shrink-0" style="width: 16px;">
-                            <div class="w-4 h-4 rounded-full" style="background-color: #000000;"></div>
-                            <div class="relative w-full flex justify-center" style="height: 120px;">
-                                <div class="absolute inset-y-0 border-l-2 border-dashed" style="border-color: #D9D9D9;"></div>
-                                <div class="absolute top-0 w-0.5 bg-black transition-all duration-700 ease-out"
-                                     :style="'height: ' + line3Height + '%'"></div>
-                            </div>
-                        </div>
-                        <div class="flex-1 pb-10">
-                            <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-white" style="background-color: #000000;">
-                                D21-28
-                            </button>
-                            <p class="text-base text-gray-700 leading-relaxed">{{ $descriptions['phase3'] }}</p>
-                        </div>
+                    <div class="flex-1 pb-10">
+                        <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-gray-900" style="background-color: #EEEEEE;">
+                            21~28일 사용 시
+                        </button>
+                        <p class="text-base text-gray-700 leading-relaxed">{!! $blueHighlight($descriptions['phase3']) !!}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- 4. 효능을 늦추는 생활 요인 --}}
-        <div class="mb-8">
-            {{-- 타이틀 --}}
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <h2 class="text-lg font-bold text-gray-900">효능을 늦추는 생활 요인</h2>
-            </div>
-
-            {{-- 수동 슬라이더 카드 --}}
-            @php
-                // 설문 결과에서 negative 상태인 라이프스타일 요소들만 필터링
-                $rawFactors = $result->lifestyle_factors ?? [];
-                $negativeFactors = array_filter($rawFactors, fn($f) => ($f['status'] ?? '') === 'negative');
-
-                // 이모지 및 설명 텍스트 매핑
-                $factorMeta = [
-                    'sleep' => ['emoji' => '😴', 'title' => '수면 시간이 부족해', 'desc' => '피부 재생이 충분히 이루어지지 않아 효과 발현이 지연될 수 있습니다.'],
-                    'uv' => ['emoji' => '☀️', 'title' => '자외선 노출이 많아', 'desc' => '피부 손상이 누적되어 효능 체감이 늦어질 수 있습니다.'],
-                    'water' => ['emoji' => '💧', 'title' => '수분 섭취가 부족해', 'desc' => '피부 수분 공급이 원활하지 않아 효능이 감소할 수 있습니다.'],
-                ];
-
-                $lifestyleFactors = [];
-                foreach ($negativeFactors as $key => $factor) {
-                    if (isset($factorMeta[$key])) {
-                        $lifestyleFactors[] = $factorMeta[$key];
-                    }
-                }
-
-                // negative 요소가 없으면 기본 메시지
-                if (empty($lifestyleFactors)) {
-                    $lifestyleFactors = [
-                        ['emoji' => '✨', 'title' => '생활 습관이 양호해요', 'desc' => '현재 생활 습관이 피부 효능 발현에 긍정적으로 작용합니다.'],
-                    ];
-                }
-            @endphp
-            <div x-data="lifestyleSlider({{ count($lifestyleFactors) }})" class="flex items-stretch gap-3">
-                {{-- 카드 영역 --}}
-                <div class="flex-1 overflow-hidden rounded-2xl" style="border: 1px solid #E5E5E5;">
-                    <div class="flex transition-transform duration-300 ease-out" :style="'transform: translateX(-' + (currentIndex * 100) + '%)'">
-                        @foreach($lifestyleFactors as $index => $factor)
-                        <div class="w-full flex-shrink-0 bg-white p-5 flex items-center gap-3">
-                            <div class="text-3xl flex-shrink-0">{{ $factor['emoji'] }}</div>
-                            <div class="flex-1">
-                                <p class="text-base font-bold text-gray-900 mb-1">{{ $factor['title'] }}</p>
-                                <p class="text-base text-gray-500 leading-relaxed">{{ $factor['desc'] }}</p>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-                {{-- 우측 화살표 버튼 (분리, 카드 높이와 동일) --}}
-                <button @click="next()" class="flex-shrink-0 w-12 bg-black rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
-            </div>
         </div>
 
-        {{-- 5. AI 분석 사용 가이드 --}}
+        {{-- ===== 탭 3: 사용 가이드 ===== --}}
+        <div x-show="activeTab === 'guide'">
+        {{-- 5. 최적 사용 시간 --}}
         <div class="mb-8">
-            {{-- 타이틀 (섹션 밖) --}}
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                    </svg>
-                </div>
-                <h2 class="text-lg font-bold text-gray-900">AI 분석 사용 가이드</h2>
-            </div>
-
-            {{-- 최적 사용 시간 (border로 감싸기) --}}
+            {{-- 최적 사용 시간 --}}
             @php
                 $optimalUsage = $result->usage_guide['optimal_usage'] ?? [];
                 $morningEffect = $optimalUsage['timing']['morning_effect'] ?? 100;
                 $eveningEffect = $optimalUsage['timing']['evening_effect'] ?? 100;
                 $timingReason = $optimalUsage['timing']['reason'] ?? '피부 재생이 활발한 시간대';
+                $bestTime = $optimalUsage['best_time'] ?? '저녁';
+                $bestEffect = max($morningEffect, $eveningEffect);
                 $isMorningGood = $morningEffect > 100;
                 $isEveningGood = $eveningEffect > 100;
             @endphp
-            <div class="rounded-2xl p-5" style="background-color: {{ $lightTintColor }}; border: 1px solid #D9D9D9;">
-                <h3 class="text-xl font-bold text-gray-900 mb-2">최적 사용 시간</h3>
-                <p class="text-sm text-gray-600 mb-4">{{ $timingReason }}</p>
+            <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">최적 사용 시간</h3>
 
                 {{-- 아침/저녁 효과 카드 --}}
                 <div class="grid grid-cols-2 gap-3">
                     {{-- 아침 효과 --}}
                     <div>
                         @if($isMorningGood)
-                            <p class="text-center font-bold text-lg text-gray-900 mb-2">Good</p>
+                            <div class="relative rounded-xl p-[3px]" style="background: linear-gradient(to bottom left, #4C5CEB 0%, #000000 51%, #3F78EB 100%);">
+                                <div class="bg-white rounded-[9px] p-4 text-center">
+                                    <div class="text-3xl mb-2">🌤️</div>
+                                    <p class="text-sm text-gray-500 mb-1">아침 효과</p>
+                                    <p class="text-2xl font-bold text-gray-900">{{ $morningEffect }}%</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-center mt-3">
+                                <div class="relative bg-black text-white text-xs font-bold px-3 py-1.5 rounded-lg">
+                                    <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0" style="border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid black;"></div>
+                                    사용추천
+                                </div>
+                            </div>
                         @else
-                            <p class="text-center font-bold text-lg text-transparent mb-2">&nbsp;</p>
+                            <div class="bg-white rounded-xl p-4 text-center" style="border: 1px solid #E5E5E5;">
+                                <div class="text-3xl mb-2">🌤️</div>
+                                <p class="text-sm text-gray-500 mb-1">아침 효과</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ $morningEffect }}%</p>
+                            </div>
                         @endif
-                        <div class="bg-white rounded-xl p-4 text-center" style="border: 1px solid {{ $isMorningGood ? '#000' : '#E5E5E5' }};">
-                            <div class="text-3xl mb-2">🌤️</div>
-                            <p class="text-sm text-gray-500 mb-1">아침 효과</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $morningEffect }}%</p>
-                        </div>
                     </div>
                     {{-- 저녁 효과 --}}
                     <div>
                         @if($isEveningGood)
-                            <p class="text-center font-bold text-lg text-gray-900 mb-2">Good</p>
+                            <div class="relative rounded-xl p-[3px]" style="background: linear-gradient(to bottom left, #4C5CEB 0%, #000000 51%, #3F78EB 100%);">
+                                <div class="bg-white rounded-[9px] p-4 text-center">
+                                    <div class="text-3xl mb-2">🌙</div>
+                                    <p class="text-sm text-gray-500 mb-1">저녁 효과</p>
+                                    <p class="text-2xl font-bold text-gray-900">{{ $eveningEffect }}%</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-center mt-3">
+                                <div class="relative bg-black text-white text-xs font-bold px-3 py-1.5 rounded-lg">
+                                    <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0" style="border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid black;"></div>
+                                    사용추천
+                                </div>
+                            </div>
                         @else
-                            <p class="text-center font-bold text-lg text-transparent mb-2">&nbsp;</p>
+                            <div class="bg-white rounded-xl p-4 text-center" style="border: 1px solid #E5E5E5;">
+                                <div class="text-3xl mb-2">🌙</div>
+                                <p class="text-sm text-gray-500 mb-1">저녁 효과</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ $eveningEffect }}%</p>
+                            </div>
                         @endif
-                        <div class="bg-white rounded-xl p-4 text-center" style="border: 1px solid {{ $isEveningGood ? '#000' : '#E5E5E5' }};">
-                            <div class="text-3xl mb-2">🌙</div>
-                            <p class="text-sm text-gray-500 mb-1">저녁 효과</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $eveningEffect }}%</p>
-                        </div>
                     </div>
+                </div>
+
+                {{-- 설명 문구 --}}
+                <div class="rounded-xl px-5 py-4 mt-3" style="background-color: #F5F6F8;">
+                    <p class="text-sm text-gray-700 leading-relaxed">
+                        @if($bestEffect > 100)
+                            <span style="color: #3F78EB; font-weight: 700;">{{ $bestTime }}</span>에 사용하면 <span style="color: #3F78EB; font-weight: 700;">효과가 {{ $bestEffect }}%</span>로, {!! $blueHighlight($timingReason) !!}
+                        @else
+                            {!! $blueHighlight($timingReason) !!}
+                        @endif
+                    </p>
                 </div>
             </div>
         </div>
 
-        {{-- 6. 추가 효과 향상 방법 --}}
+        {{-- 6. 건강한 피부습관 --}}
         <div class="mb-8">
-            {{-- 타이틀 --}}
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                    </svg>
-                </div>
-                <h2 class="text-lg font-bold text-gray-900">추가 효과 향상 방법</h2>
-            </div>
+            <h2 class="text-lg font-bold text-gray-900 mb-4">건강한 피부습관</h2>
 
             @php
                 $recommendations = array_slice($result->usage_guide['recommendations'] ?? [], 0, 3); // 최대 3개
@@ -781,12 +684,12 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="bg-gray-100 rounded-xl px-6 py-3 mt-2 mb-10">
+                        <div class="rounded-xl px-6 py-3 mt-2 mb-10" style="background-color: #F5F6F8;">
                             <p class="text-sm text-gray-700">
                                 @if($isBoostType)
-                                    <span class="font-semibold text-black">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> 효과가 최대 {{ $effectBoost }}% 향상될 것으로 예상됩니다.
+                                    <span class="text-gray-700">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> <span style="color: #3F78EB;">효과가 최대 {{ $effectBoost }}% 향상</span>될 것으로 예상됩니다.
                                 @else
-                                    <span class="font-semibold text-black">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> 효능 도달시점이 최대 {{ $daysSaved }}일 단축될 것으로 예상됩니다.
+                                    <span class="text-gray-700">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> <span style="color: #3F78EB;">효능 도달시점이 최대 {{ $daysSaved }}일 단축</span>될 것으로 예상됩니다.
                                 @endif
                             </p>
                         </div>
@@ -798,11 +701,13 @@
             @endif
         </div>
 
-        {{-- 7. 결과 공유하기 --}}
+        </div>
+
+        {{-- 결과 공유하기 (모든 탭 공통) --}}
         <div class="bg-white rounded-2xl mb-8 p-5" style="border: 1px solid #D9D9D9;">
             <h3 class="text-lg font-bold text-gray-900 mb-4">결과 공유하기</h3>
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="shareKakao()" class="py-3 rounded-lg font-semibold text-gray-900" style="background-color: #FEE500;">
+                <button onclick="shareKakao()" class="py-3 rounded-lg font-semibold text-gray-900" style="background-color: #FDC700;">
                     카카오톡
                 </button>
                 <button onclick="copyLink()" class="py-3 rounded-lg font-semibold text-gray-700 bg-white" style="border: 1px solid #D9D9D9;">
@@ -811,14 +716,40 @@
             </div>
         </div>
 
-        {{-- 다시 분석하기 --}}
-        <div class="text-center mb-6">
-            <a href="{{ route('survey.index', $product->code) }}" class="text-gray-500 text-sm hover:underline">
-                다시 분석하기
+        {{-- 서비스 안내 (클릭하면 펼침) --}}
+        <div class="mb-8" x-data="{ serviceInfoOpen: false }">
+            <button @click="serviceInfoOpen = !serviceInfoOpen"
+                    class="flex items-center gap-1 mx-auto text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                <span>서비스 안내</span>
+                <svg class="w-4 h-4 transition-transform" :class="serviceInfoOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div x-show="serviceInfoOpen" x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 max-h-0" x-transition:enter-end="opacity-100 max-h-96"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 max-h-96" x-transition:leave-end="opacity-0 max-h-0"
+                 class="overflow-hidden">
+                <div class="mt-3 p-4 bg-gray-50 rounded-xl text-xs text-gray-500 leading-relaxed">
+                    해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.
+                    <br><br>
+                    제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 하단 고정 UI --}}
+    <div x-show="!isLoading" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 py-4 z-50" style="box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);">
+        <div class="max-w-lg mx-auto">
+            <p class="text-center font-bold text-black text-sm mb-3">📊 AI 분석 기반 추천</p>
+            <a href="{{ route('product.show', $product->code) }}"
+               class="block w-full py-3.5 text-center text-white font-bold rounded-xl"
+               style="background-color: #3F78EB;">
+                나에게 딱 맞는 제품 보기
             </a>
         </div>
-
-        <div class="h-4"></div>
     </div>
 </div>
 @endsection
@@ -856,10 +787,8 @@
 function resultPage() {
     return {
         isLoading: true,
-        gaugeProgress: 0,
-        // 반원 게이지 마커 위치 (중심: 105,95 / 반지름: 90 / 시작: 180도(왼쪽))
-        markerX: 15,  // 시작점 x (180도 위치)
-        markerY: 95,  // 시작점 y
+        activeTab: 'analysis',
+        menuOpen: false,
 
         init() {
             // 로딩 완료 후 컨텐츠 표시
@@ -868,54 +797,16 @@ function resultPage() {
 
                 // 로딩 해제 후 애니메이션 시작
                 setTimeout(() => {
-                    // 반원 게이지 + 마커 애니메이션
-                    this.animateGaugeWithMarker();
-
-                    // 원형 틱 게이지 애니메이션
-                    setTimeout(() => {
-                        this.animateTickGauge();
-                    }, 500);
+                    this.animateTickGauge();
                 }, 300);
             }, 800);
-
-        },
-
-        animateGaugeWithMarker() {
-            const duration = 1500; // 1.5초
-            const startTime = performance.now();
-
-            const animate = (currentTime) => {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-
-                // easeOut 이징
-                const easeProgress = 1 - Math.pow(1 - progress, 3);
-
-                // 게이지 진행률 업데이트
-                this.gaugeProgress = easeProgress * 100;
-
-                // 마커 위치 계산 (반원: 180도 → 0도, 즉 왼쪽에서 오른쪽으로)
-                // 중심: (105, 95), 반지름: 90
-                const angle = Math.PI - (easeProgress * Math.PI); // 180도 → 0도 (라디안)
-                this.markerX = 105 + 90 * Math.cos(angle);
-                this.markerY = 95 - 90 * Math.sin(angle);
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    this.gaugeProgress = 100;
-                    this.markerX = 195;
-                    this.markerY = 95;
-                }
-            };
-
-            requestAnimationFrame(animate);
         },
 
         animateTickGauge() {
             const ticks = document.querySelectorAll('.tick-mark');
-            const totalTicks = ticks.length; // 36개
-            const animationDuration = totalTicks * 50; // 전체 애니메이션 시간
+            const totalTicks = ticks.length; // 72개
+            const tickDelay = 25; // 틱당 딜레이 (ms)
+            const animationDuration = totalTicks * tickDelay;
 
             const runAnimation = () => {
                 // 먼저 모든 틱을 초기 색상으로 리셋
@@ -924,13 +815,13 @@ function resultPage() {
                     tick.setAttribute('stroke', '#D9D9D9');
                 });
 
-                // 약간의 딜레이 후 순차적으로 검은색으로 채우기
+                // 약간의 딜레이 후 순차적으로 #3F78EB로 채우기
                 setTimeout(() => {
                     ticks.forEach((tick, index) => {
                         setTimeout(() => {
-                            tick.style.transition = 'stroke 0.2s ease-out';
-                            tick.setAttribute('stroke', '#000000');
-                        }, index * 50);
+                            tick.style.transition = 'stroke 0.15s ease-out';
+                            tick.setAttribute('stroke', '#3F78EB');
+                        }, index * tickDelay);
                     });
                 }, 100);
             };
@@ -954,7 +845,7 @@ function resultPage() {
             const final = metrics.final || 0;
             const unit = metrics.unit || '';
 
-            const labels = ['D0', 'D5', 'D7', 'D14', 'D21', 'D28'];
+            const labels = ['0일', '5일', '7일', '14일', '21일', '28일'];
             const dayKeys = [0, 5, 7, 14, 21, 28];
 
             const getValueForDay = (day) => {
@@ -980,12 +871,6 @@ function resultPage() {
             const minVal = range < 1 ? Math.floor(initial * 10) / 10 : Math.floor(initial * 0.9);
             const maxVal = range < 1 ? Math.ceil(final * 10) / 10 : Math.ceil(final * 1.1);
 
-            // 구간별 색상 (포인트컬러 기준 명암 차등)
-            // labels: ['D0', 'D5', 'D7', 'D14', 'D21', 'D28'] - index 0,1,2,3,4,5
-            // D5 = 1/5 = 0.2, D14 = 3/5 = 0.6
-            const pointColor = '{{ $pointColor }}';
-            const rgbString = '{{ $rgbString }}';
-
             new Chart(canvas, {
                 type: 'line',
                 data: {
@@ -999,14 +884,14 @@ function resultPage() {
                             const {ctx, chartArea} = chart;
                             if (!chartArea) return 'rgba(255, 255, 255, 0.5)';
 
-                            // 구간별 색상 (1차: 흰색, 2차: 포인트컬러, 3차: 검은색) + 투명도
+                            // 구간별 색상 (흰색 → 파란색 → 검은색)
                             const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-                            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');           // D0 (흰색 50%)
-                            gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.5)');         // D5 (흰색 끝)
-                            gradient.addColorStop(0.2, `rgba(${rgbString}, 0.5)`);          // D5 (포인트컬러 시작)
-                            gradient.addColorStop(0.6, `rgba(${rgbString}, 0.5)`);          // D14 (포인트컬러 끝)
-                            gradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.5)');               // D14 (검은색 시작)
-                            gradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');                 // D28 (검은색)
+                            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');           // 0일 (흰색)
+                            gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.5)');         // 5일 (흰색 끝)
+                            gradient.addColorStop(0.2, 'rgba(63, 123, 235, 0.5)');          // 5일 (파란색 시작)
+                            gradient.addColorStop(0.6, 'rgba(63, 123, 235, 0.5)');          // 14일 (파란색 끝)
+                            gradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.5)');               // 14일 (검은색 시작)
+                            gradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');                 // 28일 (검은색)
                             return gradient;
                         },
                         tension: 0,
@@ -1058,20 +943,6 @@ function resultPage() {
                     }
                 }
             });
-        }
-    };
-}
-
-// 생활 요인 수동 슬라이더
-function lifestyleSlider(totalSlides = 1) {
-    return {
-        currentIndex: 0,
-        totalSlides: totalSlides,
-
-        next() {
-            if (this.totalSlides > 1) {
-                this.currentIndex = (this.currentIndex + 1) % this.totalSlides;
-            }
         }
     };
 }
@@ -1154,33 +1025,6 @@ function profileGauge(index, targetWidth) {
     };
 }
 
-// 분석 완료 버튼 채움 애니메이션
-function analysisCompleteBtn() {
-    return {
-        fillProgress: 0,
-
-        startFill() {
-            // 페이지 로드 후 약간의 딜레이 후 시작
-            setTimeout(() => {
-                // 1초에 걸쳐 채워짐
-                const duration = 1000;
-                const startTime = performance.now();
-
-                const animate = (currentTime) => {
-                    const elapsed = currentTime - startTime;
-                    this.fillProgress = Math.min(elapsed / duration, 1);
-
-                    if (this.fillProgress < 1) {
-                        requestAnimationFrame(animate);
-                    }
-                };
-
-                requestAnimationFrame(animate);
-            }, 500);
-        }
-    };
-}
-
 // 타임라인 애니메이션 (실선 + 그래프 동기화)
 // Chart.js 인스턴스를 Alpine 외부에 저장 (무한 루프 방지)
 window._efficacyChart = null;
@@ -1247,7 +1091,7 @@ function timelineAnimation() {
             const final = metrics.final || 0;
             const unit = metrics.unit || '';
 
-            const labels = ['D0', 'D5', 'D7', 'D14', 'D21', 'D28'];
+            const labels = ['0일', '5일', '7일', '14일', '21일', '28일'];
             const dayKeys = [0, 5, 7, 14, 21, 28];
 
             const getValueForDay = (day) => {
@@ -1271,9 +1115,6 @@ function timelineAnimation() {
             const decimals = range < 1 ? 2 : (range < 10 ? 1 : 0);
             const minVal = range < 1 ? Math.floor(initial * 10) / 10 : Math.floor(initial * 0.9);
             const maxVal = range < 1 ? Math.ceil(final * 10) / 10 : Math.ceil(final * 1.1);
-            const pointColor = '{{ $pointColor }}';
-            const rgbString = '{{ $rgbString }}';
-
             // 빈 데이터로 차트 생성 (window 객체에 저장)
             window._efficacyChart = new Chart(canvas, {
                 type: 'line',
@@ -1288,11 +1129,12 @@ function timelineAnimation() {
                             const {ctx, chartArea} = chart;
                             if (!chartArea) return 'rgba(255, 255, 255, 0.5)';
 
+                            // 구간별 색상 (흰색 → 파란색 → 검은색)
                             const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
                             gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
                             gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.5)');
-                            gradient.addColorStop(0.2, `rgba(${rgbString}, 0.5)`);
-                            gradient.addColorStop(0.6, `rgba(${rgbString}, 0.5)`);
+                            gradient.addColorStop(0.2, 'rgba(63, 123, 235, 0.5)');
+                            gradient.addColorStop(0.6, 'rgba(63, 123, 235, 0.5)');
                             gradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.5)');
                             gradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
                             return gradient;

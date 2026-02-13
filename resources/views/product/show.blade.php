@@ -205,14 +205,15 @@
             </div>
         </div>
 
-        <div class="px-4 py-6 max-w-lg mx-auto pb-20">
+        <div class="px-4 py-6 max-w-lg mx-auto pb-40">
 
             {{-- AI 리뷰 분석 섹션 --}}
             <div class="bg-white rounded-2xl overflow-hidden mb-6" style="border: 1px solid #D9D9D9;">
                 {{-- 헤더 --}}
                 <div class="px-5 pt-4 pb-4 border-b border-gray-100">
                     {{-- 실시간 집계중 표시 --}}
-                    <div class="flex items-center gap-1 mb-1">
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <img src="{{ asset('product/realtime_survey.svg') }}" alt="" class="w-3 h-3">
                         <span class="text-xs text-gray-400" x-text="collectionComplete ? '실시간 집계완료' : '실시간 집계중'"></span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -243,32 +244,32 @@
                     }
                     $totalRatings = array_sum($ratingCounts);
                 @endphp
-                <div class="px-5 py-5">
+                <div class="px-5 py-4">
                     <div class="grid grid-cols-2 gap-0">
                         {{-- 좌측: 총 평점 --}}
                         <div class="text-center flex flex-col items-center border-r border-gray-100 pr-4">
-                            <p class="text-sm text-gray-400 mb-2">사용자 총 평점</p>
-                            <p class="text-3xl font-bold text-gray-900">{{ number_format($avgRating, 2) }}<span class="text-sm font-normal text-gray-400">점</span></p>
-                            <div class="flex items-center justify-center gap-0.5 mt-2">
+                            <p class="text-sm font-bold text-gray-900 mb-1">사용자 총 평점</p>
+                            <p class="text-4xl font-bold text-gray-900">{{ number_format($avgRating, 1) }}<span class="text-base font-normal text-gray-400">점</span></p>
+                            <div class="flex items-center justify-center gap-1 mt-2">
                                 @for($i = 0; $i < $fullStars; $i++)
-                                <svg class="w-4 h-4" fill="{{ $pointColor }}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-7 h-7" fill="#3F78EB" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                 @endfor
                                 @if($halfStar)
-                                <svg class="w-4 h-4" viewBox="0 0 20 20">
-                                    <defs><linearGradient id="halfGrad"><stop offset="50%" stop-color="{{ $pointColor }}"/><stop offset="50%" stop-color="#D1D5DB"/></linearGradient></defs>
+                                <svg class="w-7 h-7" viewBox="0 0 20 20">
+                                    <defs><linearGradient id="halfGrad"><stop offset="50%" stop-color="#3F78EB"/><stop offset="50%" stop-color="#D1D5DB"/></linearGradient></defs>
                                     <path fill="url(#halfGrad)" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                 </svg>
                                 @endif
                                 @for($i = 0; $i < $emptyStars; $i++)
-                                <svg class="w-4 h-4" fill="#D1D5DB" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-7 h-7" fill="#D1D5DB" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                 @endfor
                             </div>
                         </div>
 
                         {{-- 우측: 평점 비율 세로 막대 그래프 --}}
                         <div class="pl-4">
-                            <p class="text-sm text-gray-400 mb-2 text-center">평점비율</p>
-                            <div class="flex items-end justify-center" style="height: 80px; gap: 10px;">
+                            <p class="text-sm font-bold text-gray-900 mb-1 text-center">평점비율</p>
+                            <div class="flex items-end justify-center" style="height: 90px; gap: 12px;">
                                 @for($s = 5; $s >= 1; $s--)
                                 @php
                                     $count = $ratingCounts[$s];
@@ -278,24 +279,22 @@
                                 <div class="flex flex-col items-center relative">
                                     @if($isMax)
                                     <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2">
-                                        <div class="relative text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap" style="background-color: {{ $pointColor }};">
-                                            {{ number_format($count) }}개
-                                            <div class="absolute left-1/2 -translate-x-1/2 -bottom-0.5 w-1.5 h-1.5 rotate-45" style="background-color: {{ $pointColor }};"></div>
+                                        <div class="relative text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap" style="background-color: #3F78EB;">
+                                            {{ number_format($count) }}
+                                            <div class="absolute left-1/2 -translate-x-1/2 -bottom-0.5 w-1.5 h-1.5 rotate-45" style="background-color: #3F78EB;"></div>
                                         </div>
                                     </div>
                                     @endif
-                                    <div class="rounded-t overflow-hidden bg-gray-200 relative" style="width: 6px; height: 51px;">
-                                        <div class="absolute bottom-0 left-0 w-full rounded-t" style="height: {{ max($pct, 0) }}%; background-color: {{ $isMax ? $pointColor : '#999999' }};"></div>
+                                    <div class="rounded-t overflow-hidden bg-gray-200 relative" style="width: 8px; height: 60px;">
+                                        <div class="absolute bottom-0 left-0 w-full rounded-t" style="height: {{ max($pct, 0) }}%; background-color: {{ $isMax ? '#3F78EB' : '#999999' }};"></div>
                                     </div>
-                                    <span class="text-[10px] text-gray-400 mt-1">{{ $s }}점</span>
+                                    <span class="text-xs text-gray-400 mt-1">{{ $s }}점</span>
                                 </div>
                                 @endfor
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="mx-5 border-t border-gray-100"></div>
 
                 {{-- 레이더 차트 영역 --}}
                 <div class="p-3">
@@ -307,7 +306,7 @@
 
                 {{-- AI 분석 요약 --}}
                 <div class="px-5 pb-5">
-                    <div class="rounded-xl px-6 py-4" style="background-color: rgba({{ $rgbString }}, 0.15); margin-top:24px">
+                    <div class="rounded-xl px-6 py-4 bg-gray-100" style="margin-top:24px">
                         <h3 class="text-base font-semibold text-gray-900 mb-2">AI 분석요약</h3>
 
                         {{-- 로딩 중 표시 --}}
@@ -366,16 +365,16 @@
                                 $displayCount = min(rand(2, 3), $shuffled->count());
                                 $selectedSummaries = $shuffled->take($displayCount);
 
-                                // **텍스트** 를 포인트컬러 굵은 글씨로 변환
-                                $formatSummary = function($text) use ($pointColor) {
+                                // **텍스트** 를 볼드 강조로 변환
+                                $formatSummary = function($text) {
                                     return preg_replace(
                                         '/\*\*(.+?)\*\*/',
-                                        '<strong style="color: black">$1</strong>',
+                                        '<strong class="font-bold text-gray-900">$1</strong>',
                                         $text
                                     );
                                 };
                             @endphp
-                            <div class="space-y-2 text-base text-gray-600 leading-relaxed">
+                            <div class="space-y-2 text-base text-gray-700 leading-relaxed">
                                 @foreach($selectedSummaries as $summary)
                                 <p>"{!! $formatSummary($summary) !!}"</p>
                                 @endforeach
@@ -392,24 +391,17 @@
                                 <x-loading-spinner />
                             </template>
                             <template x-if="collectionComplete">
-                                <div class="w-2 h-2 rounded-full" style="background-color: {{ $pointColor }}"></div>
+                                <div class="w-2 h-2 rounded-full" style="background-color: #3F78EB;"></div>
                             </template>
                             <span class="text-base font-medium text-white" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
                         </div>
-                        <div class="flex items-center gap-1" style="color: {{ $pointColor }}">
+                        <div class="flex items-center gap-1" style="color: #999999;">
                             <span class="text-sm">상세보기</span>
                             <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                         </div>
                     </button>
-                </div>
-
-                {{-- 데이터 출처 안내 --}}
-                <div class="px-5 pb-5">
-                    <p class="text-xs text-gray-400 leading-relaxed">
-                        *네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 {{ $product->name }}의 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
-                    </p>
                 </div>
             </div>
 
@@ -418,6 +410,18 @@
                 해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.
                 <br><br>
                 제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
+            </div>
+        </div>
+
+        {{-- 하단 고정 UI --}}
+        <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 py-4 z-20" style="box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);">
+            <div class="max-w-lg mx-auto">
+                <p class="text-center font-bold text-black text-sm mb-3">🤔 나는 얼마나 효과 있을까?</p>
+                <a href="{{ route('survey.index', $product->code) }}"
+                   class="block w-full py-3.5 text-center text-white font-bold rounded-xl"
+                   style="background-color: #3F78EB;">
+                    1분 안에 효과 예측
+                </a>
             </div>
         </div>
     </div>
@@ -580,35 +584,35 @@ function productPage() {
         if (empty($metricsJson)) {
             $metricsDefaults = [
                 'moisture' => [
-                    ['name' => '보습력', 'value' => 5],
+                    ['name' => '보습력', 'value' => 4],
                     ['name' => '보습지속력', 'value' => 4],
                     ['name' => '끈적임', 'value' => 2],
                     ['name' => '자극여부', 'value' => 1],
                     ['name' => '효과체감', 'value' => 4],
                 ],
                 'elasticity' => [
-                    ['name' => '탄력 개선', 'value' => 5],
+                    ['name' => '탄력 개선', 'value' => 4],
                     ['name' => '리프팅감', 'value' => 4],
                     ['name' => '끈적임', 'value' => 2],
                     ['name' => '자극여부', 'value' => 1],
                     ['name' => '효과체감', 'value' => 4],
                 ],
                 'tone' => [
-                    ['name' => '톤 개선', 'value' => 5],
+                    ['name' => '톤 개선', 'value' => 4],
                     ['name' => '화사함', 'value' => 4],
                     ['name' => '끈적임', 'value' => 2],
                     ['name' => '자극여부', 'value' => 1],
                     ['name' => '효과체감', 'value' => 4],
                 ],
                 'pore' => [
-                    ['name' => '모공 축소', 'value' => 5],
+                    ['name' => '모공 축소', 'value' => 4],
                     ['name' => '피지 조절', 'value' => 4],
                     ['name' => '끈적임', 'value' => 2],
                     ['name' => '자극여부', 'value' => 1],
                     ['name' => '효과체감', 'value' => 4],
                 ],
                 'wrinkle' => [
-                    ['name' => '주름 개선', 'value' => 5],
+                    ['name' => '주름 개선', 'value' => 4],
                     ['name' => '탄력감', 'value' => 4],
                     ['name' => '끈적임', 'value' => 2],
                     ['name' => '자극여부', 'value' => 1],
@@ -697,10 +701,10 @@ function productPage() {
                 centerX, centerY, 0,
                 centerX, centerY, radius
             );
-            gradient.addColorStop(0, `rgba(${pointColorRgb}, 0.95)`);
-            gradient.addColorStop(0.5, `rgba(${pointColorRgb}, 0.6)`);
-            gradient.addColorStop(0.85, `rgba(${pointColorRgb}, 0.25)`);
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+            gradient.addColorStop(0.3, 'rgba(63, 120, 235, 0.15)');
+            gradient.addColorStop(0.6, 'rgba(63, 120, 235, 0.45)');
+            gradient.addColorStop(1, 'rgba(63, 120, 235, 0.85)');
 
             radarChart = new Chart(ctx, {
                 type: 'radar',
@@ -709,7 +713,7 @@ function productPage() {
                     datasets: [{
                         data: this.currentMetricValues,
                         backgroundColor: gradient,
-                        borderColor: pointColor,
+                        borderColor: '#DDE8FF',
                         borderWidth: 1,
                         pointRadius: 0,
                         pointHoverRadius: 0,
@@ -723,13 +727,13 @@ function productPage() {
                     scales: {
                         r: {
                             beginAtZero: true,
-                            max: 5,
+                            max: 4,
                             min: 0,
                             ticks: { stepSize: 1, display: false },
                             grid: { circular: true, color: 'transparent', lineWidth: 0 },
                             angleLines: { color: 'transparent', lineWidth: 0 },
                             pointLabels: { font: { size: 15, weight: '600' }, color: '#374151' },
-                            backgroundColor: 'rgba(243, 244, 246, 1)'
+                            backgroundColor: '#F5F5F5'
                         }
                     }
                 },
@@ -745,7 +749,7 @@ function productPage() {
                         const maxValue = scale.max;
 
                         ctx.save();
-                        ctx.strokeStyle = 'rgba(180, 180, 180, 0.8)';
+                        ctx.strokeStyle = '#D9D9D9';
                         ctx.lineWidth = 1;
                         for (let i = 1; i <= maxValue; i++) {
                             const r = (i / maxValue) * maxRadius;

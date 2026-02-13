@@ -583,7 +583,7 @@
             <!-- 단계별 설명 -->
             <div class="space-y-4">
                 <h3 class="text-sm font-medium text-gray-900">단계별 효과 설명</h3>
-                <p class="text-xs text-gray-500 mb-3">그래프 아래에 표시되는 단계별 상세 설명입니다</p>
+                <p class="text-xs text-gray-500 mb-3">그래프 아래에 표시되는 단계별 상세 설명입니다. <span class="text-blue-500 font-medium">{중괄호}</span>로 감싸면 파란색으로 강조됩니다.</p>
 
                 <!-- Phase 1: D0-5 -->
                 <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
@@ -593,7 +593,7 @@
                     </div>
                     <textarea name="efficacy_phases[phase1]" rows="2"
                               x-model="phases.phase1"
-                              placeholder="예: 유효 성분이 피부에 전달되며, 멜라닌 생성 신호를 완화할 준비 단계에 들어갑니다."
+                              placeholder="예: 유효 성분이 피부에 전달되며, {멜라닌 생성 신호를 완화}할 준비 단계에 들어갑니다."
                               class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500">{{ old('efficacy_phases.phase1', $product->efficacy_phases['phase1'] ?? '') }}</textarea>
                 </div>
 
@@ -605,7 +605,7 @@
                     </div>
                     <textarea name="efficacy_phases[phase2]" rows="2"
                               x-model="phases.phase2"
-                              placeholder="예: 피부 톤 변화가 눈으로 느껴지기 시작하며, 칙칙함이 점차 완화됩니다."
+                              placeholder="예: {피부 톤 변화}가 눈으로 느껴지기 시작하며, 칙칙함이 점차 완화됩니다."
                               class="w-full px-3 py-2 border border-emerald-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">{{ old('efficacy_phases.phase2', $product->efficacy_phases['phase2'] ?? '') }}</textarea>
                 </div>
 
@@ -617,7 +617,7 @@
                     </div>
                     <textarea name="efficacy_phases[phase3]" rows="2"
                               x-model="phases.phase3"
-                              placeholder="예: 색소 완화 효과가 안정화되며, 균일한 톤이 유지되는 단계입니다."
+                              placeholder="예: {색소 완화 효과}가 안정화되며, 균일한 톤이 유지되는 단계입니다."
                               class="w-full px-3 py-2 border border-purple-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">{{ old('efficacy_phases.phase3', $product->efficacy_phases['phase3'] ?? '') }}</textarea>
                 </div>
             </div>
@@ -848,9 +848,9 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">설명 문구</label>
                     <input type="text" name="optimal_timing[reason]" x-model="timing.reason"
-                           placeholder="예: 자외선 없는 밤 동안 멜라닌 억제 작용 극대화"
+                           placeholder="예: 자외선 없는 밤 동안 {멜라닌 억제 작용} 극대화"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <p class="text-xs text-gray-400 mt-1">최적 사용 시간 섹션 상단에 표시되는 설명입니다</p>
+                    <p class="text-xs text-gray-400 mt-1">최적 사용 시간 카드 하단에 표시되는 설명입니다. <span class="text-blue-500 font-medium">{중괄호}</span>로 감싸면 파란색으로 강조됩니다.</p>
                 </div>
 
                 <!-- 아침/저녁 효과 -->
@@ -866,7 +866,7 @@
                                    class="w-24 px-3 py-2 border border-amber-300 rounded-lg text-center text-lg font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
                             <span class="text-lg font-bold text-gray-700">%</span>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">100% 기준, 100 초과 시 "Good" 표시</p>
+                        <p class="text-xs text-gray-500 mt-2">100% 기준, 100 초과 시 "사용추천" 표시</p>
                     </div>
                     <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
                         <div class="flex items-center gap-2 mb-3">
@@ -879,7 +879,7 @@
                                    class="w-24 px-3 py-2 border border-indigo-300 rounded-lg text-center text-lg font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                             <span class="text-lg font-bold text-gray-700">%</span>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">100% 기준, 100 초과 시 "Good" 표시</p>
+                        <p class="text-xs text-gray-500 mt-2">100% 기준, 100 초과 시 "사용추천" 표시</p>
                     </div>
                 </div>
 
@@ -975,7 +975,6 @@
                                     <option value="2">2</option>
                                     <option value="3">3</option>
                                     <option value="4">4</option>
-                                    <option value="5">5</option>
                                 </select>
                             </div>
                             <div class="w-32">
@@ -1094,35 +1093,35 @@
                 const efficacyType = '{{ $product->efficacy_type ?? 'moisture' }}';
                 const metricsPresets = {
                     moisture: [
-                        { name: '보습력', value: 5, color: 'bg-blue-500' },
+                        { name: '보습력', value: 4, color: 'bg-blue-500' },
                         { name: '보습지속력', value: 4, color: 'bg-indigo-500' },
                         { name: '끈적임', value: 4, color: 'bg-cyan-500' },
                         { name: '효과 체감', value: 4, color: 'bg-emerald-500' },
                         { name: '자극여부', value: 1, color: 'bg-rose-500' },
                     ],
                     elasticity: [
-                        { name: '탄력 개선', value: 5, color: 'bg-purple-500' },
+                        { name: '탄력 개선', value: 4, color: 'bg-purple-500' },
                         { name: '리프팅감', value: 4, color: 'bg-indigo-500' },
                         { name: '탱탱함', value: 4, color: 'bg-pink-500' },
                         { name: '효과 체감', value: 4, color: 'bg-emerald-500' },
                         { name: '자극여부', value: 1, color: 'bg-rose-500' },
                     ],
                     tone: [
-                        { name: '톤 개선', value: 5, color: 'bg-orange-500' },
+                        { name: '톤 개선', value: 4, color: 'bg-orange-500' },
                         { name: '화사함', value: 4, color: 'bg-amber-500' },
                         { name: '균일함', value: 4, color: 'bg-yellow-500' },
                         { name: '효과 체감', value: 4, color: 'bg-emerald-500' },
                         { name: '자극여부', value: 1, color: 'bg-rose-500' },
                     ],
                     pore: [
-                        { name: '모공 축소', value: 5, color: 'bg-green-500' },
+                        { name: '모공 축소', value: 4, color: 'bg-green-500' },
                         { name: '피지 조절', value: 4, color: 'bg-teal-500' },
                         { name: '매끄러움', value: 4, color: 'bg-cyan-500' },
                         { name: '효과 체감', value: 4, color: 'bg-emerald-500' },
                         { name: '자극여부', value: 1, color: 'bg-rose-500' },
                     ],
                     soothing: [
-                        { name: '진정 효과', value: 5, color: 'bg-green-500' },
+                        { name: '진정 효과', value: 4, color: 'bg-green-500' },
                         { name: '붉은기 완화', value: 4, color: 'bg-teal-500' },
                         { name: '편안함', value: 4, color: 'bg-cyan-500' },
                         { name: '효과 체감', value: 4, color: 'bg-emerald-500' },
@@ -1214,7 +1213,7 @@
                     },
                     clearMetrics() {
                         this.metrics = [
-                            { name: '', value: 5, color: 'bg-blue-500' },
+                            { name: '', value: 4, color: 'bg-blue-500' },
                             { name: '', value: 4, color: 'bg-indigo-500' },
                             { name: '', value: 4, color: 'bg-cyan-500' },
                             { name: '', value: 4, color: 'bg-emerald-500' },

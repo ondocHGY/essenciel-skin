@@ -423,3 +423,66 @@ SYNC_MINUTE=0
 **`review-collector/app/main.py`**
 - `POST /api/reviews/sync` 전체 동기화 시 백그라운드 → 순차 처리로 변경
 - 각 플랫폼별 시작/완료 로그 출력, 응답에 전체 플랫폼 결과 리스트 반환
+
+### 2026-02-12
+
+#### Shopee 셀러센터 스크래퍼 추가
+
+**`review-collector/app/scrapers/shopee.py`** (신규)
+- seller.shopee.kr 셀러센터 리뷰 페이지 DOM 스크래핑
+- 쿠키 로그인 방식 (인증 쿠키 유효기간 ~7일, 수동 재로그인 필요)
+- JavaScript `execute_script`로 리뷰 카드 파싱:
+  - `ratingListWrap` → `div.rounded.border-solid` 카드 → header(fafafa) + body(divide-x 3열)
+  - 별점: `eds-react-rate-star__front` width 체크
+  - 날짜: DD/MM/YYYY HH:MM → YYYY-MM-DD HH:MM:SS 변환
+  - 페이지네이션: `eds-react-pagination-pager__button-next` 클릭
+- 중복 제거: `order_id + md5(product_name)[:8]` 조합
+- external_id: `shopee_{order_id}_{md5(product_name)[:6]}`
+- 인증 쿠키 만료 임박 시 WARNING/ERROR 로그 출력 (`_check_cookie_expiry()`)
+
+**`review-collector/save_shopee_cookies_local.py`** (신규)
+- Windows 로컬에서 Shopee 셀러센터 쿠키 저장용 스크립트
+- undetected_chromedriver로 수동 로그인 후 쿠키 자동 저장
+
+**`review-collector/app/config.py`**
+- `COOKIE_PATHS`에 `shopee` 추가
+- `COOKIE_LABELS`에 `shopee: 'Shopee 셀러센터'` 추가
+
+**`review-collector/docker-compose.yml`**
+- `SHOPEE_COOKIE_PATH=/app/data/shopee_cookies.json` 환경변수 추가
+
+#### review_source_id 타입 변경 (Integer → String)
+
+**`database/migrations/2026_02_12_000000_change_review_source_id_to_string.php`** (신규)
+- `product_reviews.review_source_id`: FK 제약조건 제거, `unsignedBigInteger` → `string(100)` 변경
+- 플랫폼 상품코드를 직접 저장 (product_review_sources.external_id 값)
+
+**`app/Models/ProductReview.php`**
+- `reviewSource()` 관계: `review_source_id` → `product_review_sources.external_id` 기준 매칭으로 변경
+
+**`review-collector/app/models.py`**
+- `review_source_id`: `Column(Integer)` → `Column(String(100))`
+
+**`review-collector/app/scheduler.py`**
+- `save_reviews()`: 리뷰 저장/업데이트 시 `review_source_id = platform_product_code` 설정
+- Shopee는 external_id에서 추출한 `name_hash`(md5[:6]), 다른 플랫폼은 기존 상품코드
+
+#### 엑셀 업로드 파서
+
+**`review-collector/app/parsers.py`** (신규)
+- W컨셉, 쿠팡 엑셀 파일 파서
+- `POST /api/reviews/upload/{platform}` API로 엑셀 업로드 → 리뷰 등록
+
+**`review-collector/app/main.py`**
+- 엑셀 업로드 엔드포인트 추가 (`/api/reviews/upload/{platform}`)
+
+#### 관리자 플랫폼별 동기화 UI
+
+**`app/Http/Controllers/Admin/ScraperController.php`**
+- 동기화 API 타임아웃: 120s → 600s (Shopee 80페이지 수집 소요)
+- API 응답 리스트 형식 처리 (플랫폼별 결과 합산 표시)
+
+**`resources/views/admin/scraper/index.blade.php`**
+- 드롭다운 → 플랫폼별 개별 동기화 버튼 UI 변경
+- Qoo10(빨강), 네이버(초록), 무신사(회색), Shopee(주황), 전체(파랑)
+- `syncManager()` Alpine.js 함수: 동기화 중 로딩 상태 표시

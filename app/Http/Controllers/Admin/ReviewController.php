@@ -137,10 +137,20 @@ class ReviewController extends Controller
         $defaultProductId = $request->product_id;
         $platform = $request->platform;
 
+        // 화해는 전용 처리
+        if ($platform === 'hwahae') {
+            return $this->uploadHwahae($file, $defaultProductId);
+        }
+
         try {
             $spreadsheet = IOFactory::load($file->getPathname());
             $worksheet = $spreadsheet->getActiveSheet();
             $rows = $worksheet->toArray();
+
+            // W컨셉: 1행은 메타데이터, 2행이 헤더
+            if ($platform === 'wconcept') {
+                array_shift($rows); // 1행(메타데이터) 제거
+            }
 
             // 첫 번째 행은 헤더
             $headers = array_map('trim', array_map('strval', $rows[0] ?? []));
@@ -202,6 +212,15 @@ class ReviewController extends Controller
                         if ($productCache[$productCode]) {
                             $productIds = [$productCache[$productCode]];
                         }
+                    }
+                }
+
+                // 3단계: 상품명 키워드로 매칭
+                if (empty($productIds)) {
+                    $productName = $this->extractValue($row, $headerMap, 'product_name');
+                    $keywordMatch = $this->matchProductByKeyword($productName);
+                    if ($keywordMatch) {
+                        $productIds = [$keywordMatch];
                     }
                 }
 
@@ -363,7 +382,160 @@ class ReviewController extends Controller
                 'product_code' => 'ASIN',
                 'product_name' => 'Product Title',
             ],
+            // W컨셉
+            'wconcept' => [
+                'content' => '제목',
+                'rating' => '평점',
+                'author' => '작성자',
+                'reviewed_at' => '작성일',
+                'external_id' => '주문번호',
+                'product_name' => '상품명',
+            ],
         ];
+    }
+
+    /**
+     * 상품명 키워드 → product_id 매핑
+     */
+    private const PRODUCT_KEYWORD_MAP = [
+        '브라이트' => 9,
+        '하이드라' => 10,
+        '부스팅' => 11,
+        '수더' => 12,
+    ];
+
+    /**
+     * 상품명에서 키워드로 product_id 매칭
+     */
+    private function matchProductByKeyword(?string $productName): ?int
+    {
+        if (empty($productName)) {
+            return null;
+        }
+        foreach (self::PRODUCT_KEYWORD_MAP as $keyword => $productId) {
+            if (str_contains($productName, $keyword)) {
+                return $productId;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 화해 전용 업로드 처리
+     * - 3번째 시트(리뷰RAW데이터) 사용
+     * - 좋은점+아쉬운점+꿀팁 합쳐서 content 생성
+     * - 상품명 키워드로 product_id 매칭
+     */
+    private function uploadHwahae($file, $defaultProductId)
+    {
+        try {
+            $spreadsheet = IOFactory::load($file->getPathname());
+
+            // 3번째 시트 (index 2)
+            if ($spreadsheet->getSheetCount() < 3) {
+                return back()->withErrors(['file' => '화해 엑셀 파일에 3번째 시트(리뷰RAW데이터)가 없습니다.']);
+            }
+            $worksheet = $spreadsheet->getSheet(2);
+            $rows = $worksheet->toArray();
+
+            $headers = array_map('trim', array_map('strval', $rows[0] ?? []));
+            $headersLower = array_map(fn($h) => mb_strtolower($h), $headers);
+
+            // 컬럼 인덱스 찾기
+            $colMap = [];
+            $targetCols = ['닉네임', '제품명', '별점', '좋은점', '아쉬운점', '꿀팁'];
+            foreach ($targetCols as $col) {
+                $idx = array_search(mb_strtolower($col), $headersLower);
+                if ($idx !== false) {
+                    $colMap[$col] = $idx;
+                }
+            }
+
+            if (!isset($colMap['좋은점'])) {
+                return back()->withErrors(['file' => '화해 엑셀에서 "좋은점" 컬럼을 찾을 수 없습니다.']);
+            }
+
+            $added = 0;
+            $updated = 0;
+            $skipped = 0;
+
+            DB::beginTransaction();
+
+            for ($i = 1; $i < count($rows); $i++) {
+                $row = $rows[$i];
+
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                // 좋은점 + 아쉬운점 + 꿀팁 합치기
+                $parts = [];
+                foreach (['좋은점', '아쉬운점', '꿀팁'] as $col) {
+                    if (isset($colMap[$col])) {
+                        $val = trim($row[$colMap[$col]] ?? '');
+                        if (!empty($val)) {
+                            $parts[] = $val;
+                        }
+                    }
+                }
+                $content = implode("\n", $parts);
+
+                if (empty($content) || mb_strlen($content) < 5) {
+                    $skipped++;
+                    continue;
+                }
+
+                $author = isset($colMap['닉네임']) ? trim($row[$colMap['닉네임']] ?? '') : '';
+                $productName = isset($colMap['제품명']) ? trim($row[$colMap['제품명']] ?? '') : '';
+
+                $rating = 5.0;
+                if (isset($colMap['별점']) && is_numeric($row[$colMap['별점']] ?? '')) {
+                    $rating = max(1, min(5, (float)$row[$colMap['별점']]));
+                }
+
+                // 상품명 키워드로 product_id 매칭
+                $productId = $this->matchProductByKeyword($productName) ?? $defaultProductId;
+
+                // external_id 생성
+                $externalId = 'hwahae_' . substr(md5($author . $productName . mb_substr($content, 0, 50)), 0, 12);
+
+                $reviewData = [
+                    'platform' => 'hwahae',
+                    'platform_product_code' => null,
+                    'product_name' => $productName ?: null,
+                    'content' => $content,
+                    'rating' => $rating,
+                    'author' => !empty($author) ? $author : null,
+                    'reviewed_at' => null,
+                    'is_visible' => true,
+                    'external_id' => $externalId,
+                    'product_id' => $productId,
+                ];
+
+                $existing = ProductReview::where('platform', 'hwahae')
+                    ->where('external_id', $externalId)
+                    ->first();
+
+                if ($existing) {
+                    $existing->update($reviewData);
+                    $updated++;
+                } else {
+                    ProductReview::create($reviewData);
+                    $added++;
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.reviews.index')
+                ->with('success', "화해 업로드 완료: {$added}개 추가, {$updated}개 업데이트, {$skipped}개 스킵");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('화해 리뷰 업로드 실패: ' . $e->getMessage());
+
+            return back()->withErrors(['file' => '파일 처리 중 오류가 발생했습니다: ' . $e->getMessage()]);
+        }
     }
 
     /**
