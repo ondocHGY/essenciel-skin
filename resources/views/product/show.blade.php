@@ -113,14 +113,14 @@
                 @endphp
                 <div class="absolute z-10 w-max"
                      style="top: {{ $top }}; left: {{ $left }};">
-                    <div class="flex items-center gap-2 rounded-full px-3 py-2"
+                    <div class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5"
                          style="background-color: rgba(255,255,255,0.55); box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
-                        <div class="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">
-                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
                             </svg>
                         </div>
-                        <span class="text-lg font-semibold text-gray-900 whitespace-nowrap">{{ $ingredient->name }}</span>
+                        <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">{{ $ingredient->name }}</span>
                     </div>
                 </div>
                 @endforeach
@@ -390,7 +390,7 @@
                                 <x-loading-spinner />
                             </template>
                             <template x-if="collectionComplete">
-                                <div class="w-2 h-2 rounded-full" style="background-color: #3F78EB;"></div>
+                                <div class="w-2 h-2 rounded-full" style="background-color: #ACDDA5;"></div>
                             </template>
                             <span class="text-base font-medium text-white" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
                         </div>
@@ -494,10 +494,10 @@
             {{-- 수집 중 헤더 --}}
             <div x-show="!collectionComplete" class="text-center mb-6">
                 <div class="w-16 h-16 mx-auto mb-4 relative">
-                    <div class="absolute inset-0 border-4 rounded-full animate-ping" style="border-color: rgba({{ $rgbString }}, 0.3)"></div>
-                    <div class="absolute inset-2 border-4 rounded-full animate-pulse" style="border-color: rgba({{ $rgbString }}, 0.5)"></div>
+                    <div class="absolute inset-0 border-4 rounded-full animate-ping" style="border-color: rgba(63, 120, 235, 0.3)"></div>
+                    <div class="absolute inset-2 border-4 rounded-full animate-pulse" style="border-color: rgba(63, 120, 235, 0.5)"></div>
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <x-loading-spinner size="8" :customColor="$pointColor" />
+                        <x-loading-spinner size="8" customColor="#3F78EB" />
                     </div>
                 </div>
                 <h3 class="text-white font-bold text-lg mb-1">실시간 데이터 수집 중</h3>
@@ -506,7 +506,7 @@
 
             {{-- 완료 헤더 --}}
             <div x-show="collectionComplete" class="text-center mb-6">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background-color: {{ $pointColor }}">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background-color: #3F78EB;">
                     <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
@@ -522,10 +522,10 @@
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full"
                                  :class="platform.collected ? '' : 'bg-slate-600 animate-pulse'"
-                                 :style="platform.collected ? 'background-color: {{ $pointColor }}' : ''"></div>
+                                 :style="platform.collected ? 'background-color: #3F78EB' : ''"></div>
                             <span class="text-slate-300" x-text="platform.name"></span>
                         </div>
-                        <span class="font-mono text-xs" style="color: {{ $pointColor }}" x-text="platform.count.toLocaleString() + '건'"></span>
+                        <span class="font-mono text-xs" style="color: #3F78EB;" x-text="platform.count.toLocaleString() + '건'"></span>
                     </div>
                 </template>
             </div>
@@ -700,10 +700,10 @@ function productPage() {
                 centerX, centerY, 0,
                 centerX, centerY, radius
             );
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-            gradient.addColorStop(0.3, 'rgba(63, 120, 235, 0.15)');
-            gradient.addColorStop(0.6, 'rgba(63, 120, 235, 0.45)');
-            gradient.addColorStop(1, 'rgba(63, 120, 235, 0.85)');
+            gradient.addColorStop(0, 'rgba(63, 120, 235, 0.85)');
+            gradient.addColorStop(0.4, 'rgba(63, 120, 235, 0.45)');
+            gradient.addColorStop(0.7, 'rgba(63, 120, 235, 0.15)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.9)');
 
             radarChart = new Chart(ctx, {
                 type: 'radar',

@@ -393,13 +393,13 @@
                          :style="'top: ' + card.top + '%; left: ' + card.left + '%;'"
                          @mousedown.prevent="onDragStart(idx, $event)"
                          @touchstart.prevent="onTouchStart(idx, $event)">
-                        <div class="flex items-center gap-2 rounded-full px-3 py-2 shadow-lg" style="background-color: rgba(255,255,255,0.55); box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
-                            <div class="w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 shadow-lg" style="background-color: rgba(255,255,255,0.55); box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
+                            <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+                                <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
                                 </svg>
                             </div>
-                            <span class="text-lg font-semibold text-gray-900 whitespace-nowrap" x-text="card.name"></span>
+                            <span class="text-sm font-semibold text-gray-900 whitespace-nowrap" x-text="card.name"></span>
                         </div>
                     </div>
                 </template>

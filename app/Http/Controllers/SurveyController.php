@@ -30,9 +30,10 @@ class SurveyController extends Controller
         // 설문 질문 로드 (DB에서 또는 기본값)
         $questions = $this->loadSurveyQuestions();
 
-        // 리뷰 데이터 집계
+        // 리뷰 데이터 집계 (실제 수집된 리뷰 건수 사용)
+        $actualReviewCount = $product->reviews()->count();
         $reviewData = [
-            'total_count' => $product->activeReviewSources->sum('review_count'),
+            'total_count' => $actualReviewCount,
             'sources' => $product->activeReviewSources->map(fn($s) => [
                 'platform' => $s->platform,
                 'platform_name' => $s->platform_name,
