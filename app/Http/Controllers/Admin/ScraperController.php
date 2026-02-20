@@ -36,7 +36,7 @@ class ScraperController extends Controller
             $query->status($request->status);
         }
 
-        $syncLogs = $query->paginate(20)->withQueryString();
+        $syncLogs = $query->paginate(10)->withQueryString();
 
         // 통계
         $stats = [
@@ -56,7 +56,7 @@ class ScraperController extends Controller
         $serviceStatus = $this->checkServiceHealth();
 
         // 리뷰 소스 목록
-        $sources = ProductReviewSource::with('product')->orderByDesc('created_at')->get();
+        $sources = ProductReviewSource::with('product')->orderByDesc('created_at')->paginate(10, ['*'], 'sources_page')->withQueryString();
 
         // 제품 목록 (소스 등록용)
         $products = Product::orderBy('name')->get();
@@ -174,26 +174,30 @@ class ScraperController extends Controller
     }
 
     /**
-     * 리뷰 소스 등록
+     * 리뷰 소스 등록 (여러개 동시 등록 지원)
      */
     public function storeSource(Request $request)
     {
         $validated = $request->validate([
-            'product_id' => 'nullable|exists:products,id',
-            'platform' => 'required|string|max:50',
-            'platform_name' => 'nullable|string|max:100',
-            'external_url' => 'nullable|url|max:500',
-            'external_id' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
+            'sources' => 'required|array|min:1',
+            'sources.*.platform' => 'required|string|max:50',
+            'sources.*.product_id' => 'nullable|exists:products,id',
+            'sources.*.external_url' => 'nullable|url|max:500',
+            'sources.*.external_id' => 'nullable|string|max:100',
         ]);
 
-        $validated['platform_name'] = ($validated['platform_name'] ?? null)
-            ?: (ProductReviewSource::$platforms[$validated['platform']] ?? $validated['platform']);
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $count = 0;
+        foreach ($validated['sources'] as $sourceData) {
+            $sourceData['platform_name'] = ProductReviewSource::$platforms[$sourceData['platform']] ?? $sourceData['platform'];
+            $sourceData['is_active'] = true;
+            if (empty($sourceData['product_id'])) {
+                $sourceData['product_id'] = null;
+            }
+            ProductReviewSource::create($sourceData);
+            $count++;
+        }
 
-        ProductReviewSource::create($validated);
-
-        return back()->with('success', '리뷰 소스가 등록되었습니다.');
+        return back()->with('success', "리뷰 소스 {$count}개가 등록되었습니다.");
     }
 
     /**

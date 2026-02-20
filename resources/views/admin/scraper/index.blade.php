@@ -141,49 +141,69 @@
             </div>
         </div>
 
-        {{-- 소스 추가 폼 --}}
-        <div x-show="showAddSource" x-cloak class="border border-blue-200 bg-blue-50 rounded-lg p-4 mb-4">
+        {{-- 소스 추가 폼 (여러개 동시 등록) --}}
+        <div x-show="showAddSource" x-cloak x-data="sourceForm()" class="border border-blue-200 bg-blue-50 rounded-lg p-4 mb-4">
             <form method="POST" action="{{ route('admin.scraper.store-source') }}">
                 @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">플랫폼 *</label>
-                        <select name="platform" required class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">선택</option>
-                            @foreach($platforms as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
+                <template x-for="(row, index) in rows" :key="index">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 mb-3">
+                        <div>
+                            <template x-if="index === 0"><label class="block text-xs font-semibold text-gray-600 mb-1">플랫폼 *</label></template>
+                            <select :name="'sources[' + index + '][platform]'" required class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">선택</option>
+                                @foreach($platforms as $key => $label)
+                                    <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <template x-if="index === 0"><label class="block text-xs font-semibold text-gray-600 mb-1">연결 제품</label></template>
+                            <select :name="'sources[' + index + '][product_id]'" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">미지정</option>
+                                @foreach($products as $product)
+                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <template x-if="index === 0"><label class="block text-xs font-semibold text-gray-600 mb-1">외부 URL</label></template>
+                            <input type="url" :name="'sources[' + index + '][external_url]'" placeholder="https://..."
+                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <template x-if="index === 0"><label class="block text-xs font-semibold text-gray-600 mb-1">외부 ID</label></template>
+                            <input type="text" :name="'sources[' + index + '][external_id]'" placeholder="플랫폼 상품코드"
+                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="flex items-end">
+                            <template x-if="index === 0"><label class="block text-xs text-transparent mb-1">&nbsp;</label></template>
+                            <button type="button" x-show="rows.length > 1" @click="removeRow(index)"
+                                    class="p-2 text-red-400 hover:text-red-600 transition-colors" title="삭제">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">연결 제품</label>
-                        <select name="product_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">미지정 (전체 수집)</option>
-                            @foreach($products as $product)
-                                <option value="{{ $product->id }}">{{ $product->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">외부 URL</label>
-                        <input type="url" name="external_url" placeholder="https://..."
-                               class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">외부 ID</label>
-                        <input type="text" name="external_id" placeholder="플랫폼 상품코드"
-                               class="w-full rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                </div>
+                </template>
                 <div class="flex items-center gap-3">
-                    <x-button type="submit" variant="primary" size="sm">등록</x-button>
+                    <x-button type="submit" variant="primary" size="sm">
+                        <span x-text="rows.length > 1 ? rows.length + '개 일괄 등록' : '등록'"></span>
+                    </x-button>
+                    <button type="button" @click="addRow()"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        행 추가
+                    </button>
                     <x-button variant="secondary" size="sm" x-on:click.prevent="showAddSource = false">취소</x-button>
                 </div>
             </form>
         </div>
 
         {{-- 소스 목록 --}}
-        @if($sources->isEmpty())
+        @if($sources->total() === 0)
             <div class="text-center py-8 text-gray-400">
                 <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -267,6 +287,13 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- 소스 페이지네이션 --}}
+            @if($sources->hasPages())
+            <div class="mt-4">
+                {{ $sources->links() }}
+            </div>
+            @endif
         @endif
     </div>
 
@@ -477,6 +504,14 @@ function scraperPage() {
     return {
         syncing: false,
         showAddSource: false,
+    }
+}
+
+function sourceForm() {
+    return {
+        rows: [{}],
+        addRow() { this.rows.push({}); },
+        removeRow(index) { this.rows.splice(index, 1); },
     }
 }
 
