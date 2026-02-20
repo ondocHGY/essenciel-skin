@@ -574,7 +574,7 @@ function productPage() {
                 ->filter(fn($m) => !empty($m['name']))
                 ->map(fn($m) => [
                     'name' => $m['name'],
-                    'value' => (int)($m['value'] ?? 0),
+                    'value' => min((int)($m['value'] ?? 0), 4),
                 ])
                 ->values()
                 ->toArray();
@@ -700,10 +700,10 @@ function productPage() {
                 centerX, centerY, 0,
                 centerX, centerY, radius
             );
-            gradient.addColorStop(0, 'rgba(63, 120, 235, 0.85)');
-            gradient.addColorStop(0.4, 'rgba(63, 120, 235, 0.45)');
-            gradient.addColorStop(0.7, 'rgba(63, 120, 235, 0.15)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.9)');
+            gradient.addColorStop(0, 'rgba(63, 120, 235, 0.9)');
+            gradient.addColorStop(0.6, 'rgba(63, 120, 235, 0.5)');
+            // gradient.addColorStop(0.9, 'rgba(63, 120, 235, 0.2)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
 
             radarChart = new Chart(ctx, {
                 type: 'radar',
@@ -737,8 +737,8 @@ function productPage() {
                     }
                 },
                 plugins: [{
-                    id: 'gridOnTop',
-                    afterDatasetsDraw: (chart) => {
+                    id: 'gridUnder',
+                    beforeDatasetsDraw: (chart) => {
                         const ctx = chart.ctx;
                         const scale = chart.scales.r;
                         const centerX = scale.xCenter;
