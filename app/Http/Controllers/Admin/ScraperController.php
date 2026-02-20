@@ -221,14 +221,17 @@ class ScraperController extends Controller
      */
     public function matchReviews()
     {
-        // 리뷰 소스 캐시: platform → external_id → [product_id, ...] (다대다)
+        // 리뷰 소스 캐시: platform → external_id(trim) → [product_id, ...] (다대다)
         $sourceMap = [];
         $sources = ProductReviewSource::whereNotNull('external_id')
             ->whereNotNull('product_id')
             ->where('is_active', true)
             ->get();
         foreach ($sources as $src) {
-            $sourceMap[$src->platform][$src->external_id][] = $src->product_id;
+            $key = trim((string) $src->external_id);
+            if ($key !== '') {
+                $sourceMap[$src->platform][$key][] = $src->product_id;
+            }
         }
 
         // products 테이블 code → id 캐시
@@ -236,24 +239,33 @@ class ScraperController extends Controller
             ->pluck('id', 'code')
             ->toArray();
 
-        // 미매칭 리뷰 (product_id가 NULL이고 platform_product_code가 있는 것)
+        // 미매칭 리뷰 (product_id가 NULL)
         $unmatched = ProductReview::whereNull('product_id')
-            ->whereNotNull('platform_product_code')
+            ->where(function ($q) {
+                $q->whereNotNull('platform_product_code')
+                  ->orWhereNotNull('review_source_id');
+            })
             ->get();
 
         $matched = 0;
 
         foreach ($unmatched as $review) {
             $productIds = [];
-            $code = $review->platform_product_code;
+            $code = trim((string) ($review->platform_product_code ?? ''));
+            $sourceId = trim((string) ($review->review_source_id ?? ''));
 
-            // 1단계: 리뷰 소스에서 매칭 (여러 product_id 가능)
-            if (isset($sourceMap[$review->platform][$code])) {
+            // 1단계: platform_product_code로 소스 매칭
+            if ($code !== '' && isset($sourceMap[$review->platform][$code])) {
                 $productIds = $sourceMap[$review->platform][$code];
             }
 
+            // 1-1단계: review_source_id로도 시도
+            if (empty($productIds) && $sourceId !== '' && isset($sourceMap[$review->platform][$sourceId])) {
+                $productIds = $sourceMap[$review->platform][$sourceId];
+            }
+
             // 2단계: products 테이블에서 code 매칭
-            if (empty($productIds) && isset($productMap[$code])) {
+            if (empty($productIds) && $code !== '' && isset($productMap[$code])) {
                 $productIds = [$productMap[$code]];
             }
 
@@ -292,9 +304,18 @@ class ScraperController extends Controller
         }
 
         $total = $unmatched->count();
-        $remaining = $total - $matched;
+        $stillUnmatched = ProductReview::whereNull('product_id')->count();
 
-        return back()->with('success', "일괄 매칭 완료: 미매칭 {$total}개 → {$matched}건 매칭 ({$remaining}개 미매칭)");
+        // 소스맵 키 요약 로그
+        $sourceInfo = collect($sourceMap)->map(fn($platforms) => count($platforms))->toArray();
+        Log::info('리뷰 매칭 결과', [
+            'total_unmatched' => $total,
+            'matched' => $matched,
+            'still_unmatched' => $stillUnmatched,
+            'source_map_keys' => $sourceInfo,
+        ]);
+
+        return back()->with('success', "일괄 매칭 완료: 미매칭 {$total}개 → {$matched}건 매칭 (잔여 미매칭: {$stillUnmatched}개)");
     }
 
     /**
