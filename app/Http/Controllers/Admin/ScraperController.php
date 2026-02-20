@@ -258,24 +258,35 @@ class ScraperController extends Controller
             }
 
             if (!empty($productIds)) {
-                // 첫 번째 product_id는 기존 리뷰에 할당
-                $review->update(['product_id' => $productIds[0]]);
-                $matched++;
+                $firstAssigned = false;
 
-                // 나머지 product_id는 리뷰 복제
-                for ($i = 1; $i < count($productIds); $i++) {
+                foreach ($productIds as $productId) {
                     // 이미 같은 조합이 있는지 확인
                     $exists = ProductReview::where('platform', $review->platform)
                         ->where('external_id', $review->external_id)
-                        ->where('product_id', $productIds[$i])
+                        ->where('product_id', $productId)
                         ->exists();
 
-                    if (!$exists) {
-                        $clone = $review->replicate();
-                        $clone->product_id = $productIds[$i];
-                        $clone->save();
-                        $matched++;
+                    if ($exists) {
+                        // 이미 매칭된 리뷰가 있으면 미매칭 중복은 삭제
+                        if (!$firstAssigned) {
+                            $review->delete();
+                            $firstAssigned = true;
+                        }
+                        continue;
                     }
+
+                    if (!$firstAssigned) {
+                        // 첫 번째 product_id는 기존 리뷰에 할당
+                        $review->update(['product_id' => $productId]);
+                        $firstAssigned = true;
+                    } else {
+                        // 나머지 product_id는 리뷰 복제
+                        $clone = $review->replicate();
+                        $clone->product_id = $productId;
+                        $clone->save();
+                    }
+                    $matched++;
                 }
             }
         }

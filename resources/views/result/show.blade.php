@@ -81,7 +81,7 @@
         $textPointColor = sprintf('#%02x%02x%02x', $textDarkerRgb[0], $textDarkerRgb[1], $textDarkerRgb[2]);
     }
 
-    $improvementPercent = round($result->metrics['change_percent'] ?? 0);
+    $improvementPercent = round($result->metrics['change_percent'] ?? 0, 1);
     $milestoneLabels = $product->getEfficacyMilestoneLabels();
     $milestoneCenterTexts = $product->getMilestoneCenterTexts();
     $descriptions = $product->getEfficacyPhaseDescriptions();
