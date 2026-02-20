@@ -321,7 +321,7 @@
         <div x-show="activeTab === 'prediction'">
         {{-- 2. 효능 발현 예측 --}}
         <div class="mb-10">
-            <h2 class="text-lg font-bold text-gray-900 mb-6">효능 발현 예측</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">효능 발현 예측</h2>
 
             {{-- 원형 틱 게이지 애니메이션 --}}
             <div class="relative w-60 h-60 mx-auto mb-8">
@@ -397,7 +397,7 @@
 
         {{-- 3. 단계별 효과 --}}
         <div class="mb-8">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">단계별 효과</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">단계별 효과</h2>
 
             {{-- 그래프 영역 --}}
             <div class="rounded-xl p-4 mb-6" style="background-color: #F6F6F6;">
@@ -494,7 +494,7 @@
                 $isEveningGood = $eveningEffect > 100;
             @endphp
             <div>
-                <h3 class="text-xl font-bold text-gray-900 mb-4">최적 사용 시간</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">최적 사용 시간</h3>
 
                 {{-- 아침/저녁 효과 카드 --}}
                 <div class="grid grid-cols-2 gap-3">
@@ -563,7 +563,7 @@
 
         {{-- 6. 건강한 피부습관 --}}
         <div class="mb-8">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">건강한 피부습관</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">건강한 피부습관</h2>
 
             @php
                 $recommendations = array_slice($result->usage_guide['recommendations'] ?? [], 0, 3); // 최대 3개
