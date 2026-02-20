@@ -112,6 +112,77 @@ class ReviewController extends Controller
     }
 
     /**
+     * 리뷰 엑셀 다운로드 (현재 필터 적용)
+     */
+    public function export(Request $request)
+    {
+        $query = ProductReview::with(['product'])
+            ->orderByDesc('reviewed_at');
+
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+        if ($request->filled('platform')) {
+            $query->where('platform', $request->platform);
+        }
+        if ($request->filled('rating')) {
+            $query->where('rating', '>=', $request->rating);
+        }
+
+        $reviews = $query->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // 헤더
+        $headers = ['ID', '제품명', '플랫폼', '평점', '작성자', '리뷰 내용', '작성일', '노출', '추천'];
+        $sheet->fromArray($headers, null, 'A1');
+
+        // 헤더 스타일
+        $headerStyle = $sheet->getStyle('A1:I1');
+        $headerStyle->getFont()->setBold(true);
+        $headerStyle->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+        $headerStyle->getFill()->getStartColor()->setRGB('E2E8F0');
+
+        // 데이터
+        $platforms = ProductReviewSource::$platforms;
+        $row = 2;
+        foreach ($reviews as $review) {
+            $sheet->setCellValue("A{$row}", $review->id);
+            $sheet->setCellValue("B{$row}", $review->product?->name ?? '-');
+            $sheet->setCellValue("C{$row}", $platforms[$review->platform] ?? $review->platform);
+            $sheet->setCellValue("D{$row}", $review->rating);
+            $sheet->setCellValue("E{$row}", $review->author ?? '-');
+            $sheet->setCellValue("F{$row}", $review->content);
+            $sheet->setCellValue("G{$row}", $review->reviewed_at?->format('Y-m-d') ?? '-');
+            $sheet->setCellValue("H{$row}", $review->is_visible ? 'O' : 'X');
+            $sheet->setCellValue("I{$row}", $review->is_featured ? 'O' : 'X');
+            $row++;
+        }
+
+        // 컬럼 너비
+        $sheet->getColumnDimension('A')->setWidth(8);
+        $sheet->getColumnDimension('B')->setWidth(20);
+        $sheet->getColumnDimension('C')->setWidth(12);
+        $sheet->getColumnDimension('D')->setWidth(8);
+        $sheet->getColumnDimension('E')->setWidth(12);
+        $sheet->getColumnDimension('F')->setWidth(60);
+        $sheet->getColumnDimension('G')->setWidth(12);
+        $sheet->getColumnDimension('H')->setWidth(8);
+        $sheet->getColumnDimension('I')->setWidth(8);
+
+        $filename = '리뷰_' . now()->format('Ymd_His') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
+    /**
      * 엑셀 업로드 폼
      */
     public function uploadForm()

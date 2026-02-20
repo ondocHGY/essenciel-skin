@@ -6,6 +6,12 @@
 <div class="max-w-7xl mx-auto">
     {{-- 페이지 헤더 --}}
     <x-page-header title="리뷰 관리" :description="'총 ' . $stats['total'] . '건의 리뷰'">
+        <x-button :href="route('admin.reviews.export', request()->query())" variant="primary" size="md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            엑셀 다운로드
+        </x-button>
         <x-button :href="route('admin.reviews.upload')" variant="success" size="md">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>

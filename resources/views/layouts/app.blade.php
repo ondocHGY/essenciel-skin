@@ -24,6 +24,12 @@
     <main class="max-w-lg mx-auto">
         @yield('content')
     </main>
+    @if(config('services.kakao.js_key'))
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" integrity="sha384-DKYJZ8NLiK8MN4/C5P2ezmFnkrWAjax0Rl/Gm2WENhcODqdwxOLOuuY1VuNINJi" crossorigin="anonymous"></script>
+    <script>
+        Kakao.init('{{ config('services.kakao.js_key') }}');
+    </script>
+    @endif
     @stack('scripts')
 </body>
 </html>

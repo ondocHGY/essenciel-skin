@@ -82,6 +82,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/reviews/upload', [AdminReviewController::class, 'uploadForm'])->name('reviews.upload');
         Route::post('/reviews/upload', [AdminReviewController::class, 'upload'])->name('reviews.upload.submit');
         Route::get('/reviews/download-sample', [AdminReviewController::class, 'downloadSample'])->name('reviews.download-sample');
+        Route::get('/reviews/export', [AdminReviewController::class, 'export'])->name('reviews.export');
         Route::get('/reviews/{review}/edit', [AdminReviewController::class, 'edit'])->name('reviews.edit');
         Route::put('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
         Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');

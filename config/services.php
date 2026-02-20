@@ -39,4 +39,8 @@ return [
         'url' => env('REVIEW_COLLECTOR_URL', 'http://localhost:8002'),
     ],
 
+    'kakao' => [
+        'js_key' => env('KAKAO_JS_KEY'),
+    ],
+
 ];
