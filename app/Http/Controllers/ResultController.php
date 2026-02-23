@@ -49,7 +49,12 @@ class ResultController extends Controller
         // 공유 URL
         $shareUrl = $result->getShareUrl();
 
-        return view('result.show', compact('product', 'result', 'chartData', 'shareUrl'));
+        // 다른 제품 목록
+        $otherProducts = Product::where('id', '!=', $product->id)
+            ->select('id', 'code', 'name', 'brand', 'image')
+            ->latest()->limit(10)->get();
+
+        return view('result.show', compact('product', 'result', 'chartData', 'shareUrl', 'otherProducts'));
     }
 
     public function share(string $token)
@@ -73,10 +78,15 @@ class ResultController extends Controller
         // 공유 URL (자기 자신)
         $shareUrl = $result->getShareUrl();
 
+        // 다른 제품 목록
+        $otherProducts = Product::where('id', '!=', $product->id)
+            ->select('id', 'code', 'name', 'brand', 'image')
+            ->latest()->limit(10)->get();
+
         // 공유 페이지임을 표시
         $isShared = true;
 
-        return view('result.show', compact('product', 'result', 'chartData', 'shareUrl', 'isShared'));
+        return view('result.show', compact('product', 'result', 'chartData', 'shareUrl', 'isShared', 'otherProducts'));
     }
 
     private function ensureRadarScores(array $metrics): array

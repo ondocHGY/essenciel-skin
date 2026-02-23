@@ -176,42 +176,8 @@
         </div>
     </div>
 
-    {{-- 상단 헤더 (제품 상세와 동일) --}}
-    <div x-show="!isLoading" class="bg-black sticky top-0 z-50">
-        <div class="max-w-lg mx-auto flex items-center justify-between px-4 py-3">
-            <img src="{{ asset('logo_white.png') }}" alt="Essenciel" class="h-5">
-            <button @click="menuOpen = !menuOpen" class="text-white p-1">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="5" cy="12" r="2"/>
-                    <circle cx="12" cy="12" r="2"/>
-                    <circle cx="19" cy="12" r="2"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    {{-- 메뉴 드롭다운 --}}
-    <div x-show="menuOpen" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
-         @click.away="menuOpen = false"
-         class="fixed top-12 right-2 z-[60] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden min-w-[180px]">
-        <a href="{{ $product->sales_url ?: route('product.show', $product->code) }}" {{ $product->sales_url ? 'target="_blank"' : '' }}
-           class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
-            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-            제품 상세
-        </a>
-        <a href="{{ route('survey.index', $product->code) }}"
-           class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3">
-            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-            </svg>
-            다른 제품 분석
-        </a>
+    <div x-show="!isLoading">
+        <x-top-header :product="$product" :other-products="$otherProducts ?? collect()" />
     </div>
 
     {{-- 분석 완료 섹션 --}}
@@ -239,13 +205,13 @@
     {{-- 탭 메뉴 --}}
     <div x-show="!isLoading" class="sticky top-[52px] z-40 bg-white">
         <div class="flex max-w-lg mx-auto border-b border-gray-200">
-            <button @click="activeTab = 'analysis'"
+            <button @click="scrollToSection('analysis')"
                     :class="activeTab === 'analysis' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
                     class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">피부 분석</button>
-            <button @click="activeTab = 'prediction'"
+            <button @click="scrollToSection('prediction')"
                     :class="activeTab === 'prediction' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
                     class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">효과 예측</button>
-            <button @click="activeTab = 'guide'"
+            <button @click="scrollToSection('guide')"
                     :class="activeTab === 'guide' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
                     class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">사용 가이드</button>
         </div>
@@ -253,7 +219,7 @@
 
     <div x-show="!isLoading" class="px-5 py-8 max-w-lg mx-auto pb-52">
         {{-- ===== 탭 1: 피부 분석 ===== --}}
-        <div x-show="activeTab === 'analysis'">
+        <div id="section-analysis" class="pt-2">
         {{-- 1. 나의 피부 분석 --}}
         <h2 class="text-2xl font-bold text-gray-900 mb-6">나의 피부 분석</h2>
 
@@ -313,12 +279,13 @@
             @endforeach
         </div>
 
-        <div class="mb-10"></div>
-
         </div>
 
+        {{-- 섹션 구분선 --}}
+        <div class="border-t border-gray-200 my-8"></div>
+
         {{-- ===== 탭 2: 효과 예측 ===== --}}
-        <div x-show="activeTab === 'prediction'">
+        <div id="section-prediction" class="pt-6">
         {{-- 2. 효능 발현 예측 --}}
         <div class="mb-10">
             <h2 class="text-2xl font-bold text-gray-900 mb-6">효능 발현 예측</h2>
@@ -478,8 +445,11 @@
 
         </div>
 
+        {{-- 섹션 구분선 --}}
+        <div class="border-t border-gray-200 my-8"></div>
+
         {{-- ===== 탭 3: 사용 가이드 ===== --}}
-        <div x-show="activeTab === 'guide'">
+        <div id="section-guide" class="pt-6">
         {{-- 5. 최적 사용 시간 --}}
         <div class="mb-8">
             {{-- 최적 사용 시간 --}}
@@ -789,6 +759,8 @@ function resultPage() {
         isLoading: true,
         activeTab: 'analysis',
         menuOpen: false,
+        showProductSelector: false,
+        isScrolling: false,
 
         init() {
             // 로딩 완료 후 컨텐츠 표시
@@ -798,8 +770,42 @@ function resultPage() {
                 // 로딩 해제 후 애니메이션 시작
                 setTimeout(() => {
                     this.animateTickGauge();
+                    this.initScrollObserver();
                 }, 300);
             }, 800);
+        },
+
+        scrollToSection(tab) {
+            const el = document.getElementById('section-' + tab);
+            if (!el) return;
+            this.isScrolling = true;
+            this.activeTab = tab;
+            // 헤더(52px) + 탭바(약 49px) = 약 101px 오프셋
+            const offset = 105;
+            const top = el.getBoundingClientRect().top + window.pageYOffset - offset;
+            window.scrollTo({ top: top, behavior: 'smooth' });
+            // 스크롤 완료 후 옵저버 재활성화
+            setTimeout(() => { this.isScrolling = false; }, 800);
+        },
+
+        initScrollObserver() {
+            const sections = ['analysis', 'prediction', 'guide'];
+            const observer = new IntersectionObserver((entries) => {
+                if (this.isScrolling) return;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id.replace('section-', '');
+                        this.activeTab = id;
+                    }
+                });
+            }, {
+                rootMargin: '-120px 0px -60% 0px',
+                threshold: 0
+            });
+            sections.forEach(s => {
+                const el = document.getElementById('section-' + s);
+                if (el) observer.observe(el);
+            });
         },
 
         animateTickGauge() {
