@@ -1,11 +1,12 @@
 """Shopee 셀러센터 리뷰 스크래퍼 (seller.shopee.kr)"""
 
 import os
+import re
 import time
 import json
 import hashlib
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 
 from selenium.webdriver.common.by import By
@@ -342,7 +343,8 @@ class ShopeeScraper(BaseScraper):
             total_count = self._get_total_count()
             logger.info(f"총 리뷰 수: {total_count}")
 
-            # 페이지별 DOM 스크래핑
+            # 페이지별 DOM 스크래핑 (최근 N일 리뷰만)
+            cutoff_date = datetime.now() - timedelta(days=settings.SYNC_DAYS)
             all_reviews = []
             page = 1
             max_pages = (total_count // 20) + 2 if total_count else 100
@@ -354,8 +356,27 @@ class ShopeeScraper(BaseScraper):
                     logger.info(f"페이지 {page}: 리뷰 없음, 종료")
                     break
 
+                # 날짜 기반 조기 종료: 페이지에 기간 외 리뷰가 있으면 이 페이지까지만 수집
+                has_old = False
+                for r in page_reviews:
+                    rat = r.get('reviewed_at', '')
+                    if rat:
+                        m = re.match(r'(\d{2})/(\d{2})/(\d{4})', rat)
+                        if m:
+                            try:
+                                rd = datetime(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+                                if rd < cutoff_date:
+                                    has_old = True
+                                    break
+                            except ValueError:
+                                pass
+
                 all_reviews.extend(page_reviews)
                 logger.info(f"페이지 {page}: {len(page_reviews)}개 (누적: {len(all_reviews)})")
+
+                if has_old:
+                    logger.info(f"페이지 {page}: {settings.SYNC_DAYS}일 이전 리뷰 감지 → 수집 중단")
+                    break
 
                 if not self._go_next_page():
                     logger.info(f"마지막 페이지: {page}")
@@ -363,8 +384,7 @@ class ShopeeScraper(BaseScraper):
 
                 page += 1
 
-            # 정규화 + 중복 제거 (order_id + product_name 기준)
-            import re
+            # 정규화 + 중복 제거 (order_id + product_name 기준) + 날짜 필터
             reviews = []
             seen_keys = set()
             for r in all_reviews:
@@ -391,6 +411,13 @@ class ShopeeScraper(BaseScraper):
                     m = re.match(r'(\d{2})/(\d{2})/(\d{4})\s+(\d{2}):(\d{2})', reviewed_at_str)
                     if m:
                         reviewed_at_str = f"{m.group(3)}-{m.group(2)}-{m.group(1)} {m.group(4)}:{m.group(5)}:00"
+                        # 날짜 필터: 기간 외 리뷰 스킵
+                        try:
+                            rd = datetime(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+                            if rd < cutoff_date:
+                                continue
+                        except ValueError:
+                            pass
 
                 review = self.normalize_review({
                     "external_id": ext_id,

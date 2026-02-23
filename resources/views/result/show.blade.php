@@ -198,7 +198,7 @@
          x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
          @click.away="menuOpen = false"
          class="fixed top-12 right-2 z-[60] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden min-w-[180px]">
-        <a href="{{ route('product.show', $product->code) }}"
+        <a href="{{ $product->sales_url ?: route('product.show', $product->code) }}" {{ $product->sales_url ? 'target="_blank"' : '' }}
            class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -744,7 +744,7 @@
     <div x-show="!isLoading" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 py-4 z-50" style="box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);">
         <div class="max-w-lg mx-auto">
             <p class="text-center font-bold text-black text-sm mb-3">📊 AI 분석 기반 추천</p>
-            <a href="{{ route('product.show', $product->code) }}"
+            <a href="{{ $product->sales_url ?: route('product.show', $product->code) }}" {{ $product->sales_url ? 'target="_blank"' : '' }}
                class="block w-full py-3.5 text-center text-white font-bold rounded-xl"
                style="background-color: #3F78EB;">
                 나에게 딱 맞는 제품 보기

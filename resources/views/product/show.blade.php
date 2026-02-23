@@ -56,6 +56,15 @@
          x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
          @click.away="menuOpen = false"
          class="fixed top-12 right-2 z-[60] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden min-w-[180px]">
+        @if($product->sales_url)
+        <a href="{{ $product->sales_url }}" target="_blank" @click="menuOpen = false"
+           class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            제품 상세
+        </a>
+        @else
         <button @click="menuOpen = false; showProductDetail = true"
                 class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,6 +72,7 @@
             </svg>
             제품 상세
         </button>
+        @endif
         <button @click="menuOpen = false; showProductSelector = true"
                 class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3">
             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,8 +210,40 @@
                     </svg>
                 </button>
                 <img src="{{ asset('logo_white.png') }}" alt="Essenciel" class="h-5">
-                <div class="w-7"></div>
+                <button @click="overlayMenuOpen = !overlayMenuOpen" class="text-white p-1">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <circle cx="5" cy="12" r="2"/>
+                        <circle cx="12" cy="12" r="2"/>
+                        <circle cx="19" cy="12" r="2"/>
+                    </svg>
+                </button>
             </div>
+        </div>
+
+        {{-- 오버레이 메뉴 드롭다운 --}}
+        <div x-show="overlayMenuOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
+             @click.away="overlayMenuOpen = false"
+             class="fixed top-12 right-2 z-[75] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden min-w-[180px]">
+            @if($product->sales_url)
+            <a href="{{ $product->sales_url }}" target="_blank" @click="overlayMenuOpen = false"
+               class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                제품 상세
+            </a>
+            @endif
+            <button @click="overlayMenuOpen = false; showProductDetail = false; cleanupDetailCharts(); $nextTick(() => showProductSelector = true)"
+                    class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                </svg>
+                다른 제품 분석
+            </button>
         </div>
 
         <div class="px-4 py-6 max-w-lg mx-auto pb-40">
@@ -210,14 +252,14 @@
             <div class="bg-white rounded-2xl overflow-hidden mb-6" style="border: 1px solid #D9D9D9;">
                 {{-- 헤더 --}}
                 <div class="px-5 pt-4 pb-4 border-b border-gray-100">
-                    {{-- 실시간 집계중 표시 --}}
-                    <div class="flex items-center gap-1.5 mb-1">
+                    {{-- 실시간 집계중 표시 (클릭 시 모달 열기) --}}
+                    <button @click="showModal = true" class="flex items-center gap-1.5 mb-1 cursor-pointer">
                         <img src="{{ asset('product/realtime_survey.svg') }}" alt="" class="w-3 h-3">
                         <span class="text-xs text-gray-400" x-text="collectionComplete ? '실시간 집계완료' : '실시간 집계중'"></span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                    </div>
+                    </button>
                     <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-gray-900">AI 리뷰 분석</h2>
                     <div class="text-right">
@@ -518,7 +560,8 @@
             {{-- 수집 현황 --}}
             <div class="space-y-3 mb-6">
                 <template x-for="(platform, index) in platforms" :key="index">
-                    <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center justify-between text-sm"
+                         x-show="!collectionComplete || platform.count > 0">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full"
                                  :class="platform.collected ? '' : 'bg-slate-600 animate-pulse'"
@@ -630,6 +673,7 @@ function productPage() {
 
     return {
         menuOpen: false,
+        overlayMenuOpen: false,
         showProductDetail: false,
         showProductSelector: false,
         reviewCount: totalReviewCount,

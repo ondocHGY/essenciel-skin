@@ -82,6 +82,7 @@ class ProductController extends Controller
             'efficacy_type' => 'nullable|string|in:moisture,elasticity,tone,pore,soothing',
             'point_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',
+            'sales_url' => 'nullable|url|max:500',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'main_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'efficacy_phases' => 'nullable|array',

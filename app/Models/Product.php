@@ -32,6 +32,7 @@ class Product extends Model
         'qr_path',
         'point_color',
         'accent_color',
+        'sales_url',
     ];
 
     protected $casts = [

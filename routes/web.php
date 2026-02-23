@@ -97,5 +97,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/scraper/sources/{source}/toggle', [AdminScraperController::class, 'toggleSource'])->name('scraper.toggle-source');
         Route::delete('/scraper/sources/{source}', [AdminScraperController::class, 'destroySource'])->name('scraper.destroy-source');
         Route::post('/scraper/match-reviews', [AdminScraperController::class, 'matchReviews'])->name('scraper.match-reviews');
+        Route::get('/scraper/api/sync-logs', [AdminScraperController::class, 'apiSyncLogs'])->name('scraper.api.sync-logs');
+        Route::get('/scraper/api/sources', [AdminScraperController::class, 'apiSources'])->name('scraper.api.sources');
     });
 });

@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     SYNC_ENABLED: bool = True
     SYNC_HOURS: str = "4,16"  # 실행 시각 (쉼표 구분, 예: "4,16" → 오전4시, 오후4시)
     SYNC_MINUTE: int = 0
+    SYNC_DAYS: int = 30  # 리뷰 수집 기간 제한 (일)
 
     # 로깅
     LOG_LEVEL: str = "INFO"

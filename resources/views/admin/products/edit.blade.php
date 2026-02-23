@@ -66,6 +66,14 @@
                 </div>
             </div>
 
+            <!-- 판매 페이지 URL -->
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <label class="block text-sm font-medium text-gray-700 mb-2">판매 페이지 URL</label>
+                <p class="text-xs text-gray-500 mb-3">제품 상세 메뉴 클릭 시 이동할 외부 판매 페이지 주소입니다.</p>
+                <input type="url" name="sales_url" value="{{ old('sales_url', $product->sales_url) }}" placeholder="https://..."
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
             <!-- 포인트 컬러 & 강조 컬러 -->
             <div class="mt-6 pt-6 border-t border-gray-100" x-data="colorSettings()">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

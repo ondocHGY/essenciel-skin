@@ -67,7 +67,7 @@
             <span x-text="Math.round(((currentQuestion + 1) / questions.length) * 100) + '%'"></span>
         </div>
         <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div class="h-full bg-black rounded-full transition-all duration-300"
+            <div class="h-full bg-blue-600 rounded-full transition-all duration-300"
                  :style="{ width: ((currentQuestion + 1) / questions.length) * 100 + '%' }"></div>
         </div>
     </div>
@@ -96,13 +96,13 @@
                                        :value="option.value"
                                        x-model="formData[question.name]"
                                        class="peer sr-only">
-                                <div class="p-4 border-2 rounded-xl transition-all peer-checked:border-black peer-checked:bg-gray-100 border-gray-200 hover:border-gray-300">
+                                <div class="p-4 border-2 rounded-xl transition-all peer-checked:border-blue-600 peer-checked:bg-blue-50 border-gray-200 hover:border-gray-300">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-black flex items-center justify-center transition-all"
-                                             :class="formData[question.name] === option.value ? 'border-black bg-black' : ''">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-blue-600 flex items-center justify-center transition-all"
+                                             :class="formData[question.name] === option.value ? 'border-blue-600 bg-blue-600' : ''">
                                             <div x-show="formData[question.name] === option.value" class="w-2 h-2 rounded-full bg-white"></div>
                                         </div>
-                                        <span class="font-medium" :class="formData[question.name] === option.value ? 'text-black' : 'text-gray-700'" x-text="option.label"></span>
+                                        <span class="font-medium" :class="formData[question.name] === option.value ? 'text-blue-700' : 'text-gray-700'" x-text="option.label"></span>
                                     </div>
                                     <p x-show="option.desc" class="text-xs text-gray-500 mt-2 ml-8" x-text="option.desc"></p>
                                 </div>
@@ -121,11 +121,11 @@
                     이전
                 </button>
                 <button type="button" x-show="currentQuestion < questions.length - 1" @click="nextQuestion" :disabled="!canProceed"
-                        class="flex-1 py-4 bg-black text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-800">
+                        class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
                     다음
                 </button>
                 <button type="submit" x-show="currentQuestion === questions.length - 1" :disabled="!canProceed || isSubmitting"
-                        class="flex-1 py-4 bg-black text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-800">
+                        class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
                     <span x-show="!isSubmitting">분석 시작</span>
                     <span x-show="isSubmitting">분석 중...</span>
                 </button>

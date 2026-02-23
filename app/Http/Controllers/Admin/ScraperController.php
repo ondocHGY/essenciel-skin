@@ -26,18 +26,6 @@ class ScraperController extends Controller
      */
     public function index(Request $request)
     {
-        // 실행 기록 조회
-        $query = SyncLog::with('reviewSource')->orderByDesc('started_at');
-
-        if ($request->filled('platform')) {
-            $query->platform($request->platform);
-        }
-        if ($request->filled('status')) {
-            $query->status($request->status);
-        }
-
-        $syncLogs = $query->paginate(10)->withQueryString();
-
         // 통계
         $stats = [
             'total' => SyncLog::count(),
@@ -55,15 +43,80 @@ class ScraperController extends Controller
         // 서비스 상태
         $serviceStatus = $this->checkServiceHealth();
 
-        // 리뷰 소스 목록
-        $sources = ProductReviewSource::with('product')->orderByDesc('created_at')->paginate(10, ['*'], 'sources_page')->withQueryString();
-
         // 제품 목록 (소스 등록용)
         $products = Product::orderBy('name')->get();
 
         return view('admin.scraper.index', compact(
-            'syncLogs', 'stats', 'cookies', 'platforms', 'serviceStatus', 'sources', 'products'
+            'stats', 'cookies', 'platforms', 'serviceStatus', 'products'
         ));
+    }
+
+    /**
+     * 동기화 기록 JSON API
+     */
+    public function apiSyncLogs(Request $request)
+    {
+        $query = SyncLog::with('reviewSource')->orderByDesc('started_at');
+
+        if ($request->filled('platform')) {
+            $query->platform($request->platform);
+        }
+        if ($request->filled('status')) {
+            $query->status($request->status);
+        }
+
+        $logs = $query->paginate(10);
+
+        $platforms = ProductReviewSource::$platforms;
+
+        return response()->json([
+            'data' => $logs->map(fn($log) => [
+                'id' => $log->id,
+                'platform' => $log->platform,
+                'platform_label' => $log->platform_label,
+                'trigger_type' => $log->trigger_type,
+                'trigger_label' => $log->trigger_label,
+                'status' => $log->status,
+                'status_label' => $log->status_label,
+                'reviews_added' => $log->reviews_added,
+                'reviews_updated' => $log->reviews_updated,
+                'duration_formatted' => $log->duration_formatted,
+                'started_at' => $log->started_at?->format('Y-m-d H:i:s'),
+                'error_message' => $log->error_message,
+            ]),
+            'current_page' => $logs->currentPage(),
+            'last_page' => $logs->lastPage(),
+            'total' => $logs->total(),
+        ]);
+    }
+
+    /**
+     * 리뷰 소스 JSON API
+     */
+    public function apiSources(Request $request)
+    {
+        $sources = ProductReviewSource::with('product')
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return response()->json([
+            'data' => $sources->map(fn($src) => [
+                'id' => $src->id,
+                'platform' => $src->platform,
+                'platform_label' => $src->platform_label,
+                'external_id' => $src->external_id,
+                'product_name' => $src->product?->name,
+                'is_active' => $src->is_active,
+                'review_count' => $src->review_count ?? 0,
+                'average_rating' => $src->average_rating ? number_format($src->average_rating, 1) : null,
+                'synced_at' => $src->synced_at?->format('Y-m-d H:i'),
+                'toggle_url' => route('admin.scraper.toggle-source', $src),
+                'delete_url' => route('admin.scraper.destroy-source', $src),
+            ]),
+            'current_page' => $sources->currentPage(),
+            'last_page' => $sources->lastPage(),
+            'total' => $sources->total(),
+        ]);
     }
 
     /**
@@ -207,6 +260,10 @@ class ScraperController extends Controller
     {
         $source->update(['is_active' => !$source->is_active]);
 
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true, 'is_active' => $source->is_active]);
+        }
+
         $status = $source->is_active ? '활성화' : '비활성화';
         return back()->with('success', "{$source->platform_label} 소스가 {$status}되었습니다.");
     }
@@ -217,6 +274,11 @@ class ScraperController extends Controller
     public function destroySource(ProductReviewSource $source)
     {
         $source->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return back()->with('success', '리뷰 소스가 삭제되었습니다.');
     }
 

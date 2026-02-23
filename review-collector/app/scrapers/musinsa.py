@@ -1,6 +1,7 @@
 """무신사 파트너 스크래퍼 - SSO API 로그인 + OTP 방식"""
 
 import logging
+from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 import pyotp
@@ -220,23 +221,43 @@ class MusinsaScraper(BaseScraper):
                 result["message"] = "로그인 실패 - MUSINSA_ID/PASSWORD/OTP_SECRET 확인 필요"
                 return result
 
+            # 최근 N일 리뷰만 수집
+            cutoff_str = (datetime.now() - timedelta(days=settings.SYNC_DAYS)).strftime("%Y-%m-%d")
+
+            def _has_old(data):
+                """페이지 데이터에 기간 외 리뷰가 있는지 확인"""
+                return any(str(item.get("regi_date", "") or "")[:10] < cutoff_str for item in data)
+
             # 첫 호출로 전체 리뷰 수 확인 (최대 1000개씩)
             api_resp = self._fetch_api(page=1, page_size=1000)
             total = api_resp.get("total", 0)
             all_data = api_resp.get("data", [])
+            stop_pagination = _has_old(all_data)
 
             logger.info(f"전체 리뷰 수: {total}, 1페이지: {len(all_data)}개")
 
-            # 추가 페이지 요청
+            # 추가 페이지 요청 (기간 외 리뷰 발견 시 중단)
             page = 2
-            while len(all_data) < total:
+            while len(all_data) < total and not stop_pagination:
                 api_resp = self._fetch_api(page=page, page_size=1000)
                 page_data = api_resp.get("data", [])
                 if not page_data:
                     break
                 all_data.extend(page_data)
+                stop_pagination = _has_old(page_data)
                 logger.info(f"  페이지 {page}: +{len(page_data)}개 (누적 {len(all_data)}/{total})")
                 page += 1
+
+            if stop_pagination:
+                logger.info(f"{settings.SYNC_DAYS}일 이전 리뷰 감지 → 페이지네이션 중단")
+
+            # 최근 N일 리뷰만 필터링
+            before_count = len(all_data)
+            all_data = [
+                item for item in all_data
+                if str(item.get("regi_date", "") or "")[:10] >= cutoff_str
+            ]
+            logger.info(f"최근 {settings.SYNC_DAYS}일 필터: {before_count}개 → {len(all_data)}개")
 
             reviews = self._parse_reviews(all_data)
 
