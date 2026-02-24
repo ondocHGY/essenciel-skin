@@ -257,8 +257,26 @@ class ProductController extends Controller
                 // 기존 소스 업데이트
                 $source = ProductReviewSource::find($sourceData['id']);
                 if ($source && $source->product_id === $product->id) {
-                    $source->update($data);
-                    $updatedIds[] = $source->id;
+                    // 동일 (product_id, platform, external_id) 조합의 다른 레코드가 있는지 확인
+                    $duplicateQuery = ProductReviewSource::where('product_id', $product->id)
+                        ->where('platform', $data['platform'])
+                        ->where('id', '!=', $source->id);
+
+                    if ($source->external_id) {
+                        $duplicateQuery->where('external_id', $source->external_id);
+                    }
+
+                    $duplicate = $duplicateQuery->first();
+
+                    if ($duplicate) {
+                        // 중복 레코드가 있으면 현재 소스 삭제하고 중복 레코드를 유지
+                        $source->delete();
+                        $duplicate->update($data);
+                        $updatedIds[] = $duplicate->id;
+                    } else {
+                        $source->update($data);
+                        $updatedIds[] = $source->id;
+                    }
                 }
             } else {
                 // 새 소스 생성
