@@ -42,6 +42,7 @@ class ProductController extends Controller
 
         // 다른 제품 분석용 제품 목록
         $otherProducts = Product::where('id', '!=', $product->id)
+            ->where('code', 'not like', '%TEST%')
             ->orderBy('name')
             ->get();
 

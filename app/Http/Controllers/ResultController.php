@@ -51,6 +51,7 @@ class ResultController extends Controller
 
         // 다른 제품 목록
         $otherProducts = Product::where('id', '!=', $product->id)
+            ->where('code', 'not like', '%TEST%')
             ->select('id', 'code', 'name', 'brand', 'image')
             ->latest()->limit(10)->get();
 
@@ -80,6 +81,7 @@ class ResultController extends Controller
 
         // 다른 제품 목록
         $otherProducts = Product::where('id', '!=', $product->id)
+            ->where('code', 'not like', '%TEST%')
             ->select('id', 'code', 'name', 'brand', 'image')
             ->latest()->limit(10)->get();
 
