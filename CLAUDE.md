@@ -117,6 +117,7 @@ CACHE_STORE=database
 - 세션 기반 사용자 추적 (회원가입 불필요)
 - JSON 컬럼 사용 (ingredients, base_curve, timeline, metrics 등)
 - 설문 옵션 변경 시 캐시 클리어 필요 (`php artisan cache:clear`)
+- 새로 생성한 파일은 반드시 `git add`로 스테이지할 것 (untracked 누락 방지)
 
 ---
 

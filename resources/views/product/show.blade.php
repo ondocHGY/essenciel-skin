@@ -126,19 +126,19 @@
         </div>
 
         {{-- 하단 버튼 영역 여백 --}}
-        <div class="h-20"></div>
+        <div class="h-24"></div>
     </div>
 
     {{-- ==================== 하단 고정 버튼 ==================== --}}
     <div class="fixed bottom-0 left-0 right-0 z-40">
         <div class="max-w-lg mx-auto flex gap-0">
             <button @click="showProductDetail = true"
-                    class="flex-1 py-4 text-white text-center font-semibold text-sm"
+                    class="flex-1 py-5 text-white text-center font-bold text-xl"
                     style="background-color: #000000; border-radius: 16px 0 0 0;">
                 AI 리뷰 분석
             </button>
             <a href="{{ route('survey.index', $product->code) }}"
-               class="flex-1 py-4 text-white text-center font-semibold text-sm"
+               class="flex-1 py-5 text-white text-center font-bold text-xl"
                style="background-color: #3F78EB; border-radius: 0 16px 0 0;">
                 AI 효과 예측
             </a>

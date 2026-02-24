@@ -176,7 +176,7 @@
         </div>
     </div>
 
-    <div x-show="!isLoading">
+    <div x-show="!isLoading" class="sticky top-0 z-50">
         <x-top-header :product="$product" :other-products="$otherProducts ?? collect()" />
     </div>
 

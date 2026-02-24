@@ -11,6 +11,7 @@ class UserProfile extends Model
 
     protected $fillable = [
         'session_id',
+        'ip_address',
         'age_group',
         'skin_type',
         'gender',

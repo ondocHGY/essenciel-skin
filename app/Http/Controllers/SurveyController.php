@@ -147,6 +147,7 @@ class SurveyController extends Controller
         // UserProfile 생성 (새로운 구조)
         $profile = UserProfile::create([
             'session_id' => $sessionId,
+            'ip_address' => $request->ip(),
             'age_group' => $validated['age_group'],
             'skin_type' => 'normal', // 기본값 설정 (더 이상 설문에서 받지 않음)
             'gender' => $validated['gender'],

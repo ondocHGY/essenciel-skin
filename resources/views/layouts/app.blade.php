@@ -10,6 +10,14 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon-180x180.png') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    {{-- Google Analytics --}}
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-10708MK7VL"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-10708MK7VL');
+    </script>
     {{-- Pretendard 폰트 --}}
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
