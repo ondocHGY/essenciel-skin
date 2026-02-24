@@ -148,7 +148,7 @@ class Qoo10Scraper(BaseScraper):
                 self.driver.get(self.QSM_HOME_URL)
                 time.sleep(3)
 
-                if "Login.aspx" not in self.driver.current_url:
+                if "login.aspx" not in self.driver.current_url.lower():
                     self._save_cookies()  # 갱신된 쿠키 재저장 (수명 연장)
                     logger.info("쿠키 로그인 성공 (쿠키 갱신 저장)")
                     return True
@@ -196,7 +196,7 @@ class Qoo10Scraper(BaseScraper):
             except:
                 pass
 
-            if "Login.aspx" in self.driver.current_url:
+            if "login.aspx" in self.driver.current_url.lower():
                 logger.error("로그인 실패 - 쿠키 필요")
                 return False
 

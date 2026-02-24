@@ -1,9 +1,13 @@
 """스케줄러 관리"""
 
+import os
+import json
 import logging
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+import requests as http_requests
 
 from app.config import settings
 from app.database import SessionLocal
@@ -218,6 +222,94 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
     return added, updated
 
 
+def keep_alive_cookies():
+    """쿠키 기반 플랫폼 세션 유지 (requests로 HTTP GET)
+
+    브라우저 없이 requests로 각 플랫폼 홈 URL에 접속하여 세션을 갱신.
+    reCAPTCHA가 발동하지 않으므로 안전하게 세션 유지 가능.
+    """
+    logger.info("=== 쿠키 keep-alive 시작 ===")
+
+    for platform, url in settings.KEEP_ALIVE_URLS.items():
+        try:
+            _keep_alive_platform(platform, url)
+        except Exception as e:
+            logger.error(f"[{platform}] keep-alive 오류: {e}")
+
+    logger.info("=== 쿠키 keep-alive 완료 ===")
+
+
+def _keep_alive_platform(platform: str, url: str):
+    """플랫폼별 쿠키 keep-alive"""
+    cookie_path = settings.COOKIE_PATHS.get(platform)
+    if not cookie_path or not os.path.exists(cookie_path):
+        logger.debug(f"[{platform}] 쿠키 파일 없음, 스킵")
+        return
+
+    # 쿠키 로드
+    with open(cookie_path, 'r') as f:
+        cookies_list = json.load(f)
+    logger.info(f"[{platform}] 쿠키 로드: {len(cookies_list)}개")
+
+    # requests 세션 생성
+    session = http_requests.Session()
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'ja-JP,ja;q=0.9,ko-KR,ko;q=0.8',
+    })
+
+    for cookie in cookies_list:
+        session.cookies.set(
+            cookie['name'],
+            cookie['value'],
+            domain=cookie.get('domain', ''),
+            path=cookie.get('path', '/'),
+        )
+
+    # 홈 URL 접속
+    resp = session.get(url, allow_redirects=True, timeout=30)
+    login_patterns = settings.KEEP_ALIVE_LOGIN_PATTERNS.get(platform, [])
+
+    # 세션 유효성 확인
+    is_expired = False
+
+    # URL에서 로그인 페이지 패턴 확인
+    for pattern in login_patterns:
+        if pattern.lower() in resp.url.lower():
+            is_expired = True
+            break
+
+    # 응답 본문에서 로그인 페이지 패턴 확인
+    if not is_expired and resp.status_code == 200:
+        for pattern in login_patterns:
+            if pattern in resp.text:
+                is_expired = True
+                break
+
+    if is_expired:
+        logger.warning(f"[{platform}] 세션 만료됨 (URL: {resp.url[:100]})")
+        return
+
+    logger.info(f"[{platform}] 세션 유효 (status={resp.status_code})")
+
+    # 갱신된 쿠키 저장
+    new_cookies = []
+    for cookie in session.cookies:
+        new_cookies.append({
+            'name': cookie.name,
+            'value': cookie.value,
+            'domain': cookie.domain,
+            'path': cookie.path,
+            'secure': cookie.secure,
+        })
+
+    if new_cookies:
+        with open(cookie_path, 'w') as f:
+            json.dump(new_cookies, f, indent=2)
+        logger.info(f"[{platform}] 쿠키 갱신 저장: {len(new_cookies)}개")
+
+
 def start_scheduler():
     """스케줄러 시작"""
     global scheduler
@@ -237,8 +329,17 @@ def start_scheduler():
         replace_existing=True
     )
 
+    # 쿠키 keep-alive (N시간마다)
+    interval = settings.KEEP_ALIVE_INTERVAL_HOURS
+    scheduler.add_job(
+        keep_alive_cookies,
+        IntervalTrigger(hours=interval),
+        id="cookie_keep_alive",
+        replace_existing=True
+    )
+
     scheduler.start()
-    logger.info(f"스케줄러 시작: 매일 {hours}시 {settings.SYNC_MINUTE:02d}분 동기화")
+    logger.info(f"스케줄러 시작: 동기화 매일 {hours}시 {settings.SYNC_MINUTE:02d}분, keep-alive {interval}시간 간격")
 
 
 def stop_scheduler():

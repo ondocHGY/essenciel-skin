@@ -18,7 +18,7 @@ from app.models import (
     ReviewResponse, SyncResult, SyncRequest, SyncLogResponse, CookieStatus
 )
 from app.scrapers import get_scraper, get_supported_platforms
-from app.scheduler import start_scheduler, stop_scheduler, save_reviews
+from app.scheduler import start_scheduler, stop_scheduler, save_reviews, keep_alive_cookies
 from app.parsers import UPLOAD_PARSERS, get_upload_platforms
 
 # 로깅 설정
@@ -378,6 +378,19 @@ def delete_cookie(platform: str):
         return {"success": True, "message": f"{platform} 쿠키 삭제 완료"}
     except Exception as e:
         logger.error(f"쿠키 삭제 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============== Keep-Alive ==============
+
+@app.post("/api/cookies/keep-alive")
+def trigger_keep_alive():
+    """쿠키 keep-alive 수동 실행"""
+    try:
+        keep_alive_cookies()
+        return {"success": True, "message": "keep-alive 완료"}
+    except Exception as e:
+        logger.error(f"keep-alive 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
