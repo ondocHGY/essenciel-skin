@@ -711,7 +711,7 @@
     </div>
 
     {{-- 하단 고정 UI --}}
-    <div x-show="!isLoading" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 py-4 z-50" style="box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);">
+    <div x-show="!isLoading && !showProductSelector" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 py-4 z-50" style="box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);">
         <div class="max-w-lg mx-auto">
             <p class="text-center font-bold text-black text-sm mb-3">📊 AI 분석 기반 추천</p>
             <a href="{{ $product->sales_url ?: route('product.show', $product->code) }}" {{ $product->sales_url ? 'target="_blank"' : '' }}

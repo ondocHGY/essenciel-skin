@@ -243,7 +243,7 @@
                     <div class="grid grid-cols-2 gap-0">
                         {{-- 좌측: 총 평점 --}}
                         <div class="text-center flex flex-col items-center border-r border-gray-100 pr-4">
-                            <p class="text-sm font-bold text-gray-900 mb-1">사용자 총 평점</p>
+                            <p class="text-sm font-bold text-gray-900 mb-5">사용자 총 평점</p>
                             <p class="text-4xl font-bold text-gray-900">{{ number_format($avgRating, 1) }}<span class="text-base font-normal text-gray-400">점</span></p>
                             <div class="flex items-center justify-center gap-1 mt-2">
                                 @for($i = 0; $i < $fullStars; $i++)
@@ -263,7 +263,7 @@
 
                         {{-- 우측: 평점 비율 세로 막대 그래프 --}}
                         <div class="pl-4">
-                            <p class="text-sm font-bold text-gray-900 mb-1 text-center">평점비율</p>
+                            <p class="text-sm font-bold text-gray-900 mb-5 text-center">평점비율</p>
                             <div class="flex items-end justify-center" style="height: 90px; gap: 12px;">
                                 @for($s = 5; $s >= 1; $s--)
                                 @php
@@ -272,16 +272,16 @@
                                     $isMax = $count === $maxCount && $count > 0;
                                 @endphp
                                 <div class="flex flex-col items-center relative">
-                                    @if($isMax)
+                                    @if($count > 0)
                                     <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2">
-                                        <div class="relative text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap" style="background-color: #3F78EB;">
+                                        <div class="relative text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap" style="background-color: {{ $isMax ? '#3F78EB' : '#999999' }};">
                                             {{ number_format($count) }}
-                                            <div class="absolute left-1/2 -translate-x-1/2 -bottom-0.5 w-1.5 h-1.5 rotate-45" style="background-color: #3F78EB;"></div>
+                                            <div class="absolute left-1/2 -translate-x-1/2 -bottom-0.5 w-1.5 h-1.5 rotate-45" style="background-color: {{ $isMax ? '#3F78EB' : '#999999' }};"></div>
                                         </div>
                                     </div>
                                     @endif
                                     <div class="rounded-t overflow-hidden bg-gray-200 relative" style="width: 8px; height: 60px;">
-                                        <div class="absolute bottom-0 left-0 w-full rounded-t" style="height: {{ max($pct, 0) }}%; background-color: {{ $isMax ? '#3F78EB' : '#999999' }};"></div>
+                                        <div class="absolute bottom-0 left-0 w-full rounded-t" style="height: {{ $count > 0 ? max($pct, 8) : 0 }}%; background-color: {{ $isMax ? '#3F78EB' : '#999999' }};"></div>
                                     </div>
                                     <span class="text-xs text-gray-400 mt-1">{{ $s }}점</span>
                                 </div>
