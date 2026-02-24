@@ -42,7 +42,7 @@
         {{-- 히어로 섹션 --}}
         <div class="px-5 pt-10 pb-6">
             {{-- 제목 --}}
-            <h1 class="text-4xl font-bold text-gray-900 text-center mb-2 leading-tight">내 피부엔 얼마나 맞을까?</h1>
+            <h1 class="text-3xl font-bold text-gray-900 text-center mb-2 leading-tight">내 피부엔 얼마나 맞을까?</h1>
             <p class="text-base text-gray-500 text-center mb-8">내 피부에 맞는지, 지금 바로 확인해보세요</p>
 
             {{-- 메인 썸네일 + 성분 카드 --}}
@@ -430,7 +430,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-[80] bg-black/70 flex items-center justify-center p-4"
-         @click.self="collectionComplete ? showModal = false : null">
+         @click.self="collectionComplete ? (showModal = false, platforms.forEach(p => p.expanded = false)) : null">
         <div class="bg-slate-900 rounded-2xl p-6 w-full max-w-sm">
             {{-- 수집 중 헤더 --}}
             <div x-show="!collectionComplete" class="text-center mb-6">
@@ -457,17 +457,52 @@
             </div>
 
             {{-- 수집 현황 --}}
-            <div class="space-y-3 mb-6">
+            <div class="space-y-1 mb-6">
                 <template x-for="(platform, index) in platforms" :key="index">
-                    <div class="flex items-center justify-between text-sm"
-                         x-show="!collectionComplete || platform.count > 0">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full"
-                                 :class="platform.collected ? '' : 'bg-slate-600 animate-pulse'"
-                                 :style="platform.collected ? 'background-color: #3F78EB' : ''"></div>
-                            <span class="text-slate-300" x-text="platform.name"></span>
+                    <div x-show="!collectionComplete || platform.count > 0">
+                        {{-- 플랫폼 행 --}}
+                        <div class="flex items-center justify-between text-sm py-2 rounded-lg px-2 transition-colors"
+                             :class="collectionComplete && platform.reviews.length > 0 ? 'cursor-pointer hover:bg-slate-800' : ''"
+                             @click="collectionComplete && platform.reviews.length > 0 ? platform.expanded = !platform.expanded : null">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full"
+                                     :class="platform.collected ? '' : 'bg-slate-600 animate-pulse'"
+                                     :style="platform.collected ? 'background-color: #3F78EB' : ''"></div>
+                                <span class="text-slate-300" x-text="platform.name"></span>
+                                <span x-show="collectionComplete && platform.syncedAt" class="text-slate-500 text-xs" x-text="platform.syncedAt"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono text-xs" style="color: #3F78EB;" x-text="platform.count.toLocaleString() + '건'"></span>
+                                <svg x-show="collectionComplete && platform.reviews.length > 0"
+                                     class="w-4 h-4 text-slate-500 transition-transform duration-200"
+                                     :class="platform.expanded ? 'rotate-180' : ''"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
                         </div>
-                        <span class="font-mono text-xs" style="color: #3F78EB;" x-text="platform.count.toLocaleString() + '건'"></span>
+                        {{-- 아코디언: 샘플 리뷰 --}}
+                        <div x-show="platform.expanded" x-cloak
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 max-h-0"
+                             x-transition:enter-end="opacity-100 max-h-96"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 max-h-96"
+                             x-transition:leave-end="opacity-0 max-h-0"
+                             class="overflow-hidden ml-6 mb-2">
+                            <template x-for="(review, rIdx) in platform.reviews" :key="rIdx">
+                                <div class="bg-slate-800 rounded-lg px-3 py-2.5 mb-1.5 last:mb-0">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-slate-400 text-xs" x-text="review.author"></span>
+                                            <span class="text-yellow-400 text-xs" x-text="'★'.repeat(Math.round(review.rating))"></span>
+                                        </div>
+                                        <span class="text-slate-500 text-xs" x-text="review.date"></span>
+                                    </div>
+                                    <p class="text-slate-300 text-xs leading-relaxed" x-text="review.summary"></p>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -479,7 +514,7 @@
             </div>
 
             {{-- 닫기 버튼 --}}
-            <button x-show="collectionComplete" @click="showModal = false"
+            <button x-show="collectionComplete" @click="showModal = false; platforms.forEach(p => p.expanded = false)"
                     class="w-full mt-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-sm">
                 닫기
             </button>
@@ -503,6 +538,8 @@ function productPage() {
 
     // 플랫폼별 실제 DB 리뷰 수
     const dbPlatformCounts = @json($platformReviewCounts);
+    const dbPlatformSyncDates = @json($platformSyncDates);
+    const dbPlatformSampleReviews = @json($platformSampleReviews);
     const platformKeys = ['naver', 'coupang', 'hwahae', 'musinsa', 'wconcept', 'amazon', 'qoo10', 'shopee'];
     const targetCounts = platformKeys.map(key => dbPlatformCounts[key] ?? 0);
     const totalReviewCount = targetCounts.reduce((a, b) => a + b, 0);
@@ -582,14 +619,14 @@ function productPage() {
         metrics: metricsData,
         currentMetricValues: metricsData.map(() => 0),
         platforms: [
-            { name: '네이버스토어', count: 0, collected: false },
-            { name: '쿠팡', count: 0, collected: false },
-            { name: '화해', count: 0, collected: false },
-            { name: '무신사', count: 0, collected: false },
-            { name: 'W컨셉', count: 0, collected: false },
-            { name: '아마존 US', count: 0, collected: false },
-            { name: 'Qoo10', count: 0, collected: false },
-            { name: 'Shopee', count: 0, collected: false },
+            { name: '네이버스토어', key: 'naver', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: '쿠팡', key: 'coupang', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: '화해', key: 'hwahae', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: '무신사', key: 'musinsa', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: 'W컨셉', key: 'wconcept', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: '아마존 US', key: 'amazon', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: 'Qoo10', key: 'qoo10', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: 'Shopee', key: 'shopee', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
         ],
 
         init() {
@@ -734,6 +771,8 @@ function productPage() {
             this.platforms.forEach((p, i) => {
                 p.count = targetCounts[i];
                 p.collected = true;
+                p.syncedAt = dbPlatformSyncDates[p.key] ?? '';
+                p.reviews = dbPlatformSampleReviews[p.key] ?? [];
             });
             this.totalCollected = targetCounts.reduce((a, b) => a + b, 0);
             this.collectionComplete = true;
@@ -786,6 +825,10 @@ function productPage() {
             }
 
             await this.delay(200);
+            this.platforms.forEach(p => {
+                p.syncedAt = dbPlatformSyncDates[p.key] ?? '';
+                p.reviews = dbPlatformSampleReviews[p.key] ?? [];
+            });
             this.collectionComplete = true;
             localStorage.setItem(storageKey, 'true');
         },
