@@ -59,10 +59,90 @@ class Product extends Model
     ];
 
     /**
+     * JSON 필드의 번역을 translations 컬럼에서 가져옴.
+     * 현재 로케일이 ko가 아닌 경우에만 동작하며, 번역이 없으면 null 반환.
+     */
+    protected function getJsonFieldTranslation(string $field): mixed
+    {
+        $locale = app()->getLocale();
+        if ($locale === 'ko') return null;
+
+        $translations = parent::getAttribute('translations');
+        if (is_string($translations)) {
+            $translations = json_decode($translations, true);
+        }
+        if (!is_array($translations)) return null;
+
+        return $translations[$locale][$field] ?? null;
+    }
+
+    /**
+     * 번역된 intro_summary 반환
+     */
+    public function getTranslatedIntroSummary(): ?array
+    {
+        $translated = $this->getJsonFieldTranslation('intro_summary');
+        if ($translated) return $translated;
+
+        $original = parent::getAttribute('intro_summary');
+        if (is_string($original)) $original = json_decode($original, true);
+        if (!is_array($original) || empty($original)) return $original;
+
+        return array_map(fn($v) => __($v), $original);
+    }
+
+    /**
+     * 번역된 intro_metrics 반환 (name 필드만 번역)
+     */
+    public function getTranslatedIntroMetrics(): ?array
+    {
+        $original = parent::getAttribute('intro_metrics');
+        if (is_string($original)) $original = json_decode($original, true);
+        if (!is_array($original) || empty($original)) return $original;
+
+        $translated = $this->getJsonFieldTranslation('intro_metrics');
+
+        return array_map(function ($metric, $i) use ($translated) {
+            if ($translated && isset($translated[$i]['name'])) {
+                $metric['name'] = $translated[$i]['name'];
+            } else {
+                $metric['name'] = __($metric['name']);
+            }
+            return $metric;
+        }, $original, array_keys($original));
+    }
+
+    /**
+     * 번역된 efficacy_metrics 반환 (name, description만 번역)
+     */
+    public function getTranslatedEfficacyMetrics(): ?array
+    {
+        $original = parent::getAttribute('efficacy_metrics');
+        if (is_string($original)) $original = json_decode($original, true);
+        if (!is_array($original)) return $original;
+
+        $translated = $this->getJsonFieldTranslation('efficacy_metrics');
+
+        if ($translated) {
+            if (isset($translated['name'])) $original['name'] = $translated['name'];
+            if (isset($translated['description'])) $original['description'] = $translated['description'];
+        } else {
+            if (isset($original['name'])) $original['name'] = __($original['name']);
+            if (isset($original['description'])) $original['description'] = __($original['description']);
+        }
+
+        return $original;
+    }
+
+    /**
      * 효능 단계별 기본 설명 반환
      */
     public function getEfficacyPhaseDescriptions(): array
     {
+        // DB 번역 확인
+        $translated = $this->getJsonFieldTranslation('efficacy_phases');
+        if ($translated) return $translated;
+
         if ($this->efficacy_phases) {
             return array_map(fn($v) => __($v), $this->efficacy_phases);
         }
@@ -104,6 +184,9 @@ class Product extends Model
      */
     public function getEfficacyMilestoneLabels(): array
     {
+        $translated = $this->getJsonFieldTranslation('efficacy_milestones');
+        if ($translated) return $translated;
+
         if ($this->efficacy_milestones) {
             return array_map(fn($v) => __($v), $this->efficacy_milestones);
         }
@@ -124,6 +207,9 @@ class Product extends Model
      */
     public function getMilestoneCenterTexts(): array
     {
+        $translated = $this->getJsonFieldTranslation('milestone_center_texts');
+        if ($translated) return $translated;
+
         if ($this->milestone_center_texts) {
             return array_map(fn($v) => __($v), $this->milestone_center_texts);
         }
@@ -145,9 +231,13 @@ class Product extends Model
      */
     public function getOptimalTiming(): array
     {
+        $translated = $this->getJsonFieldTranslation('optimal_timing');
+
         if ($this->optimal_timing) {
             $timing = $this->optimal_timing;
-            if (isset($timing['reason'])) {
+            if ($translated && isset($translated['reason'])) {
+                $timing['reason'] = $translated['reason'];
+            } elseif (isset($timing['reason'])) {
                 $timing['reason'] = __($timing['reason']);
             }
             return $timing;

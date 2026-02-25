@@ -1259,13 +1259,251 @@
             }
         </script>
 
+        <!-- 콘텐츠 번역 관리 -->
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="contentTranslations()">
+            <div class="flex items-start justify-between mb-6 cursor-pointer" @click="open = !open">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        콘텐츠 번역 관리
+                        <span class="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">다국어</span>
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">효능 설명, AI 분석 요약, 지표명 등 제품 콘텐츠의 번역을 관리합니다</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 transition-transform" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
+
+            <div x-show="open" x-cloak x-transition>
+                {{-- 언어 탭 --}}
+                <div class="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
+                    <template x-for="lang in langs" :key="lang.code">
+                        <button type="button"
+                                @click="activeLang = lang.code"
+                                :class="activeLang === lang.code ? 'border-violet-500 text-violet-700 bg-violet-50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
+                                class="px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors rounded-t-lg"
+                                x-text="lang.label">
+                        </button>
+                    </template>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                    <p class="text-xs text-blue-700">비워두면 한국어 원본이 표시됩니다. 번역이 필요한 필드만 입력하세요.</p>
+                </div>
+
+                <template x-for="lang in langs" :key="'content-' + lang.code">
+                    <div x-show="activeLang === lang.code" class="space-y-6">
+
+                        {{-- 효능 단계별 설명 --}}
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-1">효능 단계별 설명</h3>
+                            <p class="text-xs text-gray-500 mb-3">결과 페이지 그래프 아래 단계별 설명</p>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">D0-5 준비 단계</label>
+                                    <textarea :name="'translations[' + lang.code + '][efficacy_phases][phase1]'" rows="2"
+                                              x-model="data[lang.code].efficacy_phases.phase1"
+                                              :placeholder="'Phase 1 (' + lang.label + ')'"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">D7-10 체감 단계</label>
+                                    <textarea :name="'translations[' + lang.code + '][efficacy_phases][phase2]'" rows="2"
+                                              x-model="data[lang.code].efficacy_phases.phase2"
+                                              :placeholder="'Phase 2 (' + lang.label + ')'"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">D21-28 안정화 단계</label>
+                                    <textarea :name="'translations[' + lang.code + '][efficacy_phases][phase3]'" rows="2"
+                                              x-model="data[lang.code].efficacy_phases.phase3"
+                                              :placeholder="'Phase 3 (' + lang.label + ')'"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 마일스톤 라벨 & 가운데 문구 --}}
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-1">마일스톤 라벨 & 가운데 문구</h3>
+                            <p class="text-xs text-gray-500 mb-3">결과 페이지 상단 마일스톤 카드</p>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">7-10일 라벨</label>
+                                    <textarea :name="'translations[' + lang.code + '][efficacy_milestones][0]'" rows="2"
+                                              x-model="data[lang.code].efficacy_milestones[0]"
+                                              :placeholder="'Milestone 1 (' + lang.label + ')'"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">21-28일 라벨</label>
+                                    <textarea :name="'translations[' + lang.code + '][efficacy_milestones][1]'" rows="2"
+                                              x-model="data[lang.code].efficacy_milestones[1]"
+                                              :placeholder="'Milestone 2 (' + lang.label + ')'"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">7-10일 게이지 중앙</label>
+                                    <textarea :name="'translations[' + lang.code + '][milestone_center_texts][0]'" rows="2"
+                                              x-model="data[lang.code].milestone_center_texts[0]"
+                                              :placeholder="'Center text 1 (' + lang.label + ')'"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">21-28일 게이지 중앙</label>
+                                    <textarea :name="'translations[' + lang.code + '][milestone_center_texts][1]'" rows="2"
+                                              x-model="data[lang.code].milestone_center_texts[1]"
+                                              :placeholder="'Center text 2 (' + lang.label + ')'"
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 최적 사용 시간 설명 --}}
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-1">최적 사용 시간 설명</h3>
+                            <p class="text-xs text-gray-500 mb-3">결과 페이지 사용 가이드 카드</p>
+                            <input type="text" :name="'translations[' + lang.code + '][optimal_timing][reason]'"
+                                   x-model="data[lang.code].optimal_timing.reason"
+                                   :placeholder="'Timing reason (' + lang.label + ')'"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+                        </div>
+
+                        {{-- 효능 측정 지표 --}}
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-1">효능 측정 지표</h3>
+                            <p class="text-xs text-gray-500 mb-3">결과 페이지 효능 측정 차트</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">지표명</label>
+                                    <input type="text" :name="'translations[' + lang.code + '][efficacy_metrics][name]'"
+                                           x-model="data[lang.code].efficacy_metrics.name"
+                                           :placeholder="'Metric name (' + lang.label + ')'"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600 block mb-1">설명</label>
+                                    <input type="text" :name="'translations[' + lang.code + '][efficacy_metrics][description]'"
+                                           x-model="data[lang.code].efficacy_metrics.description"
+                                           :placeholder="'Metric description (' + lang.label + ')'"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- AI 리뷰 분석 지표 (intro_metrics) --}}
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-1">AI 리뷰 분석 지표명</h3>
+                            <p class="text-xs text-gray-500 mb-3">제품 소개 페이지 레이더 차트 지표명</p>
+                            <div class="space-y-2">
+                                <template x-for="(metric, idx) in introMetricsKo" :key="'im-' + lang.code + '-' + idx">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs text-gray-400 w-24 truncate" x-text="metric"></span>
+                                        <input type="text" :name="'translations[' + lang.code + '][intro_metrics][' + idx + '][name]'"
+                                               x-model="data[lang.code].intro_metrics[idx]"
+                                               :placeholder="metric + ' → ' + lang.label"
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- AI 분석 요약 문구 (intro_summary) --}}
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-1">AI 분석 요약 문구</h3>
+                            <p class="text-xs text-gray-500 mb-3">제품 소개 페이지 AI 분석 요약 (비워두면 한국어 원본 표시)</p>
+                            <div class="space-y-2">
+                                <template x-for="(summary, idx) in introSummaryKo" :key="'is-' + lang.code + '-' + idx">
+                                    <div class="flex items-start gap-2">
+                                        <span class="text-xs text-gray-400 mt-2.5 w-6 flex-shrink-0" x-text="(idx + 1) + '.'"></span>
+                                        <textarea :name="'translations[' + lang.code + '][intro_summary][' + idx + ']'" rows="2"
+                                                  x-model="data[lang.code].intro_summary[idx]"
+                                                  :placeholder="summary ? summary.substring(0, 40) + '...' : 'Summary ' + (idx + 1)"
+                                                  class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"></textarea>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <script>
+            function contentTranslations() {
+                const langs = [
+                    { code: 'en', label: 'English' },
+                    { code: 'ja', label: '日本語' },
+                    { code: 'zh', label: '中文' },
+                    { code: 'vi', label: 'Tiếng Việt' },
+                    { code: 'ar', label: 'العربية' },
+                ];
+
+                const saved = @json($product->translations ?? []);
+
+                // 한국어 원본 데이터 (참조용)
+                const introMetricsKo = @json(collect($product->intro_metrics ?? [])->pluck('name')->toArray());
+                const introSummaryKo = @json($product->intro_summary ?? []);
+
+                // 각 언어별 데이터 초기화
+                const data = {};
+                langs.forEach(lang => {
+                    const s = saved[lang.code] || {};
+                    data[lang.code] = {
+                        efficacy_phases: {
+                            phase1: s.efficacy_phases?.phase1 || '',
+                            phase2: s.efficacy_phases?.phase2 || '',
+                            phase3: s.efficacy_phases?.phase3 || '',
+                        },
+                        efficacy_milestones: [
+                            s.efficacy_milestones?.[0] || '',
+                            s.efficacy_milestones?.[1] || '',
+                        ],
+                        milestone_center_texts: [
+                            s.milestone_center_texts?.[0] || '',
+                            s.milestone_center_texts?.[1] || '',
+                        ],
+                        optimal_timing: {
+                            reason: s.optimal_timing?.reason || '',
+                        },
+                        efficacy_metrics: {
+                            name: s.efficacy_metrics?.name || '',
+                            description: s.efficacy_metrics?.description || '',
+                        },
+                        intro_metrics: introMetricsKo.map((_, i) => s.intro_metrics?.[i]?.name || ''),
+                        intro_summary: introSummaryKo.map((_, i) => s.intro_summary?.[i] || ''),
+                    };
+                });
+
+                return {
+                    open: false,
+                    activeLang: 'en',
+                    langs,
+                    data,
+                    introMetricsKo,
+                    introSummaryKo,
+                };
+            }
+        </script>
+
         <!-- 리뷰 소스 관리 -->
-        <div class="bg-white rounded-xl shadow-sm p-6" x-data="reviewSourcesManager()">
-            <div class="flex items-start justify-between mb-6">
+        <div class="bg-white rounded-xl shadow-sm p-6" x-data="{ ...reviewSourcesManager(), sectionOpen: false }">
+            <div class="flex items-start justify-between mb-6 cursor-pointer" @click="sectionOpen = !sectionOpen">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">입점 플랫폼 리뷰</h2>
                     <p class="text-sm text-gray-500 mt-1">각 플랫폼에서 리뷰를 가져와 설문 페이지에 표시합니다. 3시간마다 자동 동기화됩니다.</p>
                 </div>
+                <svg class="w-5 h-5 text-gray-400 transition-transform" :class="sectionOpen && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
+
+            <div x-show="sectionOpen" x-cloak x-transition>
+
+            <div class="flex justify-end mb-4">
                 <button type="button" @click="addSource()"
                         class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1362,6 +1600,8 @@
                     <span class="font-semibold text-gray-900" x-text="totalReviews.toLocaleString() + '개'"></span>
                 </div>
             </div>
+
+            </div>{{-- /sectionOpen --}}
         </div>
 
         <script>

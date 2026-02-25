@@ -222,11 +222,16 @@ class ProductController extends Controller
             $validated['main_thumbnail'] = null;
         }
 
-        // 번역 처리
-        $translations = collect($request->input('translations', []))
-            ->map(fn($fields) => array_filter($fields, fn($v) => $v !== '' && $v !== null))
-            ->filter(fn($fields) => !empty($fields))
-            ->toArray();
+        // 번역 처리 (단순 문자열 + JSON 필드 번역 모두 처리)
+        $rawTranslations = $request->input('translations', []);
+        $translations = [];
+        foreach ($rawTranslations as $locale => $fields) {
+            if (!is_array($fields)) continue;
+            $cleaned = $this->cleanTranslationFields($fields);
+            if (!empty($cleaned)) {
+                $translations[$locale] = $cleaned;
+            }
+        }
         $validated['translations'] = !empty($translations) ? $translations : null;
 
         $product->update($validated);
@@ -297,6 +302,26 @@ class ProductController extends Controller
         if (!empty($toDelete)) {
             ProductReviewSource::whereIn('id', $toDelete)->delete();
         }
+    }
+
+    /**
+     * 번역 필드에서 빈 값을 재귀적으로 제거
+     */
+    private function cleanTranslationFields(array $fields): array
+    {
+        $cleaned = [];
+        foreach ($fields as $key => $value) {
+            if (is_array($value)) {
+                // 배열인 경우 재귀적으로 처리
+                $sub = $this->cleanTranslationFields($value);
+                if (!empty($sub)) {
+                    $cleaned[$key] = $sub;
+                }
+            } elseif (is_string($value) && trim($value) !== '') {
+                $cleaned[$key] = $value;
+            }
+        }
+        return $cleaned;
     }
 
     public function destroy(Product $product)

@@ -476,8 +476,8 @@
                 $optimalUsage = $result->usage_guide['optimal_usage'] ?? [];
                 $morningEffect = $optimalUsage['timing']['morning_effect'] ?? 100;
                 $eveningEffect = $optimalUsage['timing']['evening_effect'] ?? 100;
-                $timingReason = $optimalUsage['timing']['reason'] ?? '피부 재생이 활발한 시간대';
-                $bestTime = $optimalUsage['best_time'] ?? '저녁';
+                $timingReason = $optimalUsage['timing']['reason'] ?? __('피부 재생이 활발한 시간대');
+                $bestTime = $optimalUsage['best_time'] ?? __('저녁');
                 $bestEffect = max($morningEffect, $eveningEffect);
                 $isMorningGood = $morningEffect > 100;
                 $isEveningGood = $eveningEffect > 100;
@@ -627,12 +627,12 @@
                             @if($isBoostType)
                                 <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">{{ __('효과 향상') }}</div>
-                                    <div class="text-[7px] font-normal text-gray-400 text-center">Improved effectiveness</div>
+                                    <div class="text-[7px] font-normal text-gray-400 text-center">{{ __('Improved effectiveness') }}</div>
                                 </div>
                             @else
                                 <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
                                     <div class="leading-tight text-center">{{ __('효능 도달') }}</div>
-                                    <div class="text-[7px] font-normal text-gray-400 text-center">Time to results</div>
+                                    <div class="text-[7px] font-normal text-gray-400 text-center">{{ __('Time to results') }}</div>
                                 </div>
                             @endif
                             <div class="inline-flex items-center gap-2 mb-4 relative z-10 backdrop-blur-sm rounded-full px-2 py-0.5" style="background: linear-gradient(to right, rgba(255,255,255,0.8), rgba(255,255,255,0.2));">
@@ -667,13 +667,13 @@
                             {{-- 이미지 영역 (카드 오른쪽) --}}
                             <div class="absolute bottom-4 right-4 flex justify-end z-0 {{ $imageType === 'faster_clock' ? 'w-[55%]' : 'w-[50%]' }}">
                                 @if($imageType === 'boost_line')
-                                    <img src="/images/effects/향상2.png" alt="효과 향상" class="w-full h-auto object-contain">
+                                    <img src="/images/effects/향상2.png" alt="{{ __('효과 향상') }}" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'boost_bar')
-                                    <img src="/images/effects/향상1.png" alt="효과 향상" class="w-full h-auto object-contain">
+                                    <img src="/images/effects/향상1.png" alt="{{ __('효과 향상') }}" class="w-full h-auto object-contain">
                                 @elseif($imageType === 'faster_timeline')
-                                    <img src="/images/effects/단축1.png" alt="효능 도달" class="w-full h-auto object-contain -translate-y-10">
+                                    <img src="/images/effects/단축1.png" alt="{{ __('효능 도달') }}" class="w-full h-auto object-contain -translate-y-10">
                                 @elseif($imageType === 'faster_clock')
-                                    <img src="/images/effects/단축2.png" alt="효능 도달" class="w-full h-auto object-contain translate-y-4">
+                                    <img src="/images/effects/단축2.png" alt="{{ __('효능 도달') }}" class="w-full h-auto object-contain translate-y-4">
                                 @endif
                             </div>
                         </div>

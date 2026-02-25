@@ -319,34 +319,35 @@
                              x-transition:enter-start="opacity-0"
                              x-transition:enter-end="opacity-100">
                             @php
-                                if (!empty($product->intro_summary)) {
-                                    $allSummaries = $product->intro_summary;
+                                $translatedSummary = $product->getTranslatedIntroSummary();
+                                if (!empty($translatedSummary)) {
+                                    $allSummaries = $translatedSummary;
                                 } else {
                                     $summaryData = [
                                         'moisture' => [
-                                            '꾸준한 사용 후 **피부톤이 맑아지고 화사해졌다**는 리뷰가 반복적으로 관측되었습니다.',
-                                            '**칙칙했던 눈 밑이 밝아졌다**는 후기가 반복적으로 관측되었습니다.',
-                                            '시간이 지나도 **수분감이 유지된다**는 반응이 반복적으로 관측되었습니다.',
+                                            __('꾸준한 사용 후 **피부톤이 맑아지고 화사해졌다**는 리뷰가 반복적으로 관측되었습니다.'),
+                                            __('**칙칙했던 눈 밑이 밝아졌다**는 후기가 반복적으로 관측되었습니다.'),
+                                            __('시간이 지나도 **수분감이 유지된다**는 반응이 반복적으로 관측되었습니다.'),
                                         ],
                                         'elasticity' => [
-                                            '사용 2~3주 후 **피부가 탱탱해지고 탄력이 개선**되었다는 리뷰가 다수 관측되었습니다.',
-                                            '**볼 라인이 올라간 느낌**이 든다는 후기가 반복적으로 관측되었습니다.',
-                                            '**피부가 탄탄해지고 처짐이 개선**되었다는 평가가 많았습니다.',
+                                            __('사용 2~3주 후 **피부가 탱탱해지고 탄력이 개선**되었다는 리뷰가 다수 관측되었습니다.'),
+                                            __('**볼 라인이 올라간 느낌**이 든다는 후기가 반복적으로 관측되었습니다.'),
+                                            __('**피부가 탄탄해지고 처짐이 개선**되었다는 평가가 많았습니다.'),
                                         ],
                                         'tone' => [
-                                            '꾸준한 사용 후 **피부톤이 맑아지고 화사해졌다**는 리뷰가 반복적으로 관측되었습니다.',
-                                            '**칙칙했던 눈 밑이 밝아졌다**는 후기가 반복적으로 관측되었습니다.',
-                                            '**잡티와 기미 부위가 옅어졌다**는 평가가 73% 이상이었습니다.',
+                                            __('꾸준한 사용 후 **피부톤이 맑아지고 화사해졌다**는 리뷰가 반복적으로 관측되었습니다.'),
+                                            __('**칙칙했던 눈 밑이 밝아졌다**는 후기가 반복적으로 관측되었습니다.'),
+                                            __('**잡티와 기미 부위가 옅어졌다**는 평가가 73% 이상이었습니다.'),
                                         ],
                                         'pore' => [
-                                            '**모공이 눈에 띄게 축소**되고 피부결이 매끄러워졌다는 리뷰가 다수 관측되었습니다.',
-                                            '**코와 볼 주변 모공이 덜 눈에 띈다**는 후기가 반복적으로 관측되었습니다.',
-                                            '오후에도 **피지가 덜 올라온다**는 반응이 반복적으로 관측되었습니다.',
+                                            __('**모공이 눈에 띄게 축소**되고 피부결이 매끄러워졌다는 리뷰가 다수 관측되었습니다.'),
+                                            __('**코와 볼 주변 모공이 덜 눈에 띈다**는 후기가 반복적으로 관측되었습니다.'),
+                                            __('오후에도 **피지가 덜 올라온다**는 반응이 반복적으로 관측되었습니다.'),
                                         ],
                                         'wrinkle' => [
-                                            '**눈가와 이마 주름이 옅어졌다**는 리뷰가 반복적으로 관측되었습니다.',
-                                            '**웃을 때 생기는 주름이 덜 깊어 보인다**는 후기가 반복적으로 관측되었습니다.',
-                                            '**미간 주름 부위가 부드러워졌다**는 후기가 67%였습니다.',
+                                            __('**눈가와 이마 주름이 옅어졌다**는 리뷰가 반복적으로 관측되었습니다.'),
+                                            __('**웃을 때 생기는 주름이 덜 깊어 보인다**는 후기가 반복적으로 관측되었습니다.'),
+                                            __('**미간 주름 부위가 부드러워졌다**는 후기가 67%였습니다.'),
                                         ],
                                     ];
                                     $allSummaries = $summaryData[$efficacyType] ?? $summaryData['moisture'];
@@ -544,9 +545,10 @@ function productPage() {
     @php
         $efficacyType = $product->efficacy_type ?? 'moisture';
 
-        // intro_metrics가 있으면 그대로 사용
-        if (!empty($product->intro_metrics) && count($product->intro_metrics) > 0) {
-            $metricsJson = collect($product->intro_metrics)
+        // intro_metrics가 있으면 번역된 데이터 사용
+        $translatedMetrics = $product->getTranslatedIntroMetrics();
+        if (!empty($translatedMetrics) && count($translatedMetrics) > 0) {
+            $metricsJson = collect($translatedMetrics)
                 ->filter(fn($m) => !empty($m['name']))
                 ->map(fn($m) => [
                     'name' => $m['name'],
@@ -559,39 +561,39 @@ function productPage() {
         if (empty($metricsJson)) {
             $metricsDefaults = [
                 'moisture' => [
-                    ['name' => '보습력', 'value' => 4],
-                    ['name' => '보습지속력', 'value' => 4],
-                    ['name' => '끈적임', 'value' => 2],
-                    ['name' => '자극여부', 'value' => 1],
-                    ['name' => '효과체감', 'value' => 4],
+                    ['name' => __('보습력'), 'value' => 4],
+                    ['name' => __('보습지속력'), 'value' => 4],
+                    ['name' => __('끈적임'), 'value' => 2],
+                    ['name' => __('자극여부'), 'value' => 1],
+                    ['name' => __('효과체감'), 'value' => 4],
                 ],
                 'elasticity' => [
-                    ['name' => '탄력 개선', 'value' => 4],
-                    ['name' => '리프팅감', 'value' => 4],
-                    ['name' => '끈적임', 'value' => 2],
-                    ['name' => '자극여부', 'value' => 1],
-                    ['name' => '효과체감', 'value' => 4],
+                    ['name' => __('탄력 개선'), 'value' => 4],
+                    ['name' => __('리프팅감'), 'value' => 4],
+                    ['name' => __('끈적임'), 'value' => 2],
+                    ['name' => __('자극여부'), 'value' => 1],
+                    ['name' => __('효과체감'), 'value' => 4],
                 ],
                 'tone' => [
-                    ['name' => '톤 개선', 'value' => 4],
-                    ['name' => '화사함', 'value' => 4],
-                    ['name' => '끈적임', 'value' => 2],
-                    ['name' => '자극여부', 'value' => 1],
-                    ['name' => '효과체감', 'value' => 4],
+                    ['name' => __('톤 개선'), 'value' => 4],
+                    ['name' => __('화사함'), 'value' => 4],
+                    ['name' => __('끈적임'), 'value' => 2],
+                    ['name' => __('자극여부'), 'value' => 1],
+                    ['name' => __('효과체감'), 'value' => 4],
                 ],
                 'pore' => [
-                    ['name' => '모공 축소', 'value' => 4],
-                    ['name' => '피지 조절', 'value' => 4],
-                    ['name' => '끈적임', 'value' => 2],
-                    ['name' => '자극여부', 'value' => 1],
-                    ['name' => '효과체감', 'value' => 4],
+                    ['name' => __('모공 축소'), 'value' => 4],
+                    ['name' => __('피지 조절'), 'value' => 4],
+                    ['name' => __('끈적임'), 'value' => 2],
+                    ['name' => __('자극여부'), 'value' => 1],
+                    ['name' => __('효과체감'), 'value' => 4],
                 ],
                 'wrinkle' => [
-                    ['name' => '주름 개선', 'value' => 4],
-                    ['name' => '탄력감', 'value' => 4],
-                    ['name' => '끈적임', 'value' => 2],
-                    ['name' => '자극여부', 'value' => 1],
-                    ['name' => '효과체감', 'value' => 4],
+                    ['name' => __('주름 개선'), 'value' => 4],
+                    ['name' => __('탄력감'), 'value' => 4],
+                    ['name' => __('끈적임'), 'value' => 2],
+                    ['name' => __('자극여부'), 'value' => 1],
+                    ['name' => __('효과체감'), 'value' => 4],
                 ],
             ];
             $metricsJson = $metricsDefaults[$efficacyType] ?? $metricsDefaults['moisture'];
