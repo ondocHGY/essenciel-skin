@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductIngredient extends Model
 {
+    use HasTranslations;
+
+    protected array $translatable = ['name', 'description'];
+
     protected $fillable = [
         'product_id',
         'name',
@@ -15,6 +20,7 @@ class ProductIngredient extends Model
         'description',
         'tags',
         'card_position',
+        'translations',
         'sort_order',
         'is_active',
     ];
@@ -22,6 +28,7 @@ class ProductIngredient extends Model
     protected $casts = [
         'tags' => 'array',
         'card_position' => 'array',
+        'translations' => 'array',
         'is_active' => 'boolean',
     ];
 

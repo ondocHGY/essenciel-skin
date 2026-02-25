@@ -48,11 +48,11 @@
                     : ($product->image ? asset('storage/' . $product->image) : null);
             @endphp
             @if($thumbnailSrc)
-            <div class="w-full overflow-hidden bg-gray-50" style="aspect-ratio: 1 / 1.15;">
-                <img src="{{ $thumbnailSrc }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+            <div class="w-full bg-gray-50">
+                <img src="{{ $thumbnailSrc }}" alt="{{ $product->name }}" class="w-full h-auto object-contain">
             </div>
             @else
-            <div class="w-full bg-gray-100" style="aspect-ratio: 1 / 1.15;"></div>
+            <div class="w-full bg-gray-100" style="min-height: 300px;"></div>
             @endif
 
             {{-- 제목 오버레이 --}}

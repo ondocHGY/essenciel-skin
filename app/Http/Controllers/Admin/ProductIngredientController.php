@@ -71,6 +71,10 @@ class ProductIngredientController extends Controller
         // 활성화 체크박스 처리
         $validated['is_active'] = $request->has('is_active');
 
+        // 번역 데이터 처리
+        $translations = $this->cleanTranslations($request->input('translations', []));
+        $validated['translations'] = $translations ?: null;
+
         // 정렬 순서 기본값
         if (empty($validated['sort_order'])) {
             $validated['sort_order'] = $product->productIngredients()->max('sort_order') + 1;
@@ -144,6 +148,10 @@ class ProductIngredientController extends Controller
         // 활성화 체크박스 처리
         $validated['is_active'] = $request->has('is_active');
 
+        // 번역 데이터 처리
+        $translations = $this->cleanTranslations($request->input('translations', []));
+        $validated['translations'] = $translations ?: null;
+
         $ingredient->update($validated);
 
         return redirect()->route('admin.products.ingredients.index', $product)
@@ -183,6 +191,22 @@ class ProductIngredientController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * 번역 데이터에서 빈 값 제거
+     */
+    private function cleanTranslations(array $translations): array
+    {
+        $cleaned = [];
+        foreach ($translations as $locale => $fields) {
+            if (!is_array($fields)) continue;
+            $filtered = array_filter($fields, fn($v) => is_string($v) && trim($v) !== '');
+            if (!empty($filtered)) {
+                $cleaned[$locale] = $filtered;
+            }
+        }
+        return $cleaned;
     }
 
     /**
