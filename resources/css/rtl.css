@@ -1,110 +1,49 @@
-/* RTL (Right-to-Left) Support for Arabic */
+/* RTL Text Support for Arabic */
+/* UI 레이아웃 순서는 다른 언어와 동일, 아랍어 텍스트 방향만 처리 */
 
-[dir="rtl"] {
+/* 전체 텍스트 방향 RTL (레이아웃은 body에서 LTR로 되돌림) */
+html.ar {
+    direction: rtl;
+}
+
+html.ar body {
+    direction: ltr;
+}
+
+/* 텍스트 블록만 RTL + 우측 정렬 */
+html.ar p,
+html.ar h1, html.ar h2, html.ar h3, html.ar h4, html.ar h5, html.ar h6,
+html.ar li,
+html.ar label,
+html.ar dd, html.ar dt {
     direction: rtl;
     text-align: right;
 }
 
-/* Flex direction reversal */
-[dir="rtl"] .flex-row {
-    flex-direction: row-reverse;
+/* 인라인 텍스트는 방향만 (정렬은 부모 따름) */
+html.ar span,
+html.ar a {
+    direction: rtl;
 }
 
-/* Grid alignment */
-[dir="rtl"] .text-left {
-    text-align: right;
+/* 버튼은 가운데 정렬 유지, 텍스트 방향만 RTL */
+html.ar button {
+    direction: rtl;
 }
 
-[dir="rtl"] .text-right {
+/* Tailwind text-center 유지 */
+html.ar .text-center,
+html.ar [class*="text-center"] {
+    text-align: center;
+}
+
+/* Chart canvases LTR 유지 */
+html.ar canvas {
+    direction: ltr;
+}
+
+/* Language switcher LTR 유지 */
+html.ar .language-switcher {
+    direction: ltr;
     text-align: left;
-}
-
-/* Margin/Padding adjustments */
-[dir="rtl"] .ml-auto {
-    margin-left: 0;
-    margin-right: auto;
-}
-
-[dir="rtl"] .mr-auto {
-    margin-right: 0;
-    margin-left: auto;
-}
-
-/* Border radius adjustments for directional elements */
-[dir="rtl"] .rounded-l-xl {
-    border-radius: 0 0.75rem 0.75rem 0;
-}
-
-[dir="rtl"] .rounded-r-xl {
-    border-radius: 0.75rem 0 0 0.75rem;
-}
-
-/* Chart canvases should remain LTR */
-[dir="rtl"] canvas {
-    direction: ltr;
-}
-
-/* Gauge bar fill direction */
-[dir="rtl"] .gauge-fill {
-    right: 0;
-    left: auto;
-}
-
-/* Timeline line alignment */
-[dir="rtl"] .timeline-line {
-    right: 10px;
-    left: auto;
-}
-
-/* Marquee animation direction */
-[dir="rtl"] .marquee-track {
-    animation-direction: reverse;
-}
-
-/* Navigation arrows */
-[dir="rtl"] .nav-arrow-left {
-    transform: scaleX(-1);
-}
-
-[dir="rtl"] .nav-arrow-right {
-    transform: scaleX(-1);
-}
-
-/* Fixed bottom bar */
-[dir="rtl"] .fixed.bottom-0 {
-    direction: rtl;
-}
-
-/* Language switcher stays LTR for consistent flag/name display */
-[dir="rtl"] .language-switcher {
-    direction: ltr;
-}
-
-/* Gradient masks for RTL */
-[dir="rtl"] .marquee-container {
-    mask-image: linear-gradient(to left, transparent, black 10%, black 90%, transparent);
-    -webkit-mask-image: linear-gradient(to left, transparent, black 10%, black 90%, transparent);
-}
-
-/* SVG icons in flex containers */
-[dir="rtl"] .flex .rotate-180 {
-    transform: rotate(0deg);
-}
-
-[dir="rtl"] .flex .rotate-0,
-[dir="rtl"] .flex:not(.rotate-180) {
-    transform: rotate(180deg);
-}
-
-/* Checkbox/radio alignment */
-[dir="rtl"] input[type="checkbox"],
-[dir="rtl"] input[type="radio"] {
-    margin-left: 0.5rem;
-    margin-right: 0;
-}
-
-/* Dropdown positioning */
-[dir="rtl"] .dropdown-menu {
-    left: 0;
-    right: auto;
 }
