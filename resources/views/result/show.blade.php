@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '나의 피부 분석 결과 - ' . $product->name)
+@section('title', __('나의 피부 분석 결과') . ' - ' . $product->name)
 
 @php
     // 조사 처리 함수들
@@ -24,9 +24,9 @@
         return preg_replace('/\{(.+?)\}/', '<span style="color: #3F78EB; font-weight: 700;">$1</span>', e($text));
     };
 
-    $efficacyNames = \App\Models\Product::$efficacyTypes;
+    $efficacyNames = \App\Models\Product::getEfficacyTypeNames();
     $efficacyType = $result->metrics['efficacy_type'] ?? 'moisture';
-    $efficacyName = $efficacyNames[$efficacyType] ?? '수분 공급';
+    $efficacyName = $efficacyNames[$efficacyType] ?? __('수분 공급');
 
     $pointColor = $product->point_color ?? '#10B981';
     $accentColor = $product->accent_color; // 제품에 설정된 강조 컬러
@@ -98,36 +98,36 @@
 
     $profileData = [
         'regeneration' => [
-            'label' => '피부 재생 속도',
+            'label' => __('피부 재생 속도'),
             'level' => $regenerationLevel,
             'description' => match($regenerationLevel) {
-                5 => '매우 빠른 편',
-                4 => '빠른 편',
-                3 => '보통',
-                2 => '느린 편',
-                default => '매우 느린 편',
+                5 => __('매우 빠른 편'),
+                4 => __('빠른 편'),
+                3 => __('보통'),
+                2 => __('느린 편'),
+                default => __('매우 느린 편'),
             },
         ],
         'moisture_retention' => [
-            'label' => '피부 수분 유지력',
+            'label' => __('피부 수분 유지력'),
             'level' => $moistureLevel,
             'description' => match($moistureLevel) {
-                5 => '매우 많은 편',
-                4 => '많은 편',
-                3 => '보통',
-                2 => '적은 편',
-                default => '매우 적은 편',
+                5 => __('매우 많은 편'),
+                4 => __('많은 편'),
+                3 => __('보통'),
+                2 => __('적은 편'),
+                default => __('매우 적은 편'),
             },
         ],
         'pigment_reactivity' => [
-            'label' => '피부 색소 반응성',
+            'label' => __('피부 색소 반응성'),
             'level' => $pigmentLevel,
             'description' => match($pigmentLevel) {
-                5 => '매우 높은 편',
-                4 => '높은 편',
-                3 => '보통',
-                2 => '낮은 편',
-                default => '매우 낮은 편',
+                5 => __('매우 높은 편'),
+                4 => __('높은 편'),
+                3 => __('보통'),
+                2 => __('낮은 편'),
+                default => __('매우 낮은 편'),
             },
         ],
     ];
@@ -135,26 +135,26 @@
     // 피부 설명 텍스트 생성 (결과 상단용) - 느낌 기반 문구
     // 1번 문구: 수분 유지력 기반 증상
     $skinDescText1 = match(true) {
-        $moistureLevel <= 2 => '속당김',
-        $moistureLevel >= 4 => '촉촉함',
-        default => '가벼운 건조함',
+        $moistureLevel <= 2 => __('속당김'),
+        $moistureLevel >= 4 => __('촉촉함'),
+        default => __('가벼운 건조함'),
     };
 
     // 2번 문구: 민감도 수준
     $skinDescText2 = match(true) {
-        $sensitivityLevel >= 4 => '높은',
-        $sensitivityLevel <= 2 => '낮은',
-        default => '보통인',
+        $sensitivityLevel >= 4 => __('높은'),
+        $sensitivityLevel <= 2 => __('낮은'),
+        default => __('보통인'),
     };
 
     // 3번 문구: 효능 타입 기반 피부 타입
     $skinTypeText = match($efficacyType) {
-        'moisture' => '건조 피부',
-        'elasticity' => '탄력저하 피부',
-        'tone' => '칙칙한 피부',
-        'pore' => '모공성 피부',
-        'soothing' => '민감성 피부',
-        default => '복합성 피부',
+        'moisture' => __('건조 피부'),
+        'elasticity' => __('탄력저하 피부'),
+        'tone' => __('칙칙한 피부'),
+        'pore' => __('모공성 피부'),
+        'soothing' => __('민감성 피부'),
+        default => __('복합성 피부'),
     };
 @endphp
 
@@ -172,7 +172,7 @@
                 <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
                 <div class="absolute inset-0 border-4 border-black rounded-full border-t-transparent animate-spin"></div>
             </div>
-            <p class="text-gray-600 font-medium">분석 결과를 불러오는 중...</p>
+            <p class="text-gray-600 font-medium">{{ __('분석 결과를 불러오는 중...') }}</p>
         </div>
     </div>
 
@@ -189,14 +189,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                 </svg>
             </div>
-            <h2 class="text-xl font-bold text-gray-900 mb-6">분석 완료되었습니다.</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-6">{{ __('분석 완료되었습니다.') }}</h2>
 
             {{-- 피부 설명 (회색 박스) --}}
             <div class="bg-gray-50 rounded-xl px-5 py-5 text-center">
                 <p class="text-base text-gray-700 leading-relaxed font-semibold">
+                    @if(app()->getLocale() === 'ko')
                     당신의 피부는<br>
                     <span style="color: #3F78EB;">{{ $skinDescText1 }}</span>{{ $iGa($skinDescText1) }} 느껴지고,<br>
                     <span style="color: #3F78EB;">민감도</span>가 {{ $skinDescText2 }} <span style="color: #3F78EB;">{{ $skinTypeText }}</span>입니다.
+                    @else
+                    {!! __('피부 분석 요약', [
+                        'symptom' => '<span style="color: #3F78EB;">' . $skinDescText1 . '</span>',
+                        'sensitivity' => $skinDescText2,
+                        'skinType' => '<span style="color: #3F78EB;">' . $skinTypeText . '</span>',
+                    ]) !!}
+                    @endif
                 </p>
             </div>
         </div>
@@ -207,13 +215,13 @@
         <div class="flex max-w-lg mx-auto border-b border-gray-200">
             <button @click="scrollToSection('analysis')"
                     :class="activeTab === 'analysis' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
-                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">피부 분석</button>
+                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">{{ __('피부 분석') }}</button>
             <button @click="scrollToSection('prediction')"
                     :class="activeTab === 'prediction' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
-                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">효과 예측</button>
+                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">{{ __('효과 예측') }}</button>
             <button @click="scrollToSection('guide')"
                     :class="activeTab === 'guide' ? 'text-black border-black' : 'text-gray-400 border-transparent'"
-                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">사용 가이드</button>
+                    class="flex-1 py-3 text-base font-medium border-b-2 transition-colors">{{ __('사용 가이드') }}</button>
         </div>
     </div>
 
@@ -221,7 +229,7 @@
         {{-- ===== 탭 1: 피부 분석 ===== --}}
         <div id="section-analysis" class="pt-2">
         {{-- 1. 나의 피부 분석 --}}
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">나의 피부 분석</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">{{ __('나의 피부 분석') }}</h2>
 
         <div class="space-y-4">
             @foreach($profileData as $key => $data)
@@ -238,16 +246,16 @@
                     $badgeEmoji = '⚠️'; $badgeText = 'CARE';
                 }
                 $descHighlight = match(true) {
-                    $level >= 4 => '평균 이상',
-                    $level >= 3 => '평균',
-                    default => '평균 이하',
+                    $level >= 4 => __('평균 이상'),
+                    $level >= 3 => __('평균'),
+                    default => __('평균 이하'),
                 };
                 $gaugeLabels = [
-                    'regeneration' => ['느림', '보통', '빠름'],
-                    'moisture_retention' => ['낮음', '보통', '높음'],
-                    'pigment_reactivity' => ['낮음', '보통', '높음'],
+                    'regeneration' => [__('느림'), __('보통'), __('빠름')],
+                    'moisture_retention' => [__('낮음'), __('보통'), __('높음')],
+                    'pigment_reactivity' => [__('낮음'), __('보통'), __('높음')],
                 ];
-                $labels = $gaugeLabels[$key] ?? ['낮음', '보통', '높음'];
+                $labels = $gaugeLabels[$key] ?? [__('낮음'), __('보통'), __('높음')];
             @endphp
             <div class="rounded-2xl p-5" style="background-color: #F5F6F8;"
                  x-data="profileGauge({{ $loop->index }}, {{ ($level / 5) * 100 }})" x-init="startAnimation()">
@@ -261,7 +269,11 @@
                 </div>
                 {{-- 설명 텍스트 --}}
                 <p class="text-sm text-gray-500 mb-4">
+                    @if(app()->getLocale() === 'ko')
                     {{ $data['label'] }}{{ $iGa($data['label']) }} <span style="color: #3F78EB;">{{ $descHighlight }}</span>입니다.
+                    @else
+                    {!! __('프로파일 설명', ['label' => $data['label'], 'level' => '<span style="color: #3F78EB;">' . $descHighlight . '</span>']) !!}
+                    @endif
                 </p>
                 {{-- 게이지 바 --}}
                 <div class="relative rounded-full overflow-hidden" style="background-color: #E0E2E8; height: 8px;">
@@ -288,7 +300,7 @@
         <div id="section-prediction" class="pt-6">
         {{-- 2. 효능 발현 예측 --}}
         <div class="mb-10">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">효능 발현 예측</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">{{ __('효능 발현 예측') }}</h2>
 
             {{-- 원형 틱 게이지 애니메이션 --}}
             <div class="relative w-60 h-60 mx-auto mb-8">
@@ -321,9 +333,9 @@
                 {{-- 중앙 텍스트 --}}
                 <div class="absolute inset-0 flex items-center justify-center" style="z-index: 2;">
                     <div class="w-36 h-36 rounded-full bg-white flex flex-col items-center justify-center text-center">
-                        <span class="text-sm text-gray-500 mb-1">한 달 사용 후</span>
+                        <span class="text-sm text-gray-500 mb-1">{{ __('한 달 사용 후') }}</span>
                         <span class="text-xl font-bold text-gray-900">{{ $efficacyName }}</span>
-                        <span class="text-2xl font-bold text-gray-900">{{ $improvementPercent }}% 개선</span>
+                        <span class="text-2xl font-bold text-gray-900">{{ __(':percent% 개선', ['percent' => $improvementPercent]) }}</span>
                     </div>
                 </div>
             </div>
@@ -331,8 +343,15 @@
             {{-- 설명 텍스트 (회색 배경) --}}
             <div class="rounded-xl p-5" style="background-color: #F5F6F8;">
                 <p class="text-sm leading-relaxed text-gray-500">
+                    @if(app()->getLocale() === 'ko')
                     고객님이 <span class="font-bold text-black">{{ $product->name }}</span>{{ $eulReul($product->name) }}
                     꾸준히 사용할 경우 <span class="font-bold" style="color: #3F7BEB;">한 달 뒤 {{ $efficacyName }} {{ $improvementPercent }}% 개선</span>될 것으로 예측됩니다.
+                    @else
+                    {!! __('효능 예측 설명', [
+                        'product' => '<span class="font-bold text-black">' . e($product->name) . '</span>',
+                        'efficacy' => '<span class="font-bold" style="color: #3F7BEB;">' . $efficacyName . ' ' . $improvementPercent . '%</span>',
+                    ]) !!}
+                    @endif
                 </p>
             </div>
         </div>
@@ -352,19 +371,19 @@
         <div class="grid grid-cols-2 gap-3 mb-10">
             <div class="rounded-2xl p-5 text-center bg-white" style="border: 1px solid #D9D9D9;">
                 <div class="text-3xl mb-3">{{ $icon1 }}</div>
-                <p class="text-xs text-gray-400 mb-1">7-10일 사용 시</p>
-                <p class="text-sm font-bold text-gray-900">{!! nl2br(e($milestoneLabels[0] ?? '보습 개선 체감')) !!}</p>
+                <p class="text-xs text-gray-400 mb-1">{{ __('7-10일 사용 시') }}</p>
+                <p class="text-sm font-bold text-gray-900">{!! nl2br(e($milestoneLabels[0] ?? __('보습 개선 체감'))) !!}</p>
             </div>
             <div class="rounded-2xl p-5 text-center bg-white" style="border: 1px solid #D9D9D9;">
                 <div class="text-3xl mb-3">{{ $icon2 }}</div>
-                <p class="text-xs text-gray-400 mb-1">21-28일 사용 시</p>
-                <p class="text-sm font-bold text-gray-900">{!! nl2br(e($milestoneLabels[1] ?? '수분 밸런스 안정화')) !!}</p>
+                <p class="text-xs text-gray-400 mb-1">{{ __('21-28일 사용 시') }}</p>
+                <p class="text-sm font-bold text-gray-900">{!! nl2br(e($milestoneLabels[1] ?? __('수분 밸런스 안정화'))) !!}</p>
             </div>
         </div>
 
         {{-- 3. 단계별 효과 --}}
         <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">단계별 효과</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ __('단계별 효과') }}</h2>
 
             {{-- 그래프 영역 --}}
             <div class="rounded-xl p-4 mb-6" style="background-color: #F6F6F6;">
@@ -391,7 +410,7 @@
                     </div>
                     <div class="flex-1 pb-10">
                         <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-gray-900" style="background-color: #EEEEEE;">
-                            ~5일 사용 시
+                            {{ __('~5일 사용 시') }}
                         </button>
                         <p class="text-base text-gray-700 leading-relaxed">{!! $blueHighlight($descriptions['phase1']) !!}</p>
                     </div>
@@ -413,7 +432,7 @@
                     </div>
                     <div class="flex-1 pb-10">
                         <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-gray-900" style="background-color: #EEEEEE;">
-                            7~10일 사용 시
+                            {{ __('7~10일 사용 시') }}
                         </button>
                         <p class="text-base text-gray-700 leading-relaxed">{!! $blueHighlight($descriptions['phase2']) !!}</p>
                     </div>
@@ -435,7 +454,7 @@
                     </div>
                     <div class="flex-1 pb-10">
                         <button class="px-4 py-2 text-base font-bold rounded-lg mb-3 text-gray-900" style="background-color: #EEEEEE;">
-                            21~28일 사용 시
+                            {{ __('21~28일 사용 시') }}
                         </button>
                         <p class="text-base text-gray-700 leading-relaxed">{!! $blueHighlight($descriptions['phase3']) !!}</p>
                     </div>
@@ -464,7 +483,7 @@
                 $isEveningGood = $eveningEffect > 100;
             @endphp
             <div>
-                <h3 class="text-2xl font-bold text-gray-900 mb-4">최적 사용 시간</h3>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">{{ __('최적 사용 시간') }}</h3>
 
                 {{-- 아침/저녁 효과 카드 --}}
                 <div class="grid grid-cols-2 gap-3">
@@ -474,20 +493,20 @@
                             <div class="relative rounded-xl p-[3px]" style="background: linear-gradient(to bottom left, #4C5CEB 0%, #000000 51%, #3F78EB 100%);">
                                 <div class="bg-white rounded-[9px] p-4 text-center">
                                     <div class="text-3xl mb-2">🌤️</div>
-                                    <p class="text-sm text-gray-500 mb-1">아침 효과</p>
+                                    <p class="text-sm text-gray-500 mb-1">{{ __('아침 효과') }}</p>
                                     <p class="text-2xl font-bold text-gray-900">{{ $morningEffect }}%</p>
                                 </div>
                             </div>
                             <div class="flex justify-center mt-3">
                                 <div class="relative bg-black text-white text-xs font-bold px-3 py-1.5 rounded-lg">
                                     <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0" style="border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid black;"></div>
-                                    사용추천
+                                    {{ __('사용추천') }}
                                 </div>
                             </div>
                         @else
                             <div class="bg-white rounded-xl p-4 text-center" style="border: 1px solid #E5E5E5;">
                                 <div class="text-3xl mb-2">🌤️</div>
-                                <p class="text-sm text-gray-500 mb-1">아침 효과</p>
+                                <p class="text-sm text-gray-500 mb-1">{{ __('아침 효과') }}</p>
                                 <p class="text-2xl font-bold text-gray-900">{{ $morningEffect }}%</p>
                             </div>
                         @endif
@@ -498,20 +517,20 @@
                             <div class="relative rounded-xl p-[3px]" style="background: linear-gradient(to bottom left, #4C5CEB 0%, #000000 51%, #3F78EB 100%);">
                                 <div class="bg-white rounded-[9px] p-4 text-center">
                                     <div class="text-3xl mb-2">🌙</div>
-                                    <p class="text-sm text-gray-500 mb-1">저녁 효과</p>
+                                    <p class="text-sm text-gray-500 mb-1">{{ __('저녁 효과') }}</p>
                                     <p class="text-2xl font-bold text-gray-900">{{ $eveningEffect }}%</p>
                                 </div>
                             </div>
                             <div class="flex justify-center mt-3">
                                 <div class="relative bg-black text-white text-xs font-bold px-3 py-1.5 rounded-lg">
                                     <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0" style="border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid black;"></div>
-                                    사용추천
+                                    {{ __('사용추천') }}
                                 </div>
                             </div>
                         @else
                             <div class="bg-white rounded-xl p-4 text-center" style="border: 1px solid #E5E5E5;">
                                 <div class="text-3xl mb-2">🌙</div>
-                                <p class="text-sm text-gray-500 mb-1">저녁 효과</p>
+                                <p class="text-sm text-gray-500 mb-1">{{ __('저녁 효과') }}</p>
                                 <p class="text-2xl font-bold text-gray-900">{{ $eveningEffect }}%</p>
                             </div>
                         @endif
@@ -522,7 +541,11 @@
                 <div class="rounded-xl px-5 py-4 mt-3" style="background-color: #F5F6F8;">
                     <p class="text-sm text-gray-700 leading-relaxed">
                         @if($bestEffect > 100)
+                            @if(app()->getLocale() === 'ko')
                             <span style="color: #3F78EB; font-weight: 700;">{{ $bestTime }}</span>에 사용하면 <span style="color: #3F78EB; font-weight: 700;">효과가 {{ $bestEffect }}%</span>로, {!! $blueHighlight($timingReason) !!}
+                            @else
+                            {!! __('최적 사용 시간 설명', ['time' => '<span style="color: #3F78EB; font-weight: 700;">' . $bestTime . '</span>', 'effect' => '<span style="color: #3F78EB; font-weight: 700;">' . $bestEffect . '%</span>', 'reason' => $timingReason]) !!}
+                            @endif
                         @else
                             {!! $blueHighlight($timingReason) !!}
                         @endif
@@ -533,7 +556,7 @@
 
         {{-- 6. 건강한 피부습관 --}}
         <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">건강한 피부습관</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ __('건강한 피부습관') }}</h2>
 
             @php
                 $recommendations = array_slice($result->usage_guide['recommendations'] ?? [], 0, 3); // 최대 3개
@@ -603,12 +626,12 @@
                             {{-- 라벨 (카드 오른쪽 상단, 이미지 영역 위) --}}
                             @if($isBoostType)
                                 <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
-                                    <div class="leading-tight text-center">효과 향상</div>
+                                    <div class="leading-tight text-center">{{ __('효과 향상') }}</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Improved effectiveness</div>
                                 </div>
                             @else
                                 <div class="absolute top-12 right-16 bg-black text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
-                                    <div class="leading-tight text-center">효능 도달</div>
+                                    <div class="leading-tight text-center">{{ __('효능 도달') }}</div>
                                     <div class="text-[7px] font-normal text-gray-400 text-center">Time to results</div>
                                 </div>
                             @endif
@@ -619,7 +642,7 @@
                             {{-- 텍스트 영역 (카드 왼쪽 하단) --}}
                             <div class="absolute bottom-4 left-6 z-10">
                                 @if($isBoostType)
-                                    <p class="text-3xl font-bold text-gray-900 mb-4">{{ $effectBoost }}% 향상</p>
+                                    <p class="text-3xl font-bold text-gray-900 mb-4">{{ __(':value% 향상', ['value' => $effectBoost]) }}</p>
                                     <div class="flex items-center gap-2 text-sm text-gray-500">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -629,7 +652,7 @@
                                         <span>Boost</span>
                                     </div>
                                 @else
-                                    <p class="text-3xl font-bold text-gray-900 mb-4">{{ $daysSaved }}일 단축</p>
+                                    <p class="text-3xl font-bold text-gray-900 mb-4">{{ __(':days일 단축', ['days' => $daysSaved]) }}</p>
                                     <div class="flex items-center gap-2 text-sm text-gray-500">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -656,10 +679,18 @@
                         </div>
                         <div class="rounded-xl px-6 py-3 mt-2 mb-10" style="background-color: #F5F6F8;">
                             <p class="text-sm text-gray-700">
-                                @if($isBoostType)
-                                    <span class="text-gray-700">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> <span style="color: #3F78EB;">효과가 최대 {{ $effectBoost }}% 향상</span>될 것으로 예상됩니다.
+                                @if(app()->getLocale() === 'ko')
+                                    @if($isBoostType)
+                                        <span class="text-gray-700">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> <span style="color: #3F78EB;">효과가 최대 {{ $effectBoost }}% 향상</span>될 것으로 예상됩니다.
+                                    @else
+                                        <span class="text-gray-700">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> <span style="color: #3F78EB;">효능 도달시점이 최대 {{ $daysSaved }}일 단축</span>될 것으로 예상됩니다.
+                                    @endif
                                 @else
-                                    <span class="text-gray-700">{{ $actionShort }}{{ preg_match('/[를을]$/', $actionShort) ? '' : (preg_match('/[가-힣]/', mb_substr($actionShort, -1)) && in_array(mb_ord(mb_substr($actionShort, -1)) % 28, [0]) ? '를' : '을') }} 할 경우</span> <span style="color: #3F78EB;">효능 도달시점이 최대 {{ $daysSaved }}일 단축</span>될 것으로 예상됩니다.
+                                    @if($isBoostType)
+                                        {!! __('추천 효과 향상 설명', ['action' => $actionShort, 'boost' => '<span style="color: #3F78EB;">' . $effectBoost . '%</span>']) !!}
+                                    @else
+                                        {!! __('추천 효능 단축 설명', ['action' => $actionShort, 'days' => '<span style="color: #3F78EB;">' . $daysSaved . '</span>']) !!}
+                                    @endif
                                 @endif
                             </p>
                         </div>
@@ -667,7 +698,7 @@
                 @endforeach
             </div>
             @else
-            <p class="text-gray-500 text-center py-4">현재 생활 습관이 최적 상태입니다.</p>
+            <p class="text-gray-500 text-center py-4">{{ __('현재 생활 습관이 최적 상태입니다.') }}</p>
             @endif
         </div>
 
@@ -675,13 +706,13 @@
 
         {{-- 결과 공유하기 (모든 탭 공통) --}}
         <div class="bg-white rounded-2xl mb-8 p-5" style="border: 1px solid #D9D9D9;">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">결과 공유하기</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-4">{{ __('결과 공유하기') }}</h3>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="shareKakao()" class="py-3 rounded-lg font-semibold text-gray-900" style="background-color: #FDC700;">
-                    카카오톡
+                    {{ __('카카오톡') }}
                 </button>
                 <button onclick="copyLink()" class="py-3 rounded-lg font-semibold text-gray-700 bg-white" style="border: 1px solid #D9D9D9;">
-                    링크 복사
+                    {{ __('링크 복사') }}
                 </button>
             </div>
         </div>
@@ -690,7 +721,7 @@
         <div class="mb-8" x-data="{ serviceInfoOpen: false }">
             <button @click="serviceInfoOpen = !serviceInfoOpen"
                     class="flex items-center gap-1 mx-auto text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                <span>서비스 안내</span>
+                <span>{{ __('서비스 안내') }}</span>
                 <svg class="w-4 h-4 transition-transform" :class="serviceInfoOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -702,9 +733,9 @@
                  x-transition:leave-start="opacity-100 max-h-96" x-transition:leave-end="opacity-0 max-h-0"
                  class="overflow-hidden">
                 <div class="mt-3 p-4 bg-gray-50 rounded-xl text-xs text-gray-500 leading-relaxed">
-                    해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.
+                    {{ __('해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.') }}
                     <br><br>
-                    제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
+                    {{ __('제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.') }}
                 </div>
             </div>
         </div>
@@ -713,11 +744,11 @@
     {{-- 하단 고정 UI --}}
     <div x-show="!isLoading && !showProductSelector" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 py-4 z-50" style="box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);">
         <div class="max-w-lg mx-auto">
-            <p class="text-center font-bold text-black text-sm mb-3">📊 AI 분석 기반 추천</p>
-            <a href="{{ $product->sales_url ?: route('product.show', $product->code) }}" {{ $product->sales_url ? 'target="_blank"' : '' }}
+            <p class="text-center font-bold text-black text-sm mb-3">📊 {{ __('AI 분석 기반 추천') }}</p>
+            <a href="{{ $product->sales_url ?: localized_route('product.show', ['code' => $product->code]) }}" {{ $product->sales_url ? 'target="_blank"' : '' }}
                class="block w-full py-3.5 text-center text-white font-bold rounded-xl"
                style="background-color: #3F78EB;">
-                나에게 딱 맞는 제품 보기
+                {{ __('나에게 딱 맞는 제품 보기') }}
             </a>
         </div>
     </div>
@@ -851,7 +882,7 @@ function resultPage() {
             const final = metrics.final || 0;
             const unit = metrics.unit || '';
 
-            const labels = ['0일', '5일', '7일', '14일', '21일', '28일'];
+            const labels = @json([__('0일'), __('5일'), __('7일'), __('14일'), __('21일'), __('28일')]);
             const dayKeys = [0, 5, 7, 14, 21, 28];
 
             const getValueForDay = (day) => {
@@ -882,7 +913,7 @@ function resultPage() {
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '효과',
+                        label: @json(__('효과')),
                         data: data,
                         borderColor: '#000000',
                         backgroundColor: (context) => {
@@ -1097,7 +1128,7 @@ function timelineAnimation() {
             const final = metrics.final || 0;
             const unit = metrics.unit || '';
 
-            const labels = ['0일', '5일', '7일', '14일', '21일', '28일'];
+            const labels = @json([__('0일'), __('5일'), __('7일'), __('14일'), __('21일'), __('28일')]);
             const dayKeys = [0, 5, 7, 14, 21, 28];
 
             const getValueForDay = (day) => {
@@ -1127,7 +1158,7 @@ function timelineAnimation() {
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '효과',
+                        label: @json(__('효과')),
                         data: [null, null, null, null, null, null],
                         borderColor: '#000000',
                         backgroundColor: (context) => {
@@ -1220,8 +1251,8 @@ function shareKakao() {
         Kakao.Share.sendDefault({
             objectType: 'feed',
             content: {
-                title: '{{ $product->name }} 피부 분석 결과',
-                description: '나의 피부 분석 결과를 확인해보세요!',
+                title: @json($product->name . ' ' . __('피부 분석 결과')),
+                description: @json(__('나의 피부 분석 결과를 확인해보세요!')),
                 imageUrl: '{{ asset("logo.png") }}',
                 link: {
                     mobileWebUrl: shareUrl,
@@ -1230,7 +1261,7 @@ function shareKakao() {
             },
             buttons: [
                 {
-                    title: '결과 보기',
+                    title: @json(__('결과 보기')),
                     link: {
                         mobileWebUrl: shareUrl,
                         webUrl: shareUrl,
@@ -1242,8 +1273,8 @@ function shareKakao() {
         // 카카오 SDK가 없으면 기본 공유 기능 사용
         if (navigator.share) {
             navigator.share({
-                title: '{{ $product->name }} 피부 분석 결과',
-                text: '나의 피부 분석 결과를 확인해보세요!',
+                title: @json($product->name . ' ' . __('피부 분석 결과')),
+                text: @json(__('나의 피부 분석 결과를 확인해보세요!')),
                 url: shareUrl,
             });
         } else {
@@ -1256,7 +1287,7 @@ function shareKakao() {
 function copyLink() {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl).then(() => {
-            alert('링크가 복사되었습니다!');
+            alert(@json(__('링크가 복사되었습니다!')));
         }).catch(() => {
             fallbackCopyLink(shareUrl);
         });
@@ -1274,9 +1305,9 @@ function fallbackCopyLink(text) {
     textarea.select();
     try {
         document.execCommand('copy');
-        alert('링크가 복사되었습니다!');
+        alert(@json(__('링크가 복사되었습니다!')));
     } catch (e) {
-        alert('링크 복사에 실패했습니다. 직접 복사해주세요: ' + text);
+        alert(@json(__('링크 복사에 실패했습니다. 직접 복사해주세요:')) + ' ' + text);
     }
     document.body.removeChild(textarea);
 }

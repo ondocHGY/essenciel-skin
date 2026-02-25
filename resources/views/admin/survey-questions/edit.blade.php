@@ -42,17 +42,25 @@
             </div>
 
             <div class="mt-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">질문 제목 <span class="text-red-500">*</span></label>
-                <input type="text" name="title" value="{{ old('title', $surveyQuestion->title) }}" required
-                       placeholder="예: 평균 수면 시간은 어떻게 되시나요?"
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            </div>
-
-            <div class="mt-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">부가 설명 (Subtitle)</label>
-                <input type="text" name="subtitle" value="{{ old('subtitle', $surveyQuestion->subtitle) }}"
-                       placeholder="예: 피부 재생 능력을 파악해요"
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <x-translation-tabs :model="$surveyQuestion" prefix="translations" :fields="[
+                    ['name' => 'title', 'label' => '질문 제목', 'placeholder' => 'Question title'],
+                    ['name' => 'subtitle', 'label' => '부가 설명', 'placeholder' => 'Subtitle'],
+                ]">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">질문 제목 <span class="text-red-500">*</span></label>
+                            <input type="text" name="title" value="{{ old('title', $surveyQuestion->title) }}" required
+                                   placeholder="예: 평균 수면 시간은 어떻게 되시나요?"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">부가 설명 (Subtitle)</label>
+                            <input type="text" name="subtitle" value="{{ old('subtitle', $surveyQuestion->subtitle) }}"
+                                   placeholder="예: 피부 재생 능력을 파악해요"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </x-translation-tabs>
             </div>
 
             <div class="mt-6 grid grid-cols-2 gap-6">
@@ -148,6 +156,34 @@
                                 </button>
                             </div>
                         </div>
+
+                        {{-- Option Translation Toggle --}}
+                        <div class="mt-3 pt-3 border-t border-gray-200" x-data="{ showTrans: false }">
+                            <button type="button" @click="showTrans = !showTrans"
+                                    class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 transition-transform" :class="showTrans && 'rotate-90'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                                번역 입력
+                            </button>
+                            <div x-show="showTrans" x-cloak class="mt-2 space-y-2">
+                                <template x-for="lang in ['en', 'ja', 'zh', 'vi', 'ar']" :key="lang">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-xs text-gray-500 uppercase font-mono" x-text="lang"></span>
+                                        <input type="text"
+                                               :name="'options[' + index + '][translations][' + lang + '][label]'"
+                                               :value="option.translations?.[lang]?.label || ''"
+                                               placeholder="라벨 번역"
+                                               class="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                        <input type="text"
+                                               :name="'options[' + index + '][translations][' + lang + '][description]'"
+                                               :value="option.translations?.[lang]?.description || ''"
+                                               placeholder="설명 번역"
+                                               class="px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -173,6 +209,7 @@ $optionsData = $surveyQuestion->options->map(fn($o) => [
     'modifier' => $o->modifier,
     'description' => $o->description,
     'is_active' => $o->is_active,
+    'translations' => $o->translations ?? (object)[],
 ])->toArray();
 @endphp
 <script>
@@ -180,7 +217,7 @@ function questionForm() {
     return {
         options: @json($optionsData),
         addOption() {
-            this.options.push({ id: null, value: '', label: '', modifier: 1.0, description: '', is_active: true });
+            this.options.push({ id: null, value: '', label: '', modifier: 1.0, description: '', is_active: true, translations: {} });
         },
         removeOption(index) {
             if (this.options.length > 2) {

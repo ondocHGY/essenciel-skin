@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +10,9 @@ use Illuminate\Support\Facades\Cache;
 
 class SurveyQuestion extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
+
+    protected array $translatable = ['title', 'subtitle'];
 
     protected $fillable = [
         'key',
@@ -18,11 +21,13 @@ class SurveyQuestion extends Model
         'category',
         'sort_order',
         'is_active',
+        'translations',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'sort_order' => 'integer',
+        'translations' => 'array',
     ];
 
     public function options(): HasMany
@@ -57,12 +62,12 @@ class SurveyQuestion extends Model
     {
         return [
             'name' => $this->key,
-            'title' => $this->title,
-            'subtitle' => $this->subtitle,
+            'title' => $this->title,      // HasTranslations auto-translates
+            'subtitle' => $this->subtitle, // HasTranslations auto-translates
             'options' => $this->activeOptions->map(fn($opt) => [
                 'value' => $opt->value,
-                'label' => $opt->label,
-                'desc' => $opt->description,
+                'label' => $opt->label,         // HasTranslations auto-translates
+                'desc' => $opt->description,    // HasTranslations auto-translates
             ])->toArray(),
         ];
     }

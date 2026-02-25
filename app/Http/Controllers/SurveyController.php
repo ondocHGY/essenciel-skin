@@ -72,54 +72,54 @@ class SurveyController extends Controller
         return [
             [
                 'name' => 'age_group',
-                'title' => '연령대를 선택해주세요',
-                'subtitle' => '피부 턴오버 속도를 파악하는 데 사용돼요',
+                'title' => __('연령대를 선택해주세요'),
+                'subtitle' => __('피부 턴오버 속도를 파악하는 데 사용돼요'),
                 'options' => [
-                    ['value' => '10대', 'label' => '10대', 'desc' => null],
-                    ['value' => '20대', 'label' => '20대', 'desc' => null],
-                    ['value' => '30대', 'label' => '30대', 'desc' => null],
-                    ['value' => '40대', 'label' => '40대', 'desc' => null],
-                    ['value' => '50대이상', 'label' => '50대 이상', 'desc' => null],
+                    ['value' => '10대', 'label' => __('10대'), 'desc' => null],
+                    ['value' => '20대', 'label' => __('20대'), 'desc' => null],
+                    ['value' => '30대', 'label' => __('30대'), 'desc' => null],
+                    ['value' => '40대', 'label' => __('40대'), 'desc' => null],
+                    ['value' => '50대이상', 'label' => __('50대 이상'), 'desc' => null],
                 ],
             ],
             [
                 'name' => 'gender',
-                'title' => '성별을 선택해주세요',
-                'subtitle' => '피지 분비 및 각질 두께를 분석해요',
+                'title' => __('성별을 선택해주세요'),
+                'subtitle' => __('피지 분비 및 각질 두께를 분석해요'),
                 'options' => [
-                    ['value' => 'male', 'label' => '남성', 'desc' => null],
-                    ['value' => 'female', 'label' => '여성', 'desc' => null],
-                    ['value' => 'other', 'label' => '기타', 'desc' => null],
+                    ['value' => 'male', 'label' => __('남성'), 'desc' => null],
+                    ['value' => 'female', 'label' => __('여성'), 'desc' => null],
+                    ['value' => 'other', 'label' => __('기타'), 'desc' => null],
                 ],
             ],
             [
                 'name' => 'sleep_hours',
-                'title' => '평균 수면 시간은 어떻게 되시나요?',
-                'subtitle' => '피부 재생 능력을 파악해요',
+                'title' => __('평균 수면 시간은 어떻게 되시나요?'),
+                'subtitle' => __('피부 재생 능력을 파악해요'),
                 'options' => [
-                    ['value' => 'under6', 'label' => '6시간 미만', 'desc' => null],
-                    ['value' => '6to8', 'label' => '6~8시간', 'desc' => null],
-                    ['value' => 'over8', 'label' => '8시간 이상', 'desc' => null],
+                    ['value' => 'under6', 'label' => __('6시간 미만'), 'desc' => null],
+                    ['value' => '6to8', 'label' => __('6~8시간'), 'desc' => null],
+                    ['value' => 'over8', 'label' => __('8시간 이상'), 'desc' => null],
                 ],
             ],
             [
                 'name' => 'uv_exposure',
-                'title' => '자외선 노출 정도는 어떠신가요?',
-                'subtitle' => '멜라닌 활성도를 분석해요',
+                'title' => __('자외선 노출 정도는 어떠신가요?'),
+                'subtitle' => __('멜라닌 활성도를 분석해요'),
                 'options' => [
-                    ['value' => 'indoor', 'label' => '실내 위주', 'desc' => null],
-                    ['value' => 'normal', 'label' => '보통', 'desc' => null],
-                    ['value' => 'outdoor', 'label' => '실외 많음', 'desc' => null],
+                    ['value' => 'indoor', 'label' => __('실내 위주'), 'desc' => null],
+                    ['value' => 'normal', 'label' => __('보통'), 'desc' => null],
+                    ['value' => 'outdoor', 'label' => __('실외 많음'), 'desc' => null],
                 ],
             ],
             [
                 'name' => 'water_intake',
-                'title' => '하루 수분 섭취량은 어떻게 되시나요?',
-                'subtitle' => '수분 유지 메커니즘을 분석해요',
+                'title' => __('하루 수분 섭취량은 어떻게 되시나요?'),
+                'subtitle' => __('수분 유지 메커니즘을 분석해요'),
                 'options' => [
-                    ['value' => 'under1L', 'label' => '1L 미만', 'desc' => null],
-                    ['value' => '1to2L', 'label' => '1~2L', 'desc' => null],
-                    ['value' => 'over2L', 'label' => '2L 이상', 'desc' => null],
+                    ['value' => 'under1L', 'label' => __('1L 미만'), 'desc' => null],
+                    ['value' => '1to2L', 'label' => __('1~2L'), 'desc' => null],
+                    ['value' => 'over2L', 'label' => __('2L 이상'), 'desc' => null],
                 ],
             ],
         ];
@@ -187,10 +187,10 @@ class SurveyController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'redirect' => route('result.show', $code),
+                'redirect' => localized_route('result.show', ['code' => $code]),
             ]);
         }
 
-        return redirect()->route('result.show', $code);
+        return redirect(localized_route('result.show', ['code' => $code]));
     }
 }

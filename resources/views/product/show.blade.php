@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $product->name . ' - 피부 효과 분석')
+@section('title', $product->name . ' - ' . __('피부 효과 분석'))
 
 @php
     $efficacyType = $product->efficacy_type ?? 'moisture';
@@ -39,66 +39,63 @@
     {{-- ==================== 메인 컨텐츠 ==================== --}}
     <div class="max-w-lg mx-auto">
 
-        {{-- 히어로 섹션 --}}
-        <div class="px-5 pt-10 pb-6">
-            {{-- 제목 --}}
-            <h1 class="text-3xl font-bold text-gray-900 text-center mb-2 leading-tight">내 피부엔 얼마나 맞을까?</h1>
-            <p class="text-base text-gray-500 text-center mb-8">내 피부에 맞는지, 지금 바로 확인해보세요</p>
-
-            {{-- 메인 썸네일 + 성분 카드 --}}
-            <div class="relative w-full">
-                {{-- 메인 제품 이미지 (main_thumbnail 우선, 없으면 image) --}}
-                @php
-                    $thumbnailSrc = $product->main_thumbnail
-                        ? asset('storage/' . $product->main_thumbnail)
-                        : ($product->image ? asset('storage/' . $product->image) : null);
-                @endphp
-                @if($thumbnailSrc)
-                <div class="w-full overflow-hidden rounded-2xl bg-gray-50" style="aspect-ratio: 343 / 395;">
-                    <img src="{{ $thumbnailSrc }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
-                </div>
-                @endif
-
-                {{-- 성분 카드 오버레이 --}}
-                @foreach($ingredients as $index => $ingredient)
-                @php
-                    $position = $ingredient->card_position ?? null;
-                    // 기본 위치: 카드들을 분산 배치 (관리자와 동일하게 left 기준)
-                    $defaultPositions = [
-                        ['top' => '10%', 'left' => '0%'],
-                        ['top' => '30%', 'left' => '70%'],
-                        ['top' => '55%', 'left' => '5%'],
-                        ['top' => '75%', 'left' => '65%'],
-                        ['top' => '45%', 'left' => '0%'],
-                    ];
-                    $defaultPos = $defaultPositions[$index % count($defaultPositions)];
-                    $top = $position['top'] ?? ($defaultPos['top'] ?? '0%');
-                    $left = $position['left'] ?? ($defaultPos['left'] ?? '0%');
-                @endphp
-                <div class="absolute z-10 w-max"
-                     style="top: {{ $top }}; left: {{ $left }};">
-                    <div class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5"
-                         style="background-color: rgba(255,255,255,0.55); box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
-                        <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center flex-shrink-0">
-                            <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
-                            </svg>
-                        </div>
-                        <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">{{ $ingredient->name }}</span>
-                    </div>
-                </div>
-                @endforeach
+        {{-- 히어로 섹션 (이미지 풀블리드) --}}
+        <div class="relative w-full">
+            {{-- 메인 제품 이미지 (풀블리드 배경) --}}
+            @php
+                $thumbnailSrc = $product->main_thumbnail
+                    ? asset('storage/' . $product->main_thumbnail)
+                    : ($product->image ? asset('storage/' . $product->image) : null);
+            @endphp
+            @if($thumbnailSrc)
+            <div class="w-full overflow-hidden bg-gray-50" style="aspect-ratio: 1 / 1.15;">
+                <img src="{{ $thumbnailSrc }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
             </div>
+            @else
+            <div class="w-full bg-gray-100" style="aspect-ratio: 1 / 1.15;"></div>
+            @endif
+
+            {{-- 제목 오버레이 --}}
+            <div class="absolute inset-x-0 top-0 z-20 pt-14 px-5 flex flex-col items-center">
+                <p class="text-lg text-gray-500 text-center mb-1">{{ $product->name }}</p>
+                <h1 class="text-4xl font-bold text-gray-900 text-center leading-tight">{{ __('내 피부에 잘 맞을까?') }}</h1>
+            </div>
+
+            {{-- 성분 카드 오버레이 --}}
+            @foreach($ingredients as $index => $ingredient)
+            @php
+                $position = $ingredient->card_position ?? null;
+                $defaultPositions = [
+                    ['top' => '10%', 'left' => '0%'],
+                    ['top' => '30%', 'left' => '70%'],
+                    ['top' => '55%', 'left' => '5%'],
+                    ['top' => '75%', 'left' => '65%'],
+                    ['top' => '45%', 'left' => '0%'],
+                ];
+                $defaultPos = $defaultPositions[$index % count($defaultPositions)];
+                $top = $position['top'] ?? ($defaultPos['top'] ?? '0%');
+                $left = $position['left'] ?? ($defaultPos['left'] ?? '0%');
+            @endphp
+            <div class="absolute z-10 w-max"
+                 style="top: {{ $top }}; left: {{ $left }};">
+                <div class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5"
+                     style="background-color: rgba(255,255,255,0.55); box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
+                    <div class="w-5 h-5 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">{{ $ingredient->name }}</span>
+                </div>
+            </div>
+            @endforeach
         </div>
 
         {{-- ==================== 하단 정보 섹션 ==================== --}}
         <div style="background-color: #F4F6F8;" class="mx-5 px-6 py-8 rounded-2xl mt-6">
-            <h2 class="text-2xl font-bold text-gray-900 text-center mb-4">개인별 맞춤, 분석 솔루션</h2>
+            <h2 class="text-2xl font-bold text-gray-900 text-center mb-4">{{ __('개인별 맞춤, 분석 솔루션') }}</h2>
             <p class="text-lg text-gray-600 text-center leading-relaxed">
-                개인 설문 응답과<br>
-                전 세계 실제 사용자 리뷰 데이터를<br>
-                바탕으로 제품의 기대 효과를<br>
-                <span style="color: #3182F6; font-weight: 600;">AI가 분석 예측</span>합니다.
+                {!! __('개인 설문 응답과<br>전 세계 실제 사용자 리뷰 데이터를<br>바탕으로 제품의 기대 효과를<br><span style="color: #3182F6; font-weight: 600;">AI가 분석 예측</span>합니다.') !!}
             </p>
         </div>
 
@@ -106,7 +103,7 @@
         <div class="mx-5 mt-4 mb-5" x-data="{ serviceInfoOpen: false }">
             <button @click="serviceInfoOpen = !serviceInfoOpen"
                     class="flex items-center gap-1 mx-auto text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                <span>서비스 안내</span>
+                <span>{{ __('서비스 안내') }}</span>
                 <svg class="w-4 h-4 transition-transform" :class="serviceInfoOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -118,9 +115,9 @@
                  x-transition:leave-start="opacity-100 max-h-96" x-transition:leave-end="opacity-0 max-h-0"
                  class="overflow-hidden">
                 <div class="mt-3 p-4 bg-gray-50 rounded-xl text-xs text-gray-500 leading-relaxed">
-                    해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.
+                    {{ __('해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.') }}
                     <br><br>
-                    제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
+                    {{ __('제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.') }}
                 </div>
             </div>
         </div>
@@ -135,12 +132,12 @@
             <button @click="showProductDetail = true"
                     class="flex-1 py-5 text-white text-center font-bold text-xl"
                     style="background-color: #000000; border-radius: 16px 0 0 0;">
-                AI 리뷰 분석
+                {{ __('AI 리뷰 분석') }}
             </button>
-            <a href="{{ route('survey.index', $product->code) }}"
+            <a href="{{ localized_route('survey.index', ['code' => $product->code]) }}"
                class="flex-1 py-5 text-white text-center font-bold text-xl"
                style="background-color: #3F78EB; border-radius: 0 16px 0 0;">
-                AI 효과 예측
+                {{ __('AI 효과 예측') }}
             </a>
         </div>
     </div>
@@ -188,7 +185,7 @@
                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
-                제품 상세
+                {{ __('제품 상세') }}
             </a>
             @endif
             <button @click="overlayMenuOpen = false; showProductDetail = false; cleanupDetailCharts(); $nextTick(() => showProductSelector = true)"
@@ -196,7 +193,7 @@
                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                 </svg>
-                다른 제품 분석
+                {{ __('다른 제품 분석') }}
             </button>
         </div>
 
@@ -209,16 +206,16 @@
                     {{-- 실시간 집계중 표시 (클릭 시 모달 열기) --}}
                     <button @click="showModal = true" class="flex items-center gap-1.5 mb-1 cursor-pointer">
                         <img src="{{ asset('product/realtime_survey.svg') }}" alt="" class="w-3 h-3">
-                        <span class="text-xs text-gray-400" x-text="collectionComplete ? '실시간 집계완료' : '실시간 집계중'"></span>
+                        <span class="text-xs text-gray-400" x-text="collectionComplete ? i18n.collectionComplete : i18n.collectionInProgress"></span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
                     <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-900">AI 리뷰 분석</h2>
+                    <h2 class="text-xl font-semibold text-gray-900">{{ __('AI 리뷰 분석') }}</h2>
                     <div class="text-right">
-                        <p class="text-sm text-gray-400">분석한 리뷰</p>
-                        <p class="text-xl font-bold text-gray-900" x-text="totalCollected.toLocaleString() + ' 개'">0 개</p>
+                        <p class="text-sm text-gray-400">{{ __('분석한 리뷰') }}</p>
+                        <p class="text-xl font-bold text-gray-900" x-text="totalCollected.toLocaleString() + ' {{ __('개') }}'">0 {{ __('개') }}</p>
                     </div>
                     </div>
                 </div>
@@ -243,8 +240,8 @@
                     <div class="grid grid-cols-2 gap-0">
                         {{-- 좌측: 총 평점 --}}
                         <div class="text-center flex flex-col items-center border-r border-gray-100 pr-4">
-                            <p class="text-sm font-bold text-gray-900 mb-5">사용자 총 평점</p>
-                            <p class="text-4xl font-bold text-gray-900">{{ number_format($avgRating, 1) }}<span class="text-base font-normal text-gray-400">점</span></p>
+                            <p class="text-sm font-bold text-gray-900 mb-5">{{ __('사용자 총 평점') }}</p>
+                            <p class="text-4xl font-bold text-gray-900">{{ number_format($avgRating, 1) }}<span class="text-base font-normal text-gray-400">{{ __('점') }}</span></p>
                             <div class="flex items-center justify-center gap-1 mt-2">
                                 @for($i = 0; $i < $fullStars; $i++)
                                 <svg class="w-7 h-7" fill="#3F78EB" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
@@ -263,7 +260,7 @@
 
                         {{-- 우측: 평점 비율 세로 막대 그래프 --}}
                         <div class="pl-4">
-                            <p class="text-sm font-bold text-gray-900 mb-5 text-center">평점비율</p>
+                            <p class="text-sm font-bold text-gray-900 mb-5 text-center">{{ __('평점비율') }}</p>
                             <div class="flex items-end justify-center" style="height: 90px; gap: 12px;">
                                 @for($s = 5; $s >= 1; $s--)
                                 @php
@@ -283,7 +280,7 @@
                                     <div class="rounded-t overflow-hidden bg-gray-200 relative" style="width: 8px; height: 60px;">
                                         <div class="absolute bottom-0 left-0 w-full rounded-t" style="height: {{ $count > 0 ? max($pct, 8) : 0 }}%; background-color: {{ $isMax ? '#3F78EB' : '#999999' }};"></div>
                                     </div>
-                                    <span class="text-xs text-gray-400 mt-1">{{ $s }}점</span>
+                                    <span class="text-xs text-gray-400 mt-1">{{ $s }}{{ __('점') }}</span>
                                 </div>
                                 @endfor
                             </div>
@@ -296,19 +293,19 @@
                     <div class="relative w-full aspect-square mx-auto" style="max-width: 460px;">
                         <canvas id="radarChart" class="w-full h-full"></canvas>
                     </div>
-                    <p class="text-xs text-gray-400 mt-3 text-center">*끈적임 & 자극여부는 낮을수록 좋음</p>
+                    <p class="text-xs text-gray-400 mt-3 text-center">{{ __('*끈적임 & 자극여부는 낮을수록 좋음') }}</p>
                 </div>
 
                 {{-- AI 분석 요약 --}}
                 <div class="px-5 pb-5">
                     <div class="rounded-xl px-6 py-4 bg-gray-100" style="margin-top:24px">
-                        <h3 class="text-base font-semibold text-gray-900 mb-2">AI 분석요약</h3>
+                        <h3 class="text-base font-semibold text-gray-900 mb-2">{{ __('AI 분석요약') }}</h3>
 
                         {{-- 로딩 중 표시 --}}
                         <div x-show="!collectionComplete" x-cloak class="space-y-3">
                             <div class="flex items-center gap-2 text-sm text-gray-500">
                                 <x-loading-spinner />
-                                <span x-text="totalCollected.toLocaleString() + '개 리뷰 분석 중...'">리뷰 분석 중...</span>
+                                <span x-text="totalCollected.toLocaleString() + i18n.reviewAnalyzing">{{ __('리뷰 분석 중...') }}</span>
                             </div>
                             <div class="space-y-2">
                                 <div class="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
@@ -388,10 +385,10 @@
                             <template x-if="collectionComplete">
                                 <div class="w-2 h-2 rounded-full" style="background-color: #ACDDA5;"></div>
                             </template>
-                            <span class="text-base font-medium text-white" x-text="collectionComplete ? '실시간 데이터 집계완료' : '실시간 데이터 집계중'"></span>
+                            <span class="text-base font-medium text-white" x-text="collectionComplete ? i18n.dataCollectionComplete : i18n.dataCollectionInProgress"></span>
                         </div>
                         <div class="flex items-center gap-1" style="color: #999999;">
-                            <span class="text-sm">상세보기</span>
+                            <span class="text-sm">{{ __('상세보기') }}</span>
                             <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
@@ -402,20 +399,20 @@
 
             {{-- 서비스 안내 --}}
             <div class="mt-6 p-4 bg-gray-50 rounded-xl text-xs text-gray-500 leading-relaxed">
-                해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.
+                {{ __('해당 서비스는 개인 설문과 실제 사용자 리뷰 데이터를 바탕으로 AI가 분석·예측한 참고 정보이며, 개인차가 있을 수 있습니다.') }}
                 <br><br>
-                제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.
+                {{ __('제품 리뷰는 네이버스토어, 쿠팡, 화해, 무신사, W컨셉, 아마존 US, Qoo10 등 10개 이상의 주요 쇼핑 플랫폼에 축적된 실제 사용자 리뷰를 에센시엘의 AI 분석 시스템으로 통합 분석·정량화한 데이터 결과입니다.') }}
             </div>
         </div>
 
         {{-- 하단 고정 UI --}}
         <div class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 py-4 z-20" style="box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);">
             <div class="max-w-lg mx-auto">
-                <p class="text-center font-bold text-black text-sm mb-3">🤔 나는 얼마나 효과 있을까?</p>
-                <a href="{{ route('survey.index', $product->code) }}"
+                <p class="text-center font-bold text-black text-sm mb-3">{{ __('🤔 나는 얼마나 효과 있을까?') }}</p>
+                <a href="{{ localized_route('survey.index', ['code' => $product->code]) }}"
                    class="block w-full py-3.5 text-center text-white font-bold rounded-xl"
                    style="background-color: #3F78EB;">
-                    1분 안에 효과 예측
+                    {{ __('1분 안에 효과 예측') }}
                 </a>
             </div>
         </div>
@@ -441,8 +438,8 @@
                         <x-loading-spinner size="8" customColor="#3F78EB" />
                     </div>
                 </div>
-                <h3 class="text-white font-bold text-lg mb-1">실시간 데이터 수집 중</h3>
-                <p class="text-slate-400 text-sm">다양한 플랫폼에서 리뷰를 수집하고 있습니다</p>
+                <h3 class="text-white font-bold text-lg mb-1">{{ __('실시간 데이터 수집 중') }}</h3>
+                <p class="text-slate-400 text-sm">{{ __('다양한 플랫폼에서 리뷰를 수집하고 있습니다') }}</p>
             </div>
 
             {{-- 완료 헤더 --}}
@@ -452,8 +449,8 @@
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                 </div>
-                <h3 class="text-white font-bold text-lg mb-1">데이터 집계 완료</h3>
-                <p class="text-slate-400 text-sm">총 <span x-text="totalCollected.toLocaleString()"></span>개 리뷰 분석 완료</p>
+                <h3 class="text-white font-bold text-lg mb-1">{{ __('데이터 집계 완료') }}</h3>
+                <p class="text-slate-400 text-sm" x-text="i18n.totalReviewsAnalyzed.replace(':count', totalCollected.toLocaleString())"></p>
             </div>
 
             {{-- 수집 현황 --}}
@@ -472,7 +469,7 @@
                                 <span x-show="collectionComplete && platform.syncedAt" class="text-slate-500 text-xs" x-text="platform.syncedAt"></span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="font-mono text-xs" style="color: #3F78EB;" x-text="platform.count.toLocaleString() + '건'"></span>
+                                <span class="font-mono text-xs" style="color: #3F78EB;" x-text="platform.count.toLocaleString() + i18n.countUnit"></span>
                                 <svg x-show="collectionComplete && platform.reviews.length > 0"
                                      class="w-4 h-4 text-slate-500 transition-transform duration-200"
                                      :class="platform.expanded ? 'rotate-180' : ''"
@@ -509,14 +506,14 @@
 
             {{-- 총 수집 데이터 --}}
             <div class="bg-slate-800 rounded-xl p-4 text-center">
-                <p class="text-slate-400 text-xs mb-1">총 수집 데이터</p>
-                <p class="text-2xl font-bold text-white" x-text="totalCollected.toLocaleString() + '건'"></p>
+                <p class="text-slate-400 text-xs mb-1">{{ __('총 수집 데이터') }}</p>
+                <p class="text-2xl font-bold text-white" x-text="totalCollected.toLocaleString() + i18n.countUnit"></p>
             </div>
 
             {{-- 닫기 버튼 --}}
             <button x-show="collectionComplete" @click="showModal = false; platforms.forEach(p => p.expanded = false)"
                     class="w-full mt-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-sm">
-                닫기
+                {{ __('닫기') }}
             </button>
         </div>
     </div>
@@ -618,13 +615,22 @@ function productPage() {
         totalCollected: 0,
         metrics: metricsData,
         currentMetricValues: metricsData.map(() => 0),
+        i18n: {
+            collectionComplete: @json(__('실시간 집계완료')),
+            collectionInProgress: @json(__('실시간 집계중')),
+            dataCollectionComplete: @json(__('실시간 데이터 집계완료')),
+            dataCollectionInProgress: @json(__('실시간 데이터 집계중')),
+            reviewAnalyzing: @json(__('개 리뷰 분석 중...')),
+            totalReviewsAnalyzed: @json(__('총 :count개 리뷰 분석 완료')),
+            countUnit: @json(__('건')),
+        },
         platforms: [
-            { name: '네이버스토어', key: 'naver', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
-            { name: '쿠팡', key: 'coupang', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
-            { name: '화해', key: 'hwahae', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
-            { name: '무신사', key: 'musinsa', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
-            { name: 'W컨셉', key: 'wconcept', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
-            { name: '아마존 US', key: 'amazon', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: @json(__('네이버스토어')), key: 'naver', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: @json(__('쿠팡')), key: 'coupang', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: @json(__('화해')), key: 'hwahae', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: @json(__('무신사')), key: 'musinsa', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: 'W' + @json(__('컨셉')), key: 'wconcept', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
+            { name: @json(__('아마존 US')), key: 'amazon', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
             { name: 'Qoo10', key: 'qoo10', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
             { name: 'Shopee', key: 'shopee', count: 0, collected: false, syncedAt: '', reviews: [], expanded: false },
         ],

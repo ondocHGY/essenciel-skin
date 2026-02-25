@@ -117,7 +117,7 @@ CACHE_STORE=database
 - 세션 기반 사용자 추적 (회원가입 불필요)
 - JSON 컬럼 사용 (ingredients, base_curve, timeline, metrics 등)
 - 설문 옵션 변경 시 캐시 클리어 필요 (`php artisan cache:clear`)
-- 새로 생성한 파일은 반드시 `git add`로 스테이지할 것 (untracked 누락 방지)
+- 새로 생성한 파일은 테스트/임시 파일이 아닌 한 반드시 `git add`로 스테이지할 것 (untracked 누락 방지)
 
 ---
 
@@ -487,3 +487,58 @@ SYNC_MINUTE=0
 - 드롭다운 → 플랫폼별 개별 동기화 버튼 UI 변경
 - Qoo10(빨강), 네이버(초록), 무신사(회색), Shopee(주황), 전체(파랑)
 - `syncManager()` Alpine.js 함수: 동기화 중 로딩 상태 표시
+
+### 2026-02-25
+
+#### 제품/설문 다국어 DB 번역 관리 기능
+
+기존 `__()` (lang JSON) 기반 정적 번역 외에, 관리자가 DB에서 제품명·설문 질문 등을 언어별로 직접 입력·관리할 수 있는 기능 추가.
+한국어는 기존 컬럼(name, title, label 등)에 그대로 유지하고, 다른 언어 번역은 `translations` JSON 컬럼에 저장. 100% 하위호환.
+
+**마이그레이션** `2026_02_25_000000_add_translations_columns.php` (신규)
+- `products`, `survey_questions`, `survey_options` 테이블에 `translations` JSON nullable 컬럼 추가
+
+**`app/Traits/HasTranslations.php`** (신규)
+- `$translatable` 속성: 모델별 번역 가능 필드 목록
+- `getTranslation($field, $locale)`: 번역 반환, 없으면 한국어 원본 fallback
+- `setTranslation($field, $locale, $value)`: 번역 저장
+- `getAttribute()` 오버라이드: `app()->getLocale() !== 'ko'`일 때 자동 번역 반환
+
+**모델 수정**
+- `Product.php`: `use HasTranslations`, `$translatable = ['name', 'brand', 'category']`
+- `SurveyQuestion.php`: `use HasTranslations`, `$translatable = ['title', 'subtitle']`, `toFrontendFormat()`에서 `__()` 제거
+- `SurveyOption.php`: `use HasTranslations`, `$translatable = ['label', 'description']`
+
+**`resources/views/components/translation-tabs.blade.php`** (신규)
+- 언어 탭 바: 한국어(원본) | English | 日本語 | 中文 | Tiếng Việt | العربية
+- Alpine.js 탭 전환, 한국어 탭은 기존 필드(slot), 기타 탭은 `translations[{locale}][{field}]` 입력
+
+**관리자 UI**
+- `admin/products/edit.blade.php`: 기본 정보 섹션에 `<x-translation-tabs>` 추가 (name, brand, category)
+- `admin/survey-questions/edit.blade.php`: 질문 정보에 `<x-translation-tabs>` 추가 (title, subtitle), 옵션별 접이식 번역 입력 UI 추가
+
+**컨트롤러**
+- `Admin/ProductController.php` `update()`: translations 입력 처리 (빈 값 필터링 → JSON 저장)
+- `Admin/SurveyQuestionController.php` `update()`: 질문 translations + 옵션별 translations 저장
+
+**translations JSON 구조 예시:**
+```json
+{
+  "en": { "name": "Hydrating Serum", "brand": "Essenciel" },
+  "ja": { "name": "ハイドレーティングセラム" }
+}
+```
+
+#### 메인 페이지(product/show) 히어로 섹션 변경
+
+**문구 변경**
+- 기존: 제목 `내 피부엔 얼마나 맞을까?` + 소제목 `내 피부에 맞는지, 지금 바로 확인해보세요`
+- 변경: 소제목(제품명) 상단 → 제목 `내 피부에 잘 맞을까?` 하단
+
+**이미지 풀블리드**
+- 좌우/상단 공백 제거, 이미지가 화면 가장자리까지 가득 채움
+- 제목·성분 카드가 이미지 위에 오버레이로 표시
+- aspect-ratio `343/395` → `1/1.15`로 변경
+
+**다국어 파일 (lang/*.json)**
+- 6개 언어 파일에 `"내 피부에 잘 맞을까?"` 번역 추가

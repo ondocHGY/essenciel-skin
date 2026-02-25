@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', '피부 정보 입력 - ' . $product->name)
+@section('title', __('피부 정보 입력') . ' - ' . $product->name)
 
 @section('content')
 {{-- 분석 로딩 오버레이 --}}
@@ -29,7 +29,7 @@
                 </div>
             </div>
 
-            <h2 class="text-xl font-bold text-white mb-2">AI 피부 분석 중</h2>
+            <h2 class="text-xl font-bold text-white mb-2">{{ __('AI 피부 분석 중') }}</h2>
             <p class="text-gray-300 text-sm mb-6" x-text="analyzeStatusText"></p>
 
             <div class="w-full bg-white/20 rounded-full h-2 mb-4 overflow-hidden">
@@ -78,7 +78,7 @@
         <p class="text-gray-500 text-sm mt-1" x-text="questions[currentQuestion].subtitle"></p>
     </div>
 
-    <form action="{{ route('survey.store', $product->code) }}" method="POST" @submit.prevent="submitForm">
+    <form action="{{ localized_route('survey.store', ['code' => $product->code]) }}" method="POST" @submit.prevent="submitForm">
         @csrf
 
         {{-- 질문 카드 --}}
@@ -118,16 +118,16 @@
             <div class="max-w-lg mx-auto flex gap-3">
                 <button type="button" x-show="currentQuestion > 0" @click="prevQuestion"
                         class="flex-1 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl transition-colors hover:bg-gray-50">
-                    이전
+                    {{ __('이전') }}
                 </button>
                 <button type="button" x-show="currentQuestion < questions.length - 1" @click="nextQuestion" :disabled="!canProceed"
                         class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
-                    다음
+                    {{ __('다음') }}
                 </button>
                 <button type="submit" x-show="currentQuestion === questions.length - 1" :disabled="!canProceed || isSubmitting"
                         class="flex-1 py-4 bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700">
-                    <span x-show="!isSubmitting">분석 시작</span>
-                    <span x-show="isSubmitting">분석 중...</span>
+                    <span x-show="!isSubmitting">{{ __('분석 시작') }}</span>
+                    <span x-show="isSubmitting">{{ __('분석 중...') }}</span>
                 </button>
             </div>
         </div>
@@ -169,13 +169,13 @@ function surveyForm() {
         isAnalyzing: false,
         analyzeProgress: 0,
         currentAnalyzeStep: 0,
-        analyzeStatusText: '피부 데이터를 수집하고 있습니다...',
+        analyzeStatusText: @json(__('피부 데이터를 수집하고 있습니다...')),
         analyzeSteps: [
-            '피부 프로필 분석 중',
-            '생활 패턴 데이터 처리 중',
-            '{{ number_format(($reviewData['total_count'] ?? 0) > 0 ? $reviewData['total_count'] : ($product->intro_review_count ?? 12847)) }}개 피부 데이터와 비교 중',
-            'AI 예측 모델 적용 중',
-            '맞춤 결과 생성 중'
+            @json(__('피부 프로필 분석 중')),
+            @json(__('생활 패턴 데이터 처리 중')),
+            @json(__(':count개 피부 데이터와 비교 중', ['count' => number_format(($reviewData['total_count'] ?? 0) > 0 ? $reviewData['total_count'] : ($product->intro_review_count ?? 12847))])),
+            @json(__('AI 예측 모델 적용 중')),
+            @json(__('맞춤 결과 생성 중'))
         ],
 
         questions: questionsFromServer,
@@ -222,11 +222,11 @@ function surveyForm() {
             });
 
             const statusTexts = [
-                '피부 데이터를 수집하고 있습니다...',
-                '생활 패턴을 분석하고 있습니다...',
-                '유사 피부 타입 데이터와 비교 중...',
-                'AI 예측 모델을 적용하고 있습니다...',
-                '맞춤 결과를 생성하고 있습니다...'
+                @json(__('피부 데이터를 수집하고 있습니다...')),
+                @json(__('생활 패턴을 분석하고 있습니다...')),
+                @json(__('유사 피부 타입 데이터와 비교 중...')),
+                @json(__('AI 예측 모델을 적용하고 있습니다...')),
+                @json(__('맞춤 결과를 생성하고 있습니다...'))
             ];
 
             const animationDuration = 3000;
@@ -253,7 +253,7 @@ function surveyForm() {
 
             this.currentAnalyzeStep = this.analyzeSteps.length;
             this.analyzeProgress = 100;
-            this.analyzeStatusText = '분석이 완료되었습니다!';
+            this.analyzeStatusText = @json(__('분석이 완료되었습니다!'));
 
             try {
                 const response = await fetchPromise;
@@ -274,13 +274,13 @@ function surveyForm() {
                 } else if (data.message) {
                     alert(data.message);
                 } else {
-                    alert('오류가 발생했습니다. 다시 시도해주세요.');
+                    alert(@json(__('오류가 발생했습니다. 다시 시도해주세요.')));
                 }
                 this.isSubmitting = false;
                 this.isAnalyzing = false;
             } catch (error) {
                 console.error('Error:', error);
-                alert('오류가 발생했습니다. 다시 시도해주세요.');
+                alert(@json(__('오류가 발생했습니다. 다시 시도해주세요.')));
                 this.isSubmitting = false;
                 this.isAnalyzing = false;
             }

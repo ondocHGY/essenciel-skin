@@ -87,6 +87,12 @@ class SurveyQuestionController extends Controller
             'options.*.is_active' => 'boolean',
         ]);
 
+        // 질문 번역 처리
+        $questionTranslations = collect($request->input('translations', []))
+            ->map(fn($fields) => array_filter($fields, fn($v) => $v !== '' && $v !== null))
+            ->filter(fn($fields) => !empty($fields))
+            ->toArray();
+
         $surveyQuestion->update([
             'key' => $validated['key'],
             'title' => $validated['title'],
@@ -94,37 +100,41 @@ class SurveyQuestionController extends Controller
             'category' => $validated['category'],
             'sort_order' => $validated['sort_order'] ?? 0,
             'is_active' => $request->has('is_active'),
+            'translations' => !empty($questionTranslations) ? $questionTranslations : null,
         ]);
 
         // 기존 옵션 ID 목록
         $existingIds = $surveyQuestion->options->pluck('id')->toArray();
         $updatedIds = [];
+        $rawOptions = $request->input('options', []);
 
         foreach ($validated['options'] as $index => $optionData) {
+            // 옵션 번역 처리
+            $optTranslations = collect($rawOptions[$index]['translations'] ?? [])
+                ->map(fn($fields) => array_filter($fields, fn($v) => $v !== '' && $v !== null))
+                ->filter(fn($fields) => !empty($fields))
+                ->toArray();
+
+            $optionFields = [
+                'value' => $optionData['value'],
+                'label' => $optionData['label'],
+                'description' => $optionData['description'] ?? null,
+                'modifier' => $optionData['modifier'],
+                'sort_order' => $index,
+                'is_active' => isset($optionData['is_active']),
+                'translations' => !empty($optTranslations) ? $optTranslations : null,
+            ];
+
             if (!empty($optionData['id'])) {
                 // 기존 옵션 업데이트
                 $option = SurveyOption::find($optionData['id']);
                 if ($option && $option->question_id === $surveyQuestion->id) {
-                    $option->update([
-                        'value' => $optionData['value'],
-                        'label' => $optionData['label'],
-                        'description' => $optionData['description'] ?? null,
-                        'modifier' => $optionData['modifier'],
-                        'sort_order' => $index,
-                        'is_active' => isset($optionData['is_active']),
-                    ]);
+                    $option->update($optionFields);
                     $updatedIds[] = $option->id;
                 }
             } else {
                 // 새 옵션 생성
-                $newOption = $surveyQuestion->options()->create([
-                    'value' => $optionData['value'],
-                    'label' => $optionData['label'],
-                    'description' => $optionData['description'] ?? null,
-                    'modifier' => $optionData['modifier'],
-                    'sort_order' => $index,
-                    'is_active' => isset($optionData['is_active']),
-                ]);
+                $newOption = $surveyQuestion->options()->create($optionFields);
                 $updatedIds[] = $newOption->id;
             }
         }

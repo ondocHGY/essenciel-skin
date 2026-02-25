@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnalysisResult;
 use App\Models\Product;
+use App\Services\AnalysisTranslator;
 use Illuminate\Http\Request;
 
 class ResultController extends Controller
@@ -23,7 +24,7 @@ class ResultController extends Controller
         $sessionId = $request->session()->get('skincare_session_id');
 
         if (!$sessionId) {
-            return redirect()->route('survey.index', $code);
+            return redirect(localized_route('survey.index', ['code' => $code]));
         }
 
         $result = AnalysisResult::where('session_id', $sessionId)
@@ -33,7 +34,7 @@ class ResultController extends Controller
             ->first();
 
         if (!$result) {
-            return redirect()->route('survey.index', $code);
+            return redirect(localized_route('survey.index', ['code' => $code]));
         }
 
         // metrics에 radarBefore/radarAfter가 없으면 추가
@@ -42,6 +43,9 @@ class ResultController extends Controller
             $metrics = $this->ensureRadarScores($metrics);
             $result->metrics = $metrics;
         }
+
+        // 다국어 번역 적용 (ko가 아닌 경우 DB의 한국어 데이터를 번역)
+        $this->translateResult($result);
 
         // Chart.js용 데이터 준비
         $chartData = $this->prepareChartData($result, $product);
@@ -73,6 +77,9 @@ class ResultController extends Controller
             $result->metrics = $metrics;
         }
 
+        // 다국어 번역 적용
+        $this->translateResult($result);
+
         // Chart.js용 데이터 준비
         $chartData = $this->prepareChartData($result, $product);
 
@@ -89,6 +96,29 @@ class ResultController extends Controller
         $isShared = true;
 
         return view('result.show', compact('product', 'result', 'chartData', 'shareUrl', 'isShared', 'otherProducts'));
+    }
+
+    private function translateResult(AnalysisResult $result): void
+    {
+        if (app()->getLocale() === 'ko') {
+            return;
+        }
+
+        if ($result->usage_guide) {
+            $result->usage_guide = AnalysisTranslator::translateUsageGuide($result->usage_guide);
+        }
+        if ($result->skin_profile) {
+            $result->skin_profile = AnalysisTranslator::translateSkinProfile($result->skin_profile);
+        }
+        if ($result->lifestyle_factors) {
+            $result->lifestyle_factors = AnalysisTranslator::translateLifestyleFactors($result->lifestyle_factors);
+        }
+        if ($result->metrics) {
+            $result->metrics = AnalysisTranslator::translateMetrics($result->metrics);
+        }
+        if ($result->milestones) {
+            $result->milestones = AnalysisTranslator::translateMilestones($result->milestones);
+        }
     }
 
     private function ensureRadarScores(array $metrics): array
@@ -135,17 +165,17 @@ class ResultController extends Controller
         $baseCurve = $product->base_curve;
 
         $labels = [
-            'moisture' => '수분',
-            'elasticity' => '탄력',
-            'tone' => '피부톤',
-            'pore' => '모공',
-            'wrinkle' => '주름',
+            'moisture' => __('수분'),
+            'elasticity' => __('탄력'),
+            'tone' => __('피부톤'),
+            'pore' => __('모공'),
+            'wrinkle' => __('주름'),
         ];
 
         // 라인 차트 데이터
         $weeks = [1, 2, 4, 8, 12];
         $lineChartData = [
-            'labels' => array_map(fn($w) => $w . '주', $weeks),
+            'labels' => array_map(fn($w) => __(':weeks주', ['weeks' => $w]), $weeks),
             'datasets' => [],
         ];
 
@@ -178,12 +208,12 @@ class ResultController extends Controller
             'labels' => array_values($labels),
             'datasets' => [
                 [
-                    'label' => '평균',
+                    'label' => __('평균'),
                     'data' => array_map(fn($c) => $comparison[$c]['average'] ?? 0, array_keys($labels)),
                     'backgroundColor' => 'rgba(156, 163, 175, 0.8)',
                 ],
                 [
-                    'label' => '나의 예상',
+                    'label' => __('나의 예상'),
                     'data' => array_map(fn($c) => $comparison[$c]['personal'] ?? 0, array_keys($labels)),
                     'backgroundColor' => 'rgba(59, 130, 246, 0.8)',
                 ],

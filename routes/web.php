@@ -18,7 +18,7 @@ Route::get('/', function () {
     abort(404, '잘못된 경로입니다. QR코드를 스캔하여 접속해주세요.');
 });
 
-// 제품 관련 라우트
+// 제품 관련 라우트 (기본 한국어 - QR 하위호환)
 Route::get('/p/{code}', [ProductController::class, 'show'])->name('product.show');
 Route::get('/p/{code}/survey', [SurveyController::class, 'index'])->name('survey.index');
 Route::post('/p/{code}/survey', [SurveyController::class, 'store'])->name('survey.store');
@@ -26,6 +26,18 @@ Route::get('/p/{code}/result', [ResultController::class, 'show'])->name('result.
 
 // 공유 결과 라우트
 Route::get('/share/{token}', [ResultController::class, 'share'])->name('result.share');
+
+// 다국어 라우트 (로케일 프리픽스)
+Route::prefix('{locale}')
+    ->where(['locale' => 'ko|en|ja|zh|vi|ar'])
+    ->middleware('set.locale')
+    ->group(function () {
+        Route::get('/p/{code}', [ProductController::class, 'show'])->name('localized.product.show');
+        Route::get('/p/{code}/survey', [SurveyController::class, 'index'])->name('localized.survey.index');
+        Route::post('/p/{code}/survey', [SurveyController::class, 'store'])->name('localized.survey.store');
+        Route::get('/p/{code}/result', [ResultController::class, 'show'])->name('localized.result.show');
+        Route::get('/share/{token}', [ResultController::class, 'share'])->name('localized.result.share');
+    });
 
 // 관리자 라우트
 Route::prefix('admin')->name('admin.')->group(function () {

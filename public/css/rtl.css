@@ -1,0 +1,110 @@
+/* RTL (Right-to-Left) Support for Arabic */
+
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Flex direction reversal */
+[dir="rtl"] .flex-row {
+    flex-direction: row-reverse;
+}
+
+/* Grid alignment */
+[dir="rtl"] .text-left {
+    text-align: right;
+}
+
+[dir="rtl"] .text-right {
+    text-align: left;
+}
+
+/* Margin/Padding adjustments */
+[dir="rtl"] .ml-auto {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+[dir="rtl"] .mr-auto {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+/* Border radius adjustments for directional elements */
+[dir="rtl"] .rounded-l-xl {
+    border-radius: 0 0.75rem 0.75rem 0;
+}
+
+[dir="rtl"] .rounded-r-xl {
+    border-radius: 0.75rem 0 0 0.75rem;
+}
+
+/* Chart canvases should remain LTR */
+[dir="rtl"] canvas {
+    direction: ltr;
+}
+
+/* Gauge bar fill direction */
+[dir="rtl"] .gauge-fill {
+    right: 0;
+    left: auto;
+}
+
+/* Timeline line alignment */
+[dir="rtl"] .timeline-line {
+    right: 10px;
+    left: auto;
+}
+
+/* Marquee animation direction */
+[dir="rtl"] .marquee-track {
+    animation-direction: reverse;
+}
+
+/* Navigation arrows */
+[dir="rtl"] .nav-arrow-left {
+    transform: scaleX(-1);
+}
+
+[dir="rtl"] .nav-arrow-right {
+    transform: scaleX(-1);
+}
+
+/* Fixed bottom bar */
+[dir="rtl"] .fixed.bottom-0 {
+    direction: rtl;
+}
+
+/* Language switcher stays LTR for consistent flag/name display */
+[dir="rtl"] .language-switcher {
+    direction: ltr;
+}
+
+/* Gradient masks for RTL */
+[dir="rtl"] .marquee-container {
+    mask-image: linear-gradient(to left, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to left, transparent, black 10%, black 90%, transparent);
+}
+
+/* SVG icons in flex containers */
+[dir="rtl"] .flex .rotate-180 {
+    transform: rotate(0deg);
+}
+
+[dir="rtl"] .flex .rotate-0,
+[dir="rtl"] .flex:not(.rotate-180) {
+    transform: rotate(180deg);
+}
+
+/* Checkbox/radio alignment */
+[dir="rtl"] input[type="checkbox"],
+[dir="rtl"] input[type="radio"] {
+    margin-left: 0.5rem;
+    margin-right: 0;
+}
+
+/* Dropdown positioning */
+[dir="rtl"] .dropdown-menu {
+    left: 0;
+    right: auto;
+}

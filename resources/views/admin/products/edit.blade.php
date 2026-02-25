@@ -43,28 +43,34 @@
         <div class="bg-white rounded-xl shadow-sm p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-6">기본 정보</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">제품 코드</label>
-                    <input type="text" name="code" value="{{ old('code', $product->code) }}" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <x-translation-tabs :model="$product" :fields="[
+                ['name' => 'name', 'label' => '제품명', 'placeholder' => 'Product Name'],
+                ['name' => 'brand', 'label' => '브랜드', 'placeholder' => 'Brand Name'],
+                ['name' => 'category', 'label' => '카테고리', 'placeholder' => 'Category'],
+            ]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">제품 코드</label>
+                        <input type="text" name="code" value="{{ old('code', $product->code) }}" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">제품명</label>
+                        <input type="text" name="name" value="{{ old('name', $product->name) }}" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">브랜드</label>
+                        <input type="text" name="brand" value="{{ old('brand', $product->brand) }}" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+                        <input type="text" name="category" value="{{ old('category', $product->category) }}" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">제품명</label>
-                    <input type="text" name="name" value="{{ old('name', $product->name) }}" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">브랜드</label>
-                    <input type="text" name="brand" value="{{ old('brand', $product->brand) }}" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
-                    <input type="text" name="category" value="{{ old('category', $product->category) }}" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-            </div>
+            </x-translation-tabs>
 
             <!-- 판매 페이지 URL -->
             <div class="mt-6 pt-6 border-t border-gray-100">

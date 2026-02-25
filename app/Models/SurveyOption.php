@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,9 @@ use Illuminate\Support\Facades\Cache;
 
 class SurveyOption extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
+
+    protected array $translatable = ['label', 'description'];
 
     protected $fillable = [
         'question_id',
@@ -19,12 +22,14 @@ class SurveyOption extends Model
         'modifier',
         'sort_order',
         'is_active',
+        'translations',
     ];
 
     protected $casts = [
         'modifier' => 'float',
         'is_active' => 'boolean',
         'sort_order' => 'integer',
+        'translations' => 'array',
     ];
 
     public function question(): BelongsTo

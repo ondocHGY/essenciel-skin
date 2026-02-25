@@ -222,6 +222,13 @@ class ProductController extends Controller
             $validated['main_thumbnail'] = null;
         }
 
+        // 번역 처리
+        $translations = collect($request->input('translations', []))
+            ->map(fn($fields) => array_filter($fields, fn($v) => $v !== '' && $v !== null))
+            ->filter(fn($fields) => !empty($fields))
+            ->toArray();
+        $validated['translations'] = !empty($translations) ? $translations : null;
+
         $product->update($validated);
 
         // 리뷰 소스 처리
