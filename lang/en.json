@@ -279,5 +279,23 @@
     "피부 재생이 활발한 시간대": "Peak skin regeneration hours",
     "저녁": "Evening",
     "Improved effectiveness": "Improved effectiveness",
-    "Time to results": "Time to results"
+    "Time to results": "Time to results",
+
+    "수면 시간을 8시간 이상으로 늘리면": "If you increase sleep to 8+ hours",
+    "충분한 수면 (8시간 이상)": "Sufficient Sleep (8+ hours)",
+    "자외선 차단제를 꼼꼼히 바르면": "If you apply sunscreen thoroughly",
+    "자외선 차단제 사용": "Sunscreen Use",
+    "스트레스 관리(명상, 운동 등)를 하면": "If you manage stress (meditation, exercise, etc.)",
+    "스트레스 관리": "Stress Management",
+    "하루 물 섭취량을 2L 이상으로 늘리면": "If you increase water intake to 2L+ per day",
+    "수분 섭취 (2L 이상)": "Water Intake (2L+)",
+    "음주를 줄이면": "If you reduce alcohol consumption",
+    "음주 절제": "Alcohol Moderation",
+    "금연하면": "If you quit smoking",
+    "금연": "Quit Smoking",
+
+    "아침": "Morning",
+    "아침 & 저녁 2회": "Morning & Evening",
+    "아침 & 저녁": "Morning & Evening",
+    "가볍게 두드리며 흡수": "Gently pat for absorption"
 }

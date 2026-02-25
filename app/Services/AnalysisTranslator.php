@@ -42,13 +42,23 @@ class AnalysisTranslator
     }
 
     /**
+     * Safely apply __() only to string values.
+     */
+    private static function t(mixed $value): mixed
+    {
+        return is_string($value) ? __($value) : $value;
+    }
+
+    /**
      * Translate timeline milestone messages.
      */
     public static function translateTimeline(array $timeline): array
     {
-        if (isset($timeline['milestones'])) {
+        if (isset($timeline['milestones']) && is_array($timeline['milestones'])) {
             foreach ($timeline['milestones'] as $day => &$message) {
-                $message = self::translatePatternString($message);
+                if (is_string($message)) {
+                    $message = self::translatePatternString($message);
+                }
             }
         }
 
@@ -61,10 +71,11 @@ class AnalysisTranslator
     public static function translateMilestones(array $milestones): array
     {
         foreach ($milestones as &$milestone) {
-            if (isset($milestone['message'])) {
+            if (!is_array($milestone)) continue;
+            if (isset($milestone['message']) && is_string($milestone['message'])) {
                 $milestone['message'] = self::translatePatternString($milestone['message']);
             }
-            if (isset($milestone['title'])) {
+            if (isset($milestone['title']) && is_string($milestone['title'])) {
                 $milestone['title'] = self::translatePatternString($milestone['title']);
             }
         }
@@ -77,22 +88,20 @@ class AnalysisTranslator
      */
     public static function translateMetrics(array $metrics): array
     {
-        // Translate top-level metric name/description
-        if (isset($metrics['name'])) {
+        if (isset($metrics['name']) && is_string($metrics['name'])) {
             $metrics['name'] = __($metrics['name']);
         }
-        if (isset($metrics['description'])) {
+        if (isset($metrics['description']) && is_string($metrics['description'])) {
             $metrics['description'] = __($metrics['description']);
         }
 
-        // Translate per-category metrics
         $metricKeys = ['moisture', 'elasticity', 'tone', 'pore', 'wrinkle', 'soothing'];
         foreach ($metricKeys as $key) {
-            if (isset($metrics[$key])) {
-                if (isset($metrics[$key]['name'])) {
+            if (isset($metrics[$key]) && is_array($metrics[$key])) {
+                if (isset($metrics[$key]['name']) && is_string($metrics[$key]['name'])) {
                     $metrics[$key]['name'] = __($metrics[$key]['name']);
                 }
-                if (isset($metrics[$key]['description'])) {
+                if (isset($metrics[$key]['description']) && is_string($metrics[$key]['description'])) {
                     $metrics[$key]['description'] = __($metrics[$key]['description']);
                 }
             }
@@ -106,37 +115,54 @@ class AnalysisTranslator
      */
     public static function translateUsageGuide(array $guide): array
     {
-        // Optimal usage timing
-        if (isset($guide['optimal_usage'])) {
+        if (isset($guide['optimal_usage']) && is_array($guide['optimal_usage'])) {
             $usage = &$guide['optimal_usage'];
 
-            if (isset($usage['timing']['reason'])) {
-                $usage['timing']['reason'] = __($usage['timing']['reason']);
+            // timing: { best, reason, morning_effect, evening_effect }
+            if (isset($usage['timing']) && is_array($usage['timing'])) {
+                if (isset($usage['timing']['reason']) && is_string($usage['timing']['reason'])) {
+                    $usage['timing']['reason'] = __($usage['timing']['reason']);
+                }
+                if (isset($usage['timing']['best']) && is_string($usage['timing']['best'])) {
+                    $usage['timing']['best'] = __($usage['timing']['best']);
+                }
             }
-            if (isset($usage['best_time'])) {
+            // legacy flat keys (이전 데이터 호환)
+            if (isset($usage['best_time']) && is_string($usage['best_time'])) {
                 $usage['best_time'] = __($usage['best_time']);
             }
-            if (isset($usage['frequency'])) {
+            // frequency: { recommended, once_effect, twice_effect, with_mask_effect }
+            if (isset($usage['frequency']) && is_array($usage['frequency'])) {
+                if (isset($usage['frequency']['recommended']) && is_string($usage['frequency']['recommended'])) {
+                    $usage['frequency']['recommended'] = __($usage['frequency']['recommended']);
+                }
+            } elseif (isset($usage['frequency']) && is_string($usage['frequency'])) {
                 $usage['frequency'] = __($usage['frequency']);
             }
-            if (isset($usage['optimal_amount'])) {
-                $usage['optimal_amount'] = __($usage['optimal_amount']);
+            // absorption: { time, tip }
+            if (isset($usage['absorption']) && is_array($usage['absorption'])) {
+                if (isset($usage['absorption']['tip']) && is_string($usage['absorption']['tip'])) {
+                    $usage['absorption']['tip'] = __($usage['absorption']['tip']);
+                }
             }
-            if (isset($usage['absorption_tip'])) {
+            if (isset($usage['absorption_tip']) && is_string($usage['absorption_tip'])) {
                 $usage['absorption_tip'] = __($usage['absorption_tip']);
+            }
+            if (isset($usage['optimal_amount']) && is_string($usage['optimal_amount'])) {
+                $usage['optimal_amount'] = __($usage['optimal_amount']);
             }
         }
 
-        // Recommendations
-        if (isset($guide['recommendations'])) {
+        if (isset($guide['recommendations']) && is_array($guide['recommendations'])) {
             foreach ($guide['recommendations'] as &$rec) {
-                if (isset($rec['action'])) {
+                if (!is_array($rec)) continue;
+                if (isset($rec['action']) && is_string($rec['action'])) {
                     $rec['action'] = __($rec['action']);
                 }
-                if (isset($rec['action_short'])) {
+                if (isset($rec['action_short']) && is_string($rec['action_short'])) {
                     $rec['action_short'] = __($rec['action_short']);
                 }
-                if (isset($rec['description'])) {
+                if (isset($rec['description']) && is_string($rec['description'])) {
                     $rec['description'] = self::translatePatternString($rec['description']);
                 }
             }
@@ -150,18 +176,19 @@ class AnalysisTranslator
      */
     public static function translateSkinProfile(array $profile): array
     {
-        if (isset($profile['characteristics'])) {
+        if (isset($profile['characteristics']) && is_array($profile['characteristics'])) {
             foreach ($profile['characteristics'] as $key => &$char) {
-                if (isset($char['label'])) {
+                if (!is_array($char)) continue;
+                if (isset($char['label']) && is_string($char['label'])) {
                     $char['label'] = __($char['label']);
                 }
-                if (isset($char['description'])) {
+                if (isset($char['description']) && is_string($char['description'])) {
                     $char['description'] = __($char['description']);
                 }
             }
         }
 
-        if (isset($profile['summary'])) {
+        if (isset($profile['summary']) && is_string($profile['summary'])) {
             $profile['summary'] = self::translatePatternString($profile['summary']);
         }
 
@@ -174,7 +201,8 @@ class AnalysisTranslator
     public static function translateLifestyleFactors(array $factors): array
     {
         foreach ($factors as &$factor) {
-            if (isset($factor['name'])) {
+            if (!is_array($factor)) continue;
+            if (isset($factor['name']) && is_string($factor['name'])) {
                 $factor['name'] = __($factor['name']);
             }
         }
@@ -188,15 +216,12 @@ class AnalysisTranslator
      */
     private static function translatePatternString(string $text): string
     {
-        // Try exact match first
         $translated = __($text);
         if ($translated !== $text) {
             return $translated;
         }
 
-        // Pattern-based translation: extract numbers and try template matching
         $patterns = [
-            // "피부 수분 흡수율 12.5%p 상승 감지" pattern
             '/^(.+?)([\d.]+)(%p?\s*)(.+)$/' => function ($matches) {
                 $prefix = trim($matches[1]);
                 $value = $matches[2];
@@ -206,7 +231,6 @@ class AnalysisTranslator
                 $result = __($template, ['value' => $value]);
                 return $result !== $template ? $result : null;
             },
-            // "효과 85% 진행 중" pattern
             '/^(.+?)\s*([\d.]+)(%?\s*)(.+)$/' => function ($matches) {
                 $prefix = trim($matches[1]);
                 $value = $matches[2];
@@ -227,7 +251,6 @@ class AnalysisTranslator
             }
         }
 
-        // Fallback: return original text
         return $text;
     }
 }

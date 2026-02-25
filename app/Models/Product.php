@@ -77,6 +77,14 @@ class Product extends Model
     }
 
     /**
+     * 문자열에만 __() 적용, 배열이면 그대로 반환
+     */
+    protected function safeTranslate(mixed $value): mixed
+    {
+        return is_string($value) ? __($value) : $value;
+    }
+
+    /**
      * 번역된 intro_summary 반환
      */
     public function getTranslatedIntroSummary(): ?array
@@ -88,7 +96,7 @@ class Product extends Model
         if (is_string($original)) $original = json_decode($original, true);
         if (!is_array($original) || empty($original)) return $original;
 
-        return array_map(fn($v) => __($v), $original);
+        return array_map(fn($v) => $this->safeTranslate($v), $original);
     }
 
     /**
@@ -103,9 +111,10 @@ class Product extends Model
         $translated = $this->getJsonFieldTranslation('intro_metrics');
 
         return array_map(function ($metric, $i) use ($translated) {
+            if (!is_array($metric)) return $metric;
             if ($translated && isset($translated[$i]['name'])) {
                 $metric['name'] = $translated[$i]['name'];
-            } else {
+            } elseif (isset($metric['name']) && is_string($metric['name'])) {
                 $metric['name'] = __($metric['name']);
             }
             return $metric;
@@ -127,8 +136,8 @@ class Product extends Model
             if (isset($translated['name'])) $original['name'] = $translated['name'];
             if (isset($translated['description'])) $original['description'] = $translated['description'];
         } else {
-            if (isset($original['name'])) $original['name'] = __($original['name']);
-            if (isset($original['description'])) $original['description'] = __($original['description']);
+            if (isset($original['name']) && is_string($original['name'])) $original['name'] = __($original['name']);
+            if (isset($original['description']) && is_string($original['description'])) $original['description'] = __($original['description']);
         }
 
         return $original;
@@ -144,7 +153,7 @@ class Product extends Model
         if ($translated) return $translated;
 
         if ($this->efficacy_phases) {
-            return array_map(fn($v) => __($v), $this->efficacy_phases);
+            return array_map(fn($v) => $this->safeTranslate($v), $this->efficacy_phases);
         }
 
         // 기본값
@@ -188,7 +197,7 @@ class Product extends Model
         if ($translated) return $translated;
 
         if ($this->efficacy_milestones) {
-            return array_map(fn($v) => __($v), $this->efficacy_milestones);
+            return array_map(fn($v) => $this->safeTranslate($v), $this->efficacy_milestones);
         }
 
         $defaults = [
@@ -211,7 +220,7 @@ class Product extends Model
         if ($translated) return $translated;
 
         if ($this->milestone_center_texts) {
-            return array_map(fn($v) => __($v), $this->milestone_center_texts);
+            return array_map(fn($v) => $this->safeTranslate($v), $this->milestone_center_texts);
         }
 
         // 기본값 (효능 타입별) - 개행문자 포함
@@ -237,7 +246,7 @@ class Product extends Model
             $timing = $this->optimal_timing;
             if ($translated && isset($translated['reason'])) {
                 $timing['reason'] = $translated['reason'];
-            } elseif (isset($timing['reason'])) {
+            } elseif (isset($timing['reason']) && is_string($timing['reason'])) {
                 $timing['reason'] = __($timing['reason']);
             }
             return $timing;

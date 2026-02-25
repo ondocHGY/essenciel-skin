@@ -302,40 +302,55 @@
         <div class="mb-10">
             <h2 class="text-2xl font-bold text-gray-900 mb-6">{{ __('효능 발현 예측') }}</h2>
 
-            {{-- 원형 틱 게이지 애니메이션 --}}
-            <div class="relative w-60 h-60 mx-auto mb-8">
-                {{-- 원형 틱 마크 (6시부터 시계방향, 72개) --}}
-                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" style="z-index: 1;">
-                    @php
-                        $totalTicks = 72;
-                        $outerRadius = 98;
-                        $tickLength = 14;
-                    @endphp
-                    @for($i = 0; $i < $totalTicks; $i++)
-                    @php
-                        $angle = deg2rad(($i * 360 / $totalTicks) + 90);
-                        $x1 = 100 + ($outerRadius - $tickLength) * cos($angle);
-                        $y1 = 100 + ($outerRadius - $tickLength) * sin($angle);
-                        $x2 = 100 + $outerRadius * cos($angle);
-                        $y2 = 100 + $outerRadius * sin($angle);
-                    @endphp
-                    <line
-                        x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
-                        x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        class="tick-mark"
-                        data-index="{{ $i }}"
-                        stroke="#D9D9D9"/>
-                    @endfor
-                </svg>
+            {{-- 제품 이미지 + 원형 틱 게이지 (좌우 나란히) --}}
+            <div class="flex items-center justify-center gap-5 mb-8">
+                {{-- 제품 이미지 --}}
+                @php
+                    $resultThumbnail = $product->main_thumbnail
+                        ? asset('storage/' . $product->main_thumbnail)
+                        : ($product->image ? asset('storage/' . $product->image) : null);
+                @endphp
+                @if($resultThumbnail)
+                <div class="w-32 h-40 flex-shrink-0 overflow-hidden bg-gray-50">
+                    <img src="{{ $resultThumbnail }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                </div>
+                @endif
 
-                {{-- 중앙 텍스트 --}}
-                <div class="absolute inset-0 flex items-center justify-center" style="z-index: 2;">
-                    <div class="w-36 h-36 rounded-full bg-white flex flex-col items-center justify-center text-center">
-                        <span class="text-sm text-gray-500 mb-1">{{ __('한 달 사용 후') }}</span>
-                        <span class="text-xl font-bold text-gray-900">{{ $efficacyName }}</span>
-                        <span class="text-2xl font-bold text-gray-900">{{ __(':percent% 개선', ['percent' => $improvementPercent]) }}</span>
+                {{-- 원형 틱 게이지 애니메이션 --}}
+                <div class="relative w-48 h-48 flex-shrink-0">
+                    {{-- 원형 틱 마크 (6시부터 시계방향, 72개) --}}
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" style="z-index: 1;">
+                        @php
+                            $totalTicks = 72;
+                            $outerRadius = 98;
+                            $tickLength = 14;
+                        @endphp
+                        @for($i = 0; $i < $totalTicks; $i++)
+                        @php
+                            $angle = deg2rad(($i * 360 / $totalTicks) + 90);
+                            $x1 = 100 + ($outerRadius - $tickLength) * cos($angle);
+                            $y1 = 100 + ($outerRadius - $tickLength) * sin($angle);
+                            $x2 = 100 + $outerRadius * cos($angle);
+                            $y2 = 100 + $outerRadius * sin($angle);
+                        @endphp
+                        <line
+                            x1="{{ round($x1, 2) }}" y1="{{ round($y1, 2) }}"
+                            x2="{{ round($x2, 2) }}" y2="{{ round($y2, 2) }}"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            class="tick-mark"
+                            data-index="{{ $i }}"
+                            stroke="#D9D9D9"/>
+                        @endfor
+                    </svg>
+
+                    {{-- 중앙 텍스트 --}}
+                    <div class="absolute inset-0 flex items-center justify-center" style="z-index: 2;">
+                        <div class="w-28 h-28 rounded-full bg-white flex flex-col items-center justify-center text-center">
+                            <span class="text-xs text-gray-500 mb-0.5">{{ __('한 달 사용 후') }}</span>
+                            <span class="text-base font-bold text-gray-900">{{ $efficacyName }}</span>
+                            <span class="text-lg font-bold text-gray-900">{{ __(':percent% 개선', ['percent' => $improvementPercent]) }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -882,7 +897,8 @@ function resultPage() {
             const final = metrics.final || 0;
             const unit = metrics.unit || '';
 
-            const labels = @json([__('0일'), __('5일'), __('7일'), __('14일'), __('21일'), __('28일')]);
+            @php $dayLabels = array_map('__', ['0일', '5일', '7일', '14일', '21일', '28일']); @endphp
+            const labels = @json($dayLabels);
             const dayKeys = [0, 5, 7, 14, 21, 28];
 
             const getValueForDay = (day) => {
@@ -1128,7 +1144,8 @@ function timelineAnimation() {
             const final = metrics.final || 0;
             const unit = metrics.unit || '';
 
-            const labels = @json([__('0일'), __('5일'), __('7일'), __('14일'), __('21일'), __('28일')]);
+            @php $dayLabels = array_map('__', ['0일', '5일', '7일', '14일', '21일', '28일']); @endphp
+            const labels = @json($dayLabels);
             const dayKeys = [0, 5, 7, 14, 21, 28];
 
             const getValueForDay = (day) => {
