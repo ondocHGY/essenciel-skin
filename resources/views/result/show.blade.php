@@ -306,9 +306,9 @@
             <div class="flex items-center justify-center gap-5 mb-8">
                 {{-- 제품 이미지 --}}
                 @php
-                    $resultThumbnail = $product->main_thumbnail
-                        ? asset('storage/' . $product->main_thumbnail)
-                        : ($product->image ? asset('storage/' . $product->image) : null);
+                    $resultThumbnail = $product->image
+                        ? asset('storage/' . $product->image)
+                        : ($product->main_thumbnail ? asset('storage/' . $product->main_thumbnail) : null);
                 @endphp
                 @if($resultThumbnail)
                 <div class="w-32 h-40 flex-shrink-0 overflow-hidden bg-gray-50">
