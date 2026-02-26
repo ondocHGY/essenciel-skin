@@ -443,6 +443,9 @@ class ShopeeScraper(BaseScraper):
             result["message"] = f"수집 완료: {len(reviews)}개"
             logger.info(f"Shopee 리뷰 수집 완료: {len(reviews)}개")
 
+            # 수집 성공 → 브라우저 닫기 전 갱신된 쿠키 저장
+            self._save_cookies()
+
         except Exception as e:
             result["message"] = str(e)
             logger.error(f"수집 오류: {e}")

@@ -50,6 +50,9 @@ RUN mkdir -p /app/data /tmp/review_downloads
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Playwright Chromium 설치 (시스템 deps는 이미 Chrome 설치 시 충족됨)
+RUN playwright install chromium
+
 # 소스 복사
 COPY . .
 

@@ -7,7 +7,6 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-import requests as http_requests
 
 from app.config import settings
 from app.database import SessionLocal
@@ -223,91 +222,109 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
 
 
 def keep_alive_cookies():
-    """쿠키 기반 플랫폼 세션 유지 (requests로 HTTP GET)
+    """Playwright로 모든 쿠키 기반 플랫폼 세션 유지
 
-    브라우저 없이 requests로 각 플랫폼 홈 URL에 접속하여 세션을 갱신.
-    reCAPTCHA가 발동하지 않으므로 안전하게 세션 유지 가능.
+    하나의 브라우저 인스턴스에서 플랫폼별로 컨텍스트를 생성하여
+    쿠키 로드 → 페이지 접속 → 갱신된 쿠키 저장.
+    무신사는 SSO API 로그인이라 keep-alive 불필요.
     """
-    logger.info("=== 쿠키 keep-alive 시작 ===")
+    from playwright.sync_api import sync_playwright
 
-    for platform, url in settings.KEEP_ALIVE_URLS.items():
-        try:
-            _keep_alive_platform(platform, url)
-        except Exception as e:
-            logger.error(f"[{platform}] keep-alive 오류: {e}")
+    logger.info("=== 쿠키 keep-alive 시작 (Playwright) ===")
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+
+            for platform, url in settings.KEEP_ALIVE_URLS.items():
+                try:
+                    _keep_alive_platform(browser, platform, url)
+                except Exception as e:
+                    logger.error(f"[{platform}] keep-alive 오류: {e}")
+
+            browser.close()
+    except Exception as e:
+        logger.error(f"Playwright 브라우저 시작 실패: {e}")
 
     logger.info("=== 쿠키 keep-alive 완료 ===")
 
 
-def _keep_alive_platform(platform: str, url: str):
-    """플랫폼별 쿠키 keep-alive"""
+def _keep_alive_platform(browser, platform: str, url: str):
+    """Playwright 컨텍스트로 플랫폼별 쿠키 갱신"""
     cookie_path = settings.COOKIE_PATHS.get(platform)
     if not cookie_path or not os.path.exists(cookie_path):
         logger.debug(f"[{platform}] 쿠키 파일 없음, 스킵")
         return
 
-    # 쿠키 로드
+    # Selenium 포맷 쿠키 로드
     with open(cookie_path, 'r') as f:
-        cookies_list = json.load(f)
-    logger.info(f"[{platform}] 쿠키 로드: {len(cookies_list)}개")
+        selenium_cookies = json.load(f)
+    logger.info(f"[{platform}] 쿠키 로드: {len(selenium_cookies)}개")
 
-    # requests 세션 생성
-    session = http_requests.Session()
-    session.headers.update({
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'ja-JP,ja;q=0.9,ko-KR,ko;q=0.8',
-    })
+    # Selenium → Playwright 쿠키 변환
+    pw_cookies = []
+    for c in selenium_cookies:
+        pc = {
+            'name': c['name'],
+            'value': c['value'],
+            'domain': c.get('domain', ''),
+            'path': c.get('path', '/'),
+            'secure': c.get('secure', False),
+            'httpOnly': c.get('httpOnly', False),
+        }
+        if c.get('expiry'):
+            pc['expires'] = float(c['expiry'])
+        same_site = c.get('sameSite', 'Lax')
+        if same_site in ('Strict', 'Lax', 'None'):
+            pc['sameSite'] = same_site
+        pw_cookies.append(pc)
 
-    for cookie in cookies_list:
-        session.cookies.set(
-            cookie['name'],
-            cookie['value'],
-            domain=cookie.get('domain', ''),
-            path=cookie.get('path', '/'),
-        )
+    # 브라우저 컨텍스트 생성 → 쿠키 주입 → 페이지 접속
+    context = browser.new_context(
+        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                   '(KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
+        locale='ko-KR',
+    )
+    context.add_cookies(pw_cookies)
 
-    # 홈 URL 접속
-    resp = session.get(url, allow_redirects=True, timeout=30)
+    page = context.new_page()
+    page.goto(url, wait_until='domcontentloaded', timeout=30000)
+    page.wait_for_timeout(5000)  # SPA 로드 대기
+
+    # 로그인 페이지 리다이렉트 확인
     login_patterns = settings.KEEP_ALIVE_LOGIN_PATTERNS.get(platform, [])
-
-    # 세션 유효성 확인
-    is_expired = False
-
-    # URL에서 로그인 페이지 패턴 확인
-    for pattern in login_patterns:
-        if pattern.lower() in resp.url.lower():
-            is_expired = True
-            break
-
-    # 응답 본문에서 로그인 페이지 패턴 확인
-    if not is_expired and resp.status_code == 200:
-        for pattern in login_patterns:
-            if pattern in resp.text:
-                is_expired = True
-                break
+    is_expired = any(pat.lower() in page.url.lower() for pat in login_patterns)
 
     if is_expired:
-        logger.warning(f"[{platform}] 세션 만료됨 (URL: {resp.url[:100]})")
+        logger.warning(f"[{platform}] 세션 만료됨 (URL: {page.url[:100]})")
+        context.close()
         return
 
-    logger.info(f"[{platform}] 세션 유효 (status={resp.status_code})")
+    logger.info(f"[{platform}] 세션 유효")
 
-    # 갱신된 쿠키 저장
-    new_cookies = []
-    for cookie in session.cookies:
-        new_cookies.append({
-            'name': cookie.name,
-            'value': cookie.value,
-            'domain': cookie.domain,
-            'path': cookie.path,
-            'secure': cookie.secure,
-        })
+    # Playwright → Selenium 포맷으로 갱신된 쿠키 저장
+    new_cookies = context.cookies()
+    sel_cookies = []
+    for c in new_cookies:
+        sc = {
+            'name': c['name'],
+            'value': c['value'],
+            'domain': c.get('domain', ''),
+            'path': c.get('path', '/'),
+            'secure': c.get('secure', False),
+            'httpOnly': c.get('httpOnly', False),
+        }
+        if c.get('expires', -1) > 0:
+            sc['expiry'] = int(c['expires'])
+        if c.get('sameSite'):
+            sc['sameSite'] = c['sameSite']
+        sel_cookies.append(sc)
 
-    if new_cookies:
-        with open(cookie_path, 'w') as f:
-            json.dump(new_cookies, f, indent=2)
-        logger.info(f"[{platform}] 쿠키 갱신 저장: {len(new_cookies)}개")
+    with open(cookie_path, 'w') as f:
+        json.dump(sel_cookies, f, indent=2)
+    logger.info(f"[{platform}] 쿠키 갱신 저장: {len(sel_cookies)}개")
+
+    context.close()
 
 
 def start_scheduler():

@@ -30,7 +30,8 @@
       "WebFetch(domain:tmapi.top)",
       "WebFetch(domain:wendeehsu.medium.com)",
       "Bash(git -C C:ondocessenciel_qrcode status)",
-      "Bash(git -C \"C:/ondoc/essenciel_qrcode\" add \"review-collector/save_shopee_cookies_local.py\")"
+      "Bash(git -C \"C:/ondoc/essenciel_qrcode\" add \"review-collector/save_shopee_cookies_local.py\")",
+      "Bash(docker compose:*)"
     ]
   }
 }

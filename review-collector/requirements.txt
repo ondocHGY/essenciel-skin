@@ -21,6 +21,9 @@ cryptography==42.0.2
 # Scheduler
 apscheduler==3.10.4
 
+# Browser (keep-alive)
+playwright==1.50.0
+
 # OTP
 pyotp==2.9.0
 
