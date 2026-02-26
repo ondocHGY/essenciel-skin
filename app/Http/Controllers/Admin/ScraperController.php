@@ -166,7 +166,8 @@ class ScraperController extends Controller
                 return back()->with('success', "{$message} (추가: {$added}, 업데이트: {$updated})");
             }
 
-            $error = $response->json('detail') ?? $response->body();
+            $detail = $response->json('detail') ?? $response->body();
+            $error = is_array($detail) ? json_encode($detail, JSON_UNESCAPED_UNICODE) : $detail;
             return back()->with('error', "동기화 실패: {$error}");
 
         } catch (\Exception $e) {
