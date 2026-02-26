@@ -134,7 +134,7 @@ class ScraperController extends Controller
                 $body['platform'] = $request->platform;
             }
 
-            $response = Http::timeout(600)
+            $response = Http::asJson()->timeout(600)
                 ->post($this->apiUrl() . '/api/reviews/sync', $body);
 
             if ($response->successful()) {
