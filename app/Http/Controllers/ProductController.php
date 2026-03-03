@@ -41,13 +41,13 @@ class ProductController extends Controller
             ->where('rating', '>', 0)
             ->avg('rating');
 
-        // 플랫폼별 최근 동기화 날짜
-        $platformSyncDates = ProductReviewSource::where('product_id', $product->id)
-            ->whereNotNull('synced_at')
-            ->selectRaw('platform, MAX(synced_at) as last_synced')
+        // 플랫폼별 최근 리뷰 날짜 (가장 최근 reviewed_at 기준)
+        $platformSyncDates = ProductReview::where('product_id', $product->id)
+            ->whereNotNull('reviewed_at')
+            ->selectRaw('platform, MAX(reviewed_at) as last_reviewed')
             ->groupBy('platform')
             ->get()
-            ->mapWithKeys(fn ($row) => [$row->platform => \Carbon\Carbon::parse($row->last_synced)->format('Y.m.d')])
+            ->mapWithKeys(fn ($row) => [$row->platform => \Carbon\Carbon::parse($row->last_reviewed)->format('Y.m.d')])
             ->toArray();
 
         // 플랫폼별 최근 리뷰 3개

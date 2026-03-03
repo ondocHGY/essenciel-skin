@@ -56,9 +56,10 @@
             @endif
 
             {{-- 제목 오버레이 --}}
-            <div class="absolute inset-x-0 top-0 z-20 pt-14 px-5 flex flex-col items-center">
-                <p class="text-lg text-gray-500 text-center mb-1">{{ $product->name }}</p>
-                <h1 class="text-4xl font-bold text-gray-900 text-center leading-tight">{{ __('내 피부에 잘 맞을까?') }}</h1>
+            <div class="absolute inset-x-0 top-0 z-20 pt-14 px-5 pb-10 flex flex-col items-center">
+                <div class="absolute inset-0" style="background: radial-gradient(ellipse 75% 75% at 50% 50%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.6) 25%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.1) 70%, transparent 100%);"></div>
+                <p class="relative text-lg text-gray-500 text-center mb-1">{{ $product->name }}</p>
+                <h1 class="relative text-4xl font-bold text-gray-900 text-center leading-tight">{{ __('내 피부에 잘 맞을까?') }}</h1>
             </div>
 
             {{-- 성분 카드 오버레이 --}}
@@ -130,12 +131,12 @@
     <div class="fixed bottom-0 left-0 right-0 z-40">
         <div class="max-w-lg mx-auto flex gap-0">
             <button @click="showProductDetail = true"
-                    class="flex-1 py-5 text-white text-center font-bold text-xl"
+                    class="flex-1 py-5 text-white text-center font-medium text-xl"
                     style="background-color: #000000; border-radius: 16px 0 0 0;">
                 {{ __('AI 리뷰 분석') }}
             </button>
             <a href="{{ localized_route('survey.index', ['code' => $product->code]) }}"
-               class="flex-1 py-5 text-white text-center font-bold text-xl"
+               class="flex-1 py-5 text-white text-center font-medium text-xl"
                style="background-color: #3F78EB; border-radius: 0 16px 0 0;">
                 {{ __('AI 효과 예측') }}
             </a>
@@ -205,7 +206,7 @@
                 <div class="px-5 pt-4 pb-4 border-b border-gray-100">
                     {{-- 실시간 집계중 표시 (클릭 시 모달 열기) --}}
                     <button @click="showModal = true" class="flex items-center gap-1.5 mb-1 cursor-pointer">
-                        <img src="{{ asset('product/realtime_survey.svg') }}" alt="" class="w-3 h-3">
+                        <img src="{{ asset('product/realtime_survey.svg') }}" alt="" class="w-3 h-3 animate-spin" style="animation-duration: 5s;">
                         <span class="text-xs text-gray-400" x-text="collectionComplete ? i18n.collectionComplete : i18n.collectionInProgress"></span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -380,12 +381,7 @@
                 <div class="px-5 pb-5">
                     <button @click="showModal = true" class="w-full flex items-center justify-between px-4 py-4 bg-black hover:bg-gray-900 rounded-xl transition-all group">
                         <div class="flex items-center gap-2">
-                            <template x-if="!collectionComplete">
-                                <x-loading-spinner />
-                            </template>
-                            <template x-if="collectionComplete">
-                                <div class="w-2 h-2 rounded-full" style="background-color: #ACDDA5;"></div>
-                            </template>
+                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
                             <span class="text-base font-medium text-white" x-text="collectionComplete ? i18n.dataCollectionComplete : i18n.dataCollectionInProgress"></span>
                         </div>
                         <div class="flex items-center gap-1" style="color: #999999;">
@@ -753,6 +749,19 @@ function productPage() {
                             ctx.lineTo(x, y);
                             ctx.stroke();
                         }
+                        ctx.restore();
+                    }
+                }, {
+                    id: 'gridPointsOver',
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const scale = chart.scales.r;
+                        const centerX = scale.xCenter;
+                        const centerY = scale.yCenter;
+                        const maxRadius = scale.drawingArea;
+                        const labelCount = chart.data.labels.length;
+
+                        ctx.save();
                         for (let i = 0; i < labelCount; i++) {
                             const angle = scale.getIndexAngle(i) - Math.PI / 2;
                             const x = centerX + Math.cos(angle) * maxRadius;

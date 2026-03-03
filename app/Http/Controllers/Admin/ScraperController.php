@@ -339,22 +339,26 @@ class ScraperController extends Controller
             if (!empty($productIds)) {
                 $firstAssigned = false;
 
+                // 매칭 대상 중 이미 존재하는 조합 제외
+                $newProductIds = [];
                 foreach ($productIds as $productId) {
-                    // 이미 같은 조합이 있는지 확인
                     $exists = ProductReview::where('platform', $review->platform)
                         ->where('external_id', $review->external_id)
                         ->where('product_id', $productId)
                         ->exists();
 
-                    if ($exists) {
-                        // 이미 매칭된 리뷰가 있으면 미매칭 중복은 삭제
-                        if (!$firstAssigned) {
-                            $review->delete();
-                            $firstAssigned = true;
-                        }
-                        continue;
+                    if (!$exists) {
+                        $newProductIds[] = $productId;
                     }
+                }
 
+                if (empty($newProductIds)) {
+                    // 모든 product_id에 이미 매칭 리뷰가 존재 → 미매칭 원본만 삭제
+                    $review->delete();
+                    continue;
+                }
+
+                foreach ($newProductIds as $productId) {
                     if (!$firstAssigned) {
                         // 첫 번째 product_id는 기존 리뷰에 할당
                         $review->update(['product_id' => $productId]);

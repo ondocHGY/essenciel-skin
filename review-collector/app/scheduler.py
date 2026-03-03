@@ -171,8 +171,10 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
         if not product_ids:
             product_ids = [None]
 
+        # product_id가 매칭된 경우, 기존 NULL 버전이 있으면 업데이트로 승격
+        first_assigned = False
         for product_id in product_ids:
-            # 기존 리뷰 확인 (platform + external_id + product_id 조합)
+            # 1차: 정확히 같은 product_id 조합 확인
             query = db.query(ProductReview).filter(
                 ProductReview.platform == platform,
                 ProductReview.external_id == external_id
@@ -184,7 +186,16 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
 
             existing = query.first()
 
+            # 2차: product_id 매칭됐는데 정확한 조합이 없으면, NULL 버전을 승격
+            if not existing and product_id is not None and not first_assigned:
+                existing = db.query(ProductReview).filter(
+                    ProductReview.platform == platform,
+                    ProductReview.external_id == external_id,
+                    ProductReview.product_id.is_(None)
+                ).first()
+
             if existing:
+                existing.product_id = product_id if product_id is not None else existing.product_id
                 existing.rating = review_data.get("rating", 5.0)
                 existing.content = review_data.get("content", "")
                 existing.review_source_id = platform_product_code
@@ -211,6 +222,7 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
                 )
                 db.add(review)
                 added += 1
+            first_assigned = True
 
     db.commit()
 
