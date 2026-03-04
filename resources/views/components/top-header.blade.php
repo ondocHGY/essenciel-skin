@@ -3,7 +3,9 @@
 {{-- 상단 헤더 --}}
 <div class="bg-black sticky top-0 z-50">
     <div class="max-w-lg mx-auto flex items-center justify-between px-4 py-3">
-        <img src="{{ asset('logo_white.png') }}" alt="Essenciel" class="h-5">
+        <a href="{{ localized_route('product.show', ['code' => $product->code]) }}">
+            <img src="{{ asset('logo_white.png') }}" alt="Essenciel" class="h-5">
+        </a>
         <div class="flex items-center gap-2">
             <x-language-switcher />
             <button @click="menuOpen = !menuOpen" class="text-white p-1">
@@ -25,13 +27,13 @@
      x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
      @click.away="menuOpen = false"
      class="fixed top-12 right-2 z-[60] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden min-w-[180px]">
-    <a href="{{ $product->sales_url ?: 'https://essenciel.co.kr' }}" target="_blank" @click="menuOpen = false"
-       class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
-        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-        </svg>
-        {{ __('제품 상세') }}
-    </a>
+{{--    <a href="{{ $product->sales_url ?: 'https://essenciel.co.kr' }}" target="_blank" @click="menuOpen = false"--}}
+{{--       class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">--}}
+{{--        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">--}}
+{{--            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>--}}
+{{--        </svg>--}}
+{{--        {{ __('제품 상세') }}--}}
+{{--    </a>--}}
     <button @click="menuOpen = false; showProductSelector = true"
             class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3">
         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

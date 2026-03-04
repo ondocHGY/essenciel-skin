@@ -131,12 +131,12 @@
     <div class="fixed bottom-0 left-0 right-0 z-40">
         <div class="max-w-lg mx-auto flex gap-0">
             <button @click="showProductDetail = true"
-                    class="flex-1 py-5 text-white text-center font-medium text-xl"
+                    class="flex-1 py-5 text-white text-center font-medium text-lg"
                     style="background-color: #000000; border-radius: 16px 0 0 0;">
                 {{ __('AI 리뷰 분석') }}
             </button>
             <a href="{{ localized_route('survey.index', ['code' => $product->code]) }}"
-               class="flex-1 py-5 text-white text-center font-medium text-xl"
+               class="flex-1 py-5 text-white text-center font-medium text-lg"
                style="background-color: #3F78EB; border-radius: 0 16px 0 0;">
                 {{ __('AI 효과 예측') }}
             </a>
@@ -161,7 +161,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </button>
-                <img src="{{ asset('logo_white.png') }}" alt="Essenciel" class="h-5">
+                <a href="{{ localized_route('product.show', ['code' => $product->code]) }}">
+                    <img src="{{ asset('logo_white.png') }}" alt="Essenciel" class="h-5">
+                </a>
                 <button @click="overlayMenuOpen = !overlayMenuOpen" class="text-white p-1">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                         <circle cx="5" cy="12" r="2"/>
@@ -180,7 +182,7 @@
              x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
              @click.away="overlayMenuOpen = false"
              class="fixed top-12 right-2 z-[75] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden min-w-[180px]">
-            @if($product->sales_url)
+            {{-- @if($product->sales_url)
             <a href="{{ $product->sales_url }}" target="_blank" @click="overlayMenuOpen = false"
                class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100">
                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +190,7 @@
                 </svg>
                 {{ __('제품 상세') }}
             </a>
-            @endif
+            @endif --}}
             <button @click="overlayMenuOpen = false; showProductDetail = false; cleanupDetailCharts(); $nextTick(() => showProductSelector = true)"
                     class="w-full text-left px-5 py-3.5 text-sm font-medium text-gray-800 hover:bg-gray-50 flex items-center gap-3">
                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
