@@ -719,7 +719,7 @@
 
         </div>
 
-        {{-- 결과 공유하기 (모든 탭 공통) --}}
+        {{-- 결과 공유하기 (모든 탭 공통) - 미사용으로 주석처리
         <div class="bg-white rounded-2xl mb-8 p-5" style="border: 1px solid #D9D9D9;">
             <h3 class="text-lg font-bold text-gray-900 mb-4">{{ __('결과 공유하기') }}</h3>
             <div class="grid grid-cols-2 gap-3">
@@ -731,6 +731,7 @@
                 </button>
             </div>
         </div>
+        --}}
 
         {{-- 서비스 안내 (클릭하면 펼침) --}}
         <div class="mb-8" x-data="{ serviceInfoOpen: false }">
