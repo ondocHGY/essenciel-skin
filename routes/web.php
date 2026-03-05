@@ -59,6 +59,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
         Route::post('/products/{product}/qr', [AdminProductController::class, 'generateQR'])->name('products.generateQR');
+        Route::post('/products/{product}/qr-locale', [AdminProductController::class, 'generateLocaleQR'])->name('products.generateLocaleQR');
+        Route::get('/products/{product}/qr-locale-status', [AdminProductController::class, 'localeQrStatus'])->name('products.localeQrStatus');
 
         // 제품 성분 관리
         Route::get('/products/{product}/ingredients', [AdminProductIngredientController::class, 'index'])->name('products.ingredients.index');
@@ -88,6 +90,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // 커스텀 QR 코드 생성
         Route::get('/custom-qr', [AdminCustomQrCodeController::class, 'index'])->name('custom-qr.index');
         Route::post('/custom-qr/generate', [AdminCustomQrCodeController::class, 'generate'])->name('custom-qr.generate');
+        Route::post('/custom-qr/generate-locale', [AdminCustomQrCodeController::class, 'generateLocale'])->name('custom-qr.generate-locale');
 
         // 리뷰 관리
         Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');

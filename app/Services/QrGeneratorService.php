@@ -36,6 +36,28 @@ class QrGeneratorService
     }
 
     /**
+     * 제품별 다국어 QR 코드 생성
+     */
+    public function generateForLocale(Product $product, string $locale): string
+    {
+        $baseUrl = config('app.url');
+        $url = $locale === 'ko'
+            ? "{$baseUrl}/p/{$product->code}"
+            : "{$baseUrl}/{$locale}/p/{$product->code}";
+
+        $qrCode = QrCode::format('png')
+            ->size(300)
+            ->margin(2)
+            ->generate($url);
+
+        $path = "qrcodes/{$product->code}_{$locale}.png";
+
+        Storage::disk('public')->put($path, $qrCode);
+
+        return $path;
+    }
+
+    /**
      * 커스텀 URL로 QR 코드 생성
      */
     public function generateFromUrl(string $url, ?string $filename = null): string

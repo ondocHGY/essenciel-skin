@@ -342,4 +342,69 @@ class ProductController extends Controller
             'url' => asset('storage/' . $path),
         ]);
     }
+
+    private const LOCALE_LABELS = [
+        'ko' => '한국어',
+        'en' => 'English',
+        'ja' => '日本語',
+        'zh' => '中文',
+        'vi' => 'Tiếng Việt',
+        'ar' => 'العربية',
+    ];
+
+    public function generateLocaleQR(Request $request, Product $product)
+    {
+        $request->validate([
+            'locales' => 'required|array|min:1',
+            'locales.*' => 'string|in:ko,en,ja,zh,vi,ar',
+        ]);
+
+        $baseUrl = config('app.url');
+        $results = [];
+
+        foreach ($request->input('locales') as $locale) {
+            $path = $this->qrGeneratorService->generateForLocale($product, $locale);
+            $embeddedUrl = $locale === 'ko'
+                ? "{$baseUrl}/p/{$product->code}"
+                : "{$baseUrl}/{$locale}/p/{$product->code}";
+
+            $results[] = [
+                'locale' => $locale,
+                'label' => self::LOCALE_LABELS[$locale] ?? $locale,
+                'url' => asset('storage/' . $path),
+                'path' => $path,
+                'embedded_url' => $embeddedUrl,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'results' => $results,
+        ]);
+    }
+
+    public function localeQrStatus(Product $product)
+    {
+        $baseUrl = config('app.url');
+        $results = [];
+
+        foreach (self::LOCALE_LABELS as $locale => $label) {
+            $path = "qrcodes/{$product->code}_{$locale}.png";
+            if (Storage::disk('public')->exists($path)) {
+                $embeddedUrl = $locale === 'ko'
+                    ? "{$baseUrl}/p/{$product->code}"
+                    : "{$baseUrl}/{$locale}/p/{$product->code}";
+
+                $results[] = [
+                    'locale' => $locale,
+                    'label' => $label,
+                    'url' => asset('storage/' . $path),
+                    'path' => $path,
+                    'embedded_url' => $embeddedUrl,
+                ];
+            }
+        }
+
+        return response()->json(['results' => $results]);
+    }
 }
