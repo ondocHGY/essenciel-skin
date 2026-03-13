@@ -237,7 +237,7 @@ def keep_alive_cookies():
     """Playwright로 모든 쿠키 기반 플랫폼 세션 유지
 
     하나의 브라우저 인스턴스에서 플랫폼별로 컨텍스트를 생성하여
-    쿠키 로드 → 페이지 접속 → 갱신된 쿠키 저장.
+    쿠키 로드 → 여러 페이지 순회 접속 → 갱신된 쿠키 저장.
     무신사는 SSO API 로그인이라 keep-alive 불필요.
     """
     from playwright.sync_api import sync_playwright
@@ -248,9 +248,9 @@ def keep_alive_cookies():
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
 
-            for platform, url in settings.KEEP_ALIVE_URLS.items():
+            for platform, urls in settings.KEEP_ALIVE_URLS.items():
                 try:
-                    _keep_alive_platform(browser, platform, url)
+                    _keep_alive_platform(browser, platform, urls)
                 except Exception as e:
                     logger.error(f"[{platform}] keep-alive 오류: {e}")
 
@@ -261,8 +261,8 @@ def keep_alive_cookies():
     logger.info("=== 쿠키 keep-alive 완료 ===")
 
 
-def _keep_alive_platform(browser, platform: str, url: str):
-    """Playwright 컨텍스트로 플랫폼별 쿠키 갱신"""
+def _keep_alive_platform(browser, platform: str, urls: list):
+    """Playwright 컨텍스트로 플랫폼별 쿠키 갱신 (여러 URL 순회)"""
     cookie_path = settings.COOKIE_PATHS.get(platform)
     if not cookie_path or not os.path.exists(cookie_path):
         logger.debug(f"[{platform}] 쿠키 파일 없음, 스킵")
@@ -291,7 +291,7 @@ def _keep_alive_platform(browser, platform: str, url: str):
             pc['sameSite'] = same_site
         pw_cookies.append(pc)
 
-    # 브라우저 컨텍스트 생성 → 쿠키 주입 → 페이지 접속
+    # 브라우저 컨텍스트 생성 → 쿠키 주입 → 여러 페이지 순회
     context = browser.new_context(
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                    '(KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
@@ -300,19 +300,25 @@ def _keep_alive_platform(browser, platform: str, url: str):
     context.add_cookies(pw_cookies)
 
     page = context.new_page()
-    page.goto(url, wait_until='domcontentloaded', timeout=30000)
-    page.wait_for_timeout(5000)  # SPA 로드 대기
-
-    # 로그인 페이지 리다이렉트 확인
     login_patterns = settings.KEEP_ALIVE_LOGIN_PATTERNS.get(platform, [])
-    is_expired = any(pat.lower() in page.url.lower() for pat in login_patterns)
 
-    if is_expired:
-        logger.warning(f"[{platform}] 세션 만료됨 (URL: {page.url[:100]})")
-        context.close()
-        return
+    for i, url in enumerate(urls):
+        try:
+            page.goto(url, wait_until='domcontentloaded', timeout=30000)
+            page.wait_for_timeout(3000)
 
-    logger.info(f"[{platform}] 세션 유효")
+            # 첫 번째 URL에서 로그인 리다이렉트 감지 → 세션 만료
+            is_expired = any(pat.lower() in page.url.lower() for pat in login_patterns)
+            if is_expired:
+                logger.warning(f"[{platform}] 세션 만료됨 (URL: {page.url[:100]})")
+                context.close()
+                return
+
+            logger.info(f"[{platform}] URL {i+1}/{len(urls)} 접속 OK: {url[:80]}")
+        except Exception as e:
+            logger.warning(f"[{platform}] URL {i+1}/{len(urls)} 접속 실패: {url[:80]} - {e}")
+
+    logger.info(f"[{platform}] 세션 유효 ({len(urls)}개 URL 순회 완료)")
 
     # Playwright → Selenium 포맷으로 갱신된 쿠키 저장
     new_cookies = context.cookies()
