@@ -37,7 +37,7 @@ services:
       - COOKIE_PATH=/app/data/qsm_cookies.json
 
       # 스케줄러 설정
-      - SYNC_ENABLED=${SYNC_ENABLED:-true}
+      - SYNC_ENABLED=${SYNC_ENABLED:-false}
       - SYNC_HOURS=${SYNC_HOURS:-4,16}
       - SYNC_MINUTE=${SYNC_MINUTE:-0}
 
@@ -79,17 +79,19 @@ services:
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__WEBSERVER__SECRET_KEY: 'your-secret-key-here'
-      _AIRFLOW_DB_MIGRATE: 'true'
-      _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: admin
-      _AIRFLOW_WWW_USER_PASSWORD: admin
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'db2514eb163e82a0d6608c81bb7f934bb06414f790c0478b2e575f5a0301533d'
     volumes:
       - ./dags:/opt/airflow/dags
-      - ./logs:/opt/airflow/logs
+      - airflow-logs:/opt/airflow/logs
     ports:
       - "8080:8080"
-    command: bash -c "airflow db migrate && airflow webserver"
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create --username admin --password admin
+          --firstname Admin --lastname User --role Admin --email admin@essenciel.co.kr || true &&
+        airflow webserver
+      "
     restart: unless-stopped
     networks:
       - review-network
@@ -105,7 +107,7 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
     volumes:
       - ./dags:/opt/airflow/dags
-      - ./logs:/opt/airflow/logs
+      - airflow-logs:/opt/airflow/logs
     command: airflow scheduler
     restart: unless-stopped
     networks:
@@ -117,3 +119,4 @@ networks:
 
 volumes:
   postgres-db:
+  airflow-logs:
