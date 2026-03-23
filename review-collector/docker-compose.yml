@@ -45,11 +45,10 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
 
     volumes:
-      # 데이터 영속성 (쿠키, 다운로드 파일)
       - ./data:/app/data
       - ./downloads:/tmp/review_downloads
 
-    shm_size: '2gb'  # Chrome 공유 메모리
+    shm_size: '2gb'
 
     logging:
       driver: "json-file"
@@ -59,10 +58,62 @@ services:
 
     networks:
       - review-network
-      - laradock_backend
+
+  postgres:
+    image: postgres:13
+    container_name: airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    networks:
+      - review-network
+
+  airflow-webserver:
+    image: apache/airflow:2.8.1
+    container_name: airflow-webserver
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'your-secret-key-here'
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: bash -c "airflow db migrate && airflow webserver"
+    restart: unless-stopped
+    networks:
+      - review-network
+
+  airflow-scheduler:
+    image: apache/airflow:2.8.1
+    container_name: airflow-scheduler
+    depends_on:
+      - postgres
+      - airflow-webserver
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+    command: airflow scheduler
+    restart: unless-stopped
+    networks:
+      - review-network
 
 networks:
   review-network:
     driver: bridge
-  laradock_backend:
-    external: true
+
+volumes:
+  postgres-db:
