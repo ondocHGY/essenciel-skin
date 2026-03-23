@@ -37,6 +37,8 @@ class MusinsaScraper(BaseScraper):
     def __init__(self):
         self.session = None
 
+    REQUEST_TIMEOUT = 30  # HTTP 요청 타임아웃 (초)
+
     def start(self):
         self.session = requests.Session()
         self.session.headers.update({
@@ -86,7 +88,7 @@ class MusinsaScraper(BaseScraper):
                 "clientId": "MUSINSA_PARTNER",
                 "platform": "mss",
                 "redirectUri": "https://partner.musinsa.com",
-            })
+            }, timeout=self.REQUEST_TIMEOUT)
 
             if resp.status_code != 200:
                 logger.error(f"비밀번호 로그인 실패: HTTP {resp.status_code} - {resp.text[:200]}")
@@ -113,7 +115,7 @@ class MusinsaScraper(BaseScraper):
                 "platform": "mss",
                 "clientId": "MUSINSA_PARTNER",
                 "redirectUri": "https://partner.musinsa.com",
-            })
+            }, timeout=self.REQUEST_TIMEOUT)
 
             if resp.status_code != 200:
                 logger.error(f"OTP 인증 실패: HTTP {resp.status_code} - {resp.text[:200]}")
@@ -135,7 +137,7 @@ class MusinsaScraper(BaseScraper):
 
             # Step 3: bizest 리뷰 페이지 접속 → PHPSESSID 획득
             logger.info("Step 3: bizest 리뷰 페이지 접속...")
-            resp = self.session.get(REVIEW_PAGE_URL, allow_redirects=True)
+            resp = self.session.get(REVIEW_PAGE_URL, allow_redirects=True, timeout=self.REQUEST_TIMEOUT)
 
             if resp.status_code != 200:
                 logger.error(f"리뷰 페이지 접속 실패: {resp.status_code}")
@@ -159,7 +161,7 @@ class MusinsaScraper(BaseScraper):
             "LIMIT": str(page_size),
             "PAGE_CNT": "10",
             "MENU_ID": "/po/csm/csm07",
-        })
+        }, timeout=self.REQUEST_TIMEOUT)
         resp.raise_for_status()
         return resp.json()
 

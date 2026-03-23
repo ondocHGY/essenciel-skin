@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     SYNC_HOURS: str = "4,16"  # 실행 시각 (쉼표 구분, 예: "4,16" → 오전4시, 오후4시)
     SYNC_MINUTE: int = 0
     SYNC_DAYS: int = 30  # 리뷰 수집 기간 제한 (일)
+    SYNC_TIMEOUT_SECONDS: int = 300  # 플랫폼별 동기화 타임아웃 (초)
     KEEP_ALIVE_INTERVAL_HOURS: int = 2  # 쿠키 keep-alive 간격 (시간)
 
     # 로깅

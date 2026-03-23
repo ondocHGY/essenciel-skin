@@ -4,6 +4,7 @@ import os
 import json
 import logging
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
@@ -18,6 +19,23 @@ logger = logging.getLogger(__name__)
 scheduler: BackgroundScheduler = None
 
 
+def _sync_platform_with_timeout(platform: str, db, trigger_type='scheduled'):
+    """플랫폼 동기화를 별도 스레드에서 타임아웃 적용하여 실행"""
+    timeout = settings.SYNC_TIMEOUT_SECONDS
+
+    def _run():
+        sync_platform(platform, db, trigger_type=trigger_type)
+
+    try:
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_run)
+            future.result(timeout=timeout)
+    except FuturesTimeoutError:
+        logger.error(f"[{platform}] 동기화 타임아웃 ({timeout}초 초과) - 강제 스킵")
+    except Exception as e:
+        logger.error(f"[{platform}] 동기화 실패: {e}")
+
+
 def sync_all_platforms():
     """모든 지원 플랫폼 동기화"""
     logger.info("=== 스케줄된 동기화 시작 ===")
@@ -28,10 +46,7 @@ def sync_all_platforms():
     db = SessionLocal()
     try:
         for platform in platforms:
-            try:
-                sync_platform(platform, db, trigger_type='scheduled')
-            except Exception as e:
-                logger.error(f"[{platform}] 동기화 실패: {e}")
+            _sync_platform_with_timeout(platform, db, trigger_type='scheduled')
 
     finally:
         db.close()
