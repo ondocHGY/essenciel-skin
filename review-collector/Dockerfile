@@ -40,13 +40,12 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# chromedriver 설치 (Chrome 버전에 맞는 chromedriver를 미리 설치하여 undetected_chromedriver 런타임 다운로드 문제 방지)
-RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') \
-    && echo "Chrome version: $CHROME_VERSION" \
-    && CHROME_MAJOR=$(echo $CHROME_VERSION | cut -d. -f1) \
-    && DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip" \
-    && echo "Downloading chromedriver from: $DRIVER_URL" \
-    && wget -q -O /tmp/chromedriver.zip "$DRIVER_URL" \
+# chromedriver 설치 (Chrome for Testing API에서 정확한 버전 URL 조회)
+RUN CHROME_MAJOR=$(google-chrome --version | grep -oP '\d+' | head -1) \
+    && echo "Chrome major version: $CHROME_MAJOR" \
+    && DRIVER_URL=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_MAJOR}") \
+    && echo "Latest chromedriver for Chrome $CHROME_MAJOR: $DRIVER_URL" \
+    && wget -q -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/${DRIVER_URL}/linux64/chromedriver-linux64.zip" \
     && unzip -o /tmp/chromedriver.zip -d /tmp/ \
     && mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver \
     && chmod +x /usr/local/bin/chromedriver \
