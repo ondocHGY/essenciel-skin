@@ -32,7 +32,7 @@ services:
 
       # Chrome 설정
       - CHROME_HEADLESS=true
-      - CHROME_VERSION=${CHROME_VERSION:-144}
+      - CHROME_VERSION=${CHROME_VERSION:-0}
       - DOWNLOAD_PATH=/tmp/review_downloads
       - COOKIE_PATH=/app/data/qsm_cookies.json
 
@@ -105,6 +105,7 @@ services:
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'db2514eb163e82a0d6608c81bb7f934bb06414f790c0478b2e575f5a0301533d'
     volumes:
       - ./dags:/opt/airflow/dags
       - airflow-logs:/opt/airflow/logs

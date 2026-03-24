@@ -83,12 +83,14 @@ class NaverScraper(BaseScraper):
         """브라우저 시작"""
         options = self._get_chrome_options()
         driver_path = "/usr/local/bin/chromedriver"
-        self.driver = uc.Chrome(
+        chrome_kwargs = dict(
             options=options,
             headless=settings.CHROME_HEADLESS,
             driver_executable_path=driver_path if os.path.exists(driver_path) else None,
-            version_main=settings.CHROME_VERSION,
         )
+        if settings.CHROME_VERSION:
+            chrome_kwargs['version_main'] = settings.CHROME_VERSION
+        self.driver = uc.Chrome(**chrome_kwargs)
         self.driver.implicitly_wait(10)
         logger.info(f"Chrome 브라우저 시작 (headless={settings.CHROME_HEADLESS})")
 

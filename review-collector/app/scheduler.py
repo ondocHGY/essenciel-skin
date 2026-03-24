@@ -309,7 +309,7 @@ def _keep_alive_platform(browser, platform: str, urls: list):
     # 브라우저 컨텍스트 생성 → 쿠키 주입 → 여러 페이지 순회
     context = browser.new_context(
         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                   '(KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
+                   '(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         locale='ko-KR',
     )
     context.add_cookies(pw_cookies)

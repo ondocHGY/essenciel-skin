@@ -31,12 +31,12 @@ class Settings(BaseSettings):
 
     # Chrome/Selenium 설정
     CHROME_HEADLESS: bool = True
-    CHROME_VERSION: int = 144
+    CHROME_VERSION: int = 0  # 0이면 자동 감지
     DOWNLOAD_PATH: str = "/tmp/review_downloads"
     COOKIE_PATH: str = "/app/data/qsm_cookies.json"
 
     # 스케줄러 설정
-    SYNC_ENABLED: bool = True
+    SYNC_ENABLED: bool = False  # Airflow 사용 시 False (이중 실행 방지)
     SYNC_HOURS: str = "4,16"  # 실행 시각 (쉼표 구분, 예: "4,16" → 오전4시, 오후4시)
     SYNC_MINUTE: int = 0
     SYNC_DAYS: int = 30  # 리뷰 수집 기간 제한 (일)

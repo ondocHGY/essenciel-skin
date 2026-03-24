@@ -87,13 +87,15 @@ class Qoo10Scraper(BaseScraper):
         options = self._get_chrome_options()
         # 시스템에 설치된 chromedriver 사용 (Dockerfile에서 미리 설치)
         driver_path = "/usr/local/bin/chromedriver"
-        self.driver = uc.Chrome(
+        chrome_kwargs = dict(
             options=options,
             headless=False,  # reCAPTCHA v2는 headless 감지 → Xvfb로 대체
             use_subprocess=True,
             driver_executable_path=driver_path if os.path.exists(driver_path) else None,
-            version_main=settings.CHROME_VERSION
         )
+        if settings.CHROME_VERSION:
+            chrome_kwargs['version_main'] = settings.CHROME_VERSION
+        self.driver = uc.Chrome(**chrome_kwargs)
         self.driver.implicitly_wait(10)
         logger.info("Chrome 브라우저 시작 (headless=False + Xvfb)")
 

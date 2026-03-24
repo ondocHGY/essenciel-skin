@@ -168,7 +168,7 @@ def sync_platform_reviews(
         raise HTTPException(status_code=400, detail=f"지원하지 않는 플랫폼: {platform}")
 
     try:
-        return _sync_platform(platform, db, trigger_type='manual')
+        return _sync_platform(platform, db, trigger_type='api')
     except HTTPException:
         raise
     except Exception as e:
@@ -300,6 +300,17 @@ def get_sync_log_stats(db: Session = Depends(get_db)):
 
 # ============== Cookie Management ==============
 
+@app.post("/api/cookies/keep-alive")
+def trigger_keep_alive():
+    """쿠키 keep-alive 수동 실행"""
+    try:
+        keep_alive_cookies()
+        return {"success": True, "message": "keep-alive 완료"}
+    except Exception as e:
+        logger.error(f"keep-alive 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/cookies", response_model=List[CookieStatus])
 def get_cookie_status():
     """플랫폼별 쿠키 상태 조회"""
@@ -380,18 +391,6 @@ def delete_cookie(platform: str):
         logger.error(f"쿠키 삭제 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# ============== Keep-Alive ==============
-
-@app.post("/api/cookies/keep-alive")
-def trigger_keep_alive():
-    """쿠키 keep-alive 수동 실행"""
-    try:
-        keep_alive_cookies()
-        return {"success": True, "message": "keep-alive 완료"}
-    except Exception as e:
-        logger.error(f"keep-alive 오류: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============== 내부 함수 ==============
