@@ -40,6 +40,19 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
+# chromedriver 설치 (Chrome 버전에 맞는 chromedriver를 미리 설치하여 undetected_chromedriver 런타임 다운로드 문제 방지)
+RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') \
+    && echo "Chrome version: $CHROME_VERSION" \
+    && CHROME_MAJOR=$(echo $CHROME_VERSION | cut -d. -f1) \
+    && DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip" \
+    && echo "Downloading chromedriver from: $DRIVER_URL" \
+    && wget -q -O /tmp/chromedriver.zip "$DRIVER_URL" \
+    && unzip -o /tmp/chromedriver.zip -d /tmp/ \
+    && mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver \
+    && chmod +x /usr/local/bin/chromedriver \
+    && rm -rf /tmp/chromedriver.zip /tmp/chromedriver-linux64 \
+    && echo "Chromedriver installed: $(chromedriver --version)"
+
 # 작업 디렉토리
 WORKDIR /app
 

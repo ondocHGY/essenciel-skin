@@ -85,10 +85,13 @@ class Qoo10Scraper(BaseScraper):
             logger.info("가상 디스플레이(Xvfb) 시작")
 
         options = self._get_chrome_options()
+        # 시스템에 설치된 chromedriver 사용 (Dockerfile에서 미리 설치)
+        driver_path = "/usr/local/bin/chromedriver"
         self.driver = uc.Chrome(
             options=options,
             headless=False,  # reCAPTCHA v2는 headless 감지 → Xvfb로 대체
             use_subprocess=True,
+            driver_executable_path=driver_path if os.path.exists(driver_path) else None,
             version_main=settings.CHROME_VERSION
         )
         self.driver.implicitly_wait(10)
