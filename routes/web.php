@@ -106,6 +106,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // 스크래퍼 관리
         Route::get('/scraper', [AdminScraperController::class, 'index'])->name('scraper.index');
         Route::post('/scraper/sync', [AdminScraperController::class, 'sync'])->name('scraper.sync');
+        Route::post('/scraper/cookies/keep-alive/{platform}', [AdminScraperController::class, 'keepAliveCookie'])->name('scraper.keep-alive-cookie');
         Route::post('/scraper/cookies/{platform}', [AdminScraperController::class, 'uploadCookie'])->name('scraper.upload-cookie');
         Route::delete('/scraper/cookies/{platform}', [AdminScraperController::class, 'deleteCookie'])->name('scraper.delete-cookie');
         Route::post('/scraper/sources', [AdminScraperController::class, 'storeSource'])->name('scraper.store-source');

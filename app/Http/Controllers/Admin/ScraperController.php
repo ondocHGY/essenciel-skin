@@ -206,6 +206,30 @@ class ScraperController extends Controller
     }
 
     /**
+     * 쿠키 keep-alive (세션 갱신)
+     */
+    public function keepAliveCookie(string $platform)
+    {
+        try {
+            $response = Http::timeout(120)
+                ->post($this->apiUrl() . "/api/cookies/keep-alive/{$platform}");
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $message = $data['message'] ?? 'keep-alive 완료';
+                return back()->with('success', "[{$platform}] {$message}");
+            }
+
+            $error = $response->json('detail') ?? $response->body();
+            return back()->with('error', "[{$platform}] keep-alive 실패: {$error}");
+
+        } catch (\Exception $e) {
+            Log::error("keep-alive 실패 ({$platform}): " . $e->getMessage());
+            return back()->with('error', "[{$platform}] keep-alive 실패: " . $e->getMessage());
+        }
+    }
+
+    /**
      * 쿠키 파일 삭제
      */
     public function deleteCookie(string $platform)

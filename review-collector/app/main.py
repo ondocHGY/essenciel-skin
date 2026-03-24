@@ -18,7 +18,7 @@ from app.models import (
     ReviewResponse, SyncResult, SyncRequest, SyncLogResponse, CookieStatus
 )
 from app.scrapers import get_scraper, get_supported_platforms
-from app.scheduler import start_scheduler, stop_scheduler, save_reviews, keep_alive_cookies
+from app.scheduler import start_scheduler, stop_scheduler, save_reviews, keep_alive_cookies, keep_alive_platform
 from app.parsers import UPLOAD_PARSERS, get_upload_platforms
 
 # 로깅 설정
@@ -302,13 +302,27 @@ def get_sync_log_stats(db: Session = Depends(get_db)):
 
 @app.post("/api/cookies/keep-alive")
 def trigger_keep_alive():
-    """쿠키 keep-alive 수동 실행"""
+    """쿠키 keep-alive 전체 실행"""
     try:
-        keep_alive_cookies()
-        return {"success": True, "message": "keep-alive 완료"}
+        results = keep_alive_cookies()
+        return {"success": True, "message": "keep-alive 완료", "results": results}
     except Exception as e:
         logger.error(f"keep-alive 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/cookies/keep-alive/{platform}")
+def trigger_keep_alive_platform(platform: str):
+    """플랫폼별 쿠키 keep-alive 실행"""
+    if platform not in settings.KEEP_ALIVE_URLS:
+        raise HTTPException(status_code=400, detail=f"keep-alive 미지원 플랫폼: {platform}. 지원: {list(settings.KEEP_ALIVE_URLS.keys())}")
+
+    result = keep_alive_platform(platform)
+
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=result.get("message", "keep-alive 실패"))
+
+    return result
 
 
 @app.get("/api/cookies", response_model=List[CookieStatus])

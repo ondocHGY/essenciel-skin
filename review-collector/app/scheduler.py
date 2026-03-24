@@ -249,39 +249,44 @@ def save_reviews(platform: str, reviews: list, db) -> tuple:
 
 
 def keep_alive_cookies():
-    """Playwright로 모든 쿠키 기반 플랫폼 세션 유지
+    """Playwright로 모든 쿠키 기반 플랫폼 세션 유지 (전체)"""
+    results = {}
+    for platform in settings.KEEP_ALIVE_URLS:
+        results[platform] = keep_alive_platform(platform)
+    return results
 
-    하나의 브라우저 인스턴스에서 플랫폼별로 컨텍스트를 생성하여
-    쿠키 로드 → 여러 페이지 순회 접속 → 갱신된 쿠키 저장.
-    무신사는 SSO API 로그인이라 keep-alive 불필요.
-    """
+
+def keep_alive_platform(platform: str) -> dict:
+    """단일 플랫폼 쿠키 keep-alive. 결과 dict 반환."""
     from playwright.sync_api import sync_playwright
 
-    logger.info("=== 쿠키 keep-alive 시작 (Playwright) ===")
+    urls = settings.KEEP_ALIVE_URLS.get(platform)
+    if not urls:
+        return {"success": False, "platform": platform, "message": f"keep-alive 미지원 플랫폼: {platform}"}
+
+    cookie_path = settings.COOKIE_PATHS.get(platform)
+    if not cookie_path or not os.path.exists(cookie_path):
+        return {"success": False, "platform": platform, "message": "쿠키 파일 없음"}
+
+    logger.info(f"[{platform}] keep-alive 시작")
 
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
-
-            for platform, urls in settings.KEEP_ALIVE_URLS.items():
-                try:
-                    _keep_alive_platform(browser, platform, urls)
-                except Exception as e:
-                    logger.error(f"[{platform}] keep-alive 오류: {e}")
-
+            result = _keep_alive_platform(browser, platform, urls)
             browser.close()
+
+        logger.info(f"[{platform}] keep-alive 완료")
+        return {"success": True, "platform": platform, **result}
+
     except Exception as e:
-        logger.error(f"Playwright 브라우저 시작 실패: {e}")
+        logger.error(f"[{platform}] keep-alive 오류: {e}")
+        return {"success": False, "platform": platform, "message": str(e)}
 
-    logger.info("=== 쿠키 keep-alive 완료 ===")
 
-
-def _keep_alive_platform(browser, platform: str, urls: list):
-    """Playwright 컨텍스트로 플랫폼별 쿠키 갱신 (여러 URL 순회)"""
+def _keep_alive_platform(browser, platform: str, urls: list) -> dict:
+    """Playwright 컨텍스트로 플랫폼별 쿠키 갱신 (여러 URL 순회). 결과 dict 반환."""
     cookie_path = settings.COOKIE_PATHS.get(platform)
-    if not cookie_path or not os.path.exists(cookie_path):
-        logger.debug(f"[{platform}] 쿠키 파일 없음, 스킵")
-        return
 
     # Selenium 포맷 쿠키 로드
     with open(cookie_path, 'r') as f:
@@ -327,7 +332,7 @@ def _keep_alive_platform(browser, platform: str, urls: list):
             if is_expired:
                 logger.warning(f"[{platform}] 세션 만료됨 (URL: {page.url[:100]})")
                 context.close()
-                return
+                raise Exception(f"세션 만료됨 (리다이렉트: {page.url[:100]})")
 
             logger.info(f"[{platform}] URL {i+1}/{len(urls)} 접속 OK: {url[:80]}")
         except Exception as e:
@@ -358,6 +363,8 @@ def _keep_alive_platform(browser, platform: str, urls: list):
     logger.info(f"[{platform}] 쿠키 갱신 저장: {len(sel_cookies)}개")
 
     context.close()
+
+    return {"message": f"세션 유효, 쿠키 {len(sel_cookies)}개 갱신", "cookies_count": len(sel_cookies)}
 
 
 def start_scheduler():

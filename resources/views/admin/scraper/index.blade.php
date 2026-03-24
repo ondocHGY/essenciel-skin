@@ -357,8 +357,18 @@
                                 </div>
                             </form>
 
-                            {{-- 삭제 버튼 --}}
                             @if($cookie['exists'])
+                                {{-- Keep-Alive 버튼 (무신사는 SSO라 불필요) --}}
+                                @if($cookie['platform'] !== 'musinsa')
+                                    <form method="POST" action="{{ route('admin.scraper.keep-alive-cookie', $cookie['platform']) }}">
+                                        @csrf
+                                        <x-button type="submit" variant="outline" size="xs">
+                                            세션 갱신
+                                        </x-button>
+                                    </form>
+                                @endif
+
+                                {{-- 삭제 버튼 --}}
                                 <form method="POST" action="{{ route('admin.scraper.delete-cookie', $cookie['platform']) }}"
                                       onsubmit="return confirm('정말 삭제하시겠습니까? 삭제 후 해당 플랫폼의 리뷰 수집이 불가능합니다.')">
                                     @csrf

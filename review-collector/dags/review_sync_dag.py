@@ -5,6 +5,7 @@ import requests
 
 BASE_URL = "http://review-collector:8000"
 PLATFORMS = ["qoo10", "naver", "musinsa", "shopee"]
+KEEP_ALIVE_PLATFORMS = ["qoo10", "naver", "shopee"]
 
 default_args = {
     'owner': 'airflow',
@@ -34,17 +35,17 @@ def sync_platform(platform: str):
     return result
 
 
-def trigger_keep_alive():
-    """쿠키 keep-alive API 호출"""
+def trigger_keep_alive(platform: str):
+    """플랫폼별 쿠키 keep-alive API 호출"""
     response = requests.post(
-        f"{BASE_URL}/api/cookies/keep-alive",
+        f"{BASE_URL}/api/cookies/keep-alive/{platform}",
         timeout=120,
     )
-    print(f"[keep-alive] Status: {response.status_code}")
-    print(f"[keep-alive] Response: {response.text}")
+    print(f"[keep-alive:{platform}] Status: {response.status_code}")
+    print(f"[keep-alive:{platform}] Response: {response.text}")
 
     if response.status_code != 200:
-        raise Exception(f"[keep-alive] API 호출 실패: {response.status_code}")
+        raise Exception(f"[keep-alive:{platform}] 실패: {response.status_code} - {response.text}")
 
     return response.json()
 
@@ -83,7 +84,9 @@ with DAG(
     tags=['review', 'cookie'],
 ) as keep_alive_dag:
 
-    PythonOperator(
-        task_id='keep_alive',
-        python_callable=trigger_keep_alive,
-    )
+    for platform in KEEP_ALIVE_PLATFORMS:
+        PythonOperator(
+            task_id=f'keep_alive_{platform}',
+            python_callable=trigger_keep_alive,
+            op_args=[platform],
+        )
