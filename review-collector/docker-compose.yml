@@ -92,6 +92,8 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: 'db2514eb163e82a0d6608c81bb7f934bb06414f790c0478b2e575f5a0301533d'
       # ── 리소스 절약 ──
       AIRFLOW__WEBSERVER__WORKERS: "1"
+      AIRFLOW__WEBSERVER__WEB_SERVER_MASTER_TIMEOUT: "300"
+      AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT: "300"
       AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: "300"
       AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: "600"
       AIRFLOW__CORE__PARALLELISM: "4"
@@ -112,7 +114,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 768M
     restart: unless-stopped
     networks:
       - review-network
