@@ -105,8 +105,7 @@ services:
     command: >
       bash -c "
         airflow db migrate &&
-        airflow users create --username admin --password admin
-          --firstname Admin --lastname User --role Admin --email admin@essenciel.co.kr || true &&
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@essenciel.co.kr || true &&
         airflow scheduler &
         airflow webserver
       "
