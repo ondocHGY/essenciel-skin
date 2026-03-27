@@ -11,6 +11,7 @@ default_args = {
     'owner': 'airflow',
     'retries': 2,
     'retry_delay': timedelta(minutes=5),
+    'execution_timeout': timedelta(minutes=15),
 }
 
 
@@ -58,6 +59,7 @@ with DAG(
     schedule='0 4,16 * * *',
     start_date=datetime(2026, 3, 23),
     catchup=False,
+    dagrun_timeout=timedelta(minutes=30),
     tags=['review', 'sync'],
 ) as sync_dag:
 
@@ -76,11 +78,13 @@ with DAG(
         'owner': 'airflow',
         'retries': 1,
         'retry_delay': timedelta(minutes=3),
+        'execution_timeout': timedelta(minutes=5),
     },
     description='쿠키 세션 유지',
     schedule='0 */2 * * *',
     start_date=datetime(2026, 3, 23),
     catchup=False,
+    dagrun_timeout=timedelta(minutes=15),
     tags=['review', 'cookie'],
 ) as keep_alive_dag:
 
