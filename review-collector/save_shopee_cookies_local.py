@@ -29,6 +29,7 @@ def main():
         options=options,
         headless=False,
         use_subprocess=True,
+        version_main=146,
     )
 
     try:

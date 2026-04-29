@@ -135,7 +135,7 @@ class ScraperController extends Controller
             }
 
             $response = Http::asJson()->timeout(600)
-                ->post($this->apiUrl() . '/api/reviews/sync', $body);
+                ->post($this->apiUrl() . '/api/reviews/sync', $body ?: new \stdClass());
 
             if ($response->successful()) {
                 $data = $response->json();
